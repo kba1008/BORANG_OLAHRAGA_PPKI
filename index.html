@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pengurusan Sijil AI</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #e9ecef; margin: 0; padding: 20px; }
+        .screen { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        .active-screen { display: block; }
+        
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #007bff; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #cccccc; cursor: not-allowed; }
+        
+        .btn-primary { background: #007bff; }
+        .btn-success { background: #28a745; }
+        .btn-secondary { background: #6c757d; }
+        .btn-danger { background: #dc3545; }
+        .btn-warning { background: #ffc107; color: black; }
+        
+        /* Scanner UI */
+        #scannerScreen { max-width: 900px; }
+        video, canvas { max-width: 100%; border: 2px solid #333; border-radius: 8px; margin-bottom: 10px; background-color: #000; }
+        canvas { display: none; }
+        .btn-group { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top:10px; }
+        .btn-group button { width: auto; }
+        #status { margin-bottom: 15px; font-weight: bold; color: #d9534f; padding: 10px; background: #fff; border-radius: 5px; border: 1px solid #ddd; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+
+    <h2>Sistem Pengurusan Sijil AI</h2>
+
+    <!-- SKRIN 1: LOG MASUK -->
+    <div id="loginScreen" class="screen active-screen">
+        <h3>Log Masuk Guru / Admin</h3>
+        <input type="text" id="loginEmail" placeholder="Email" required>
+        <input type="password" id="loginPassword" placeholder="Kata Laluan" required>
+        <button onclick="login()">Log Masuk</button>
+    </div>
+
+    <!-- SKRIN 2: DASHBOARD GURU -->
+    <div id="dashboardScreen" class="screen" style="max-width: 700px;">
+        <h3>Dashboard Guru</h3>
+        <div class="btn-group">
+            <button class="btn-success" onclick="switchScreen('scannerScreen'); startCamera();">➕ Scan Sijil Baru</button>
+            <button class="btn-warning" onclick="alert('Fungsi ini akan menggabungkan semua sijil di bawah ke dalam satu PDF')">📚 Muat Turun Semua (PDF)</button>
+        </div>
+        
+        <h4 style="text-align:left; margin-top:30px;">Senarai Sijil Terkini</h4>
+        <table>
+            <thead><tr><th>Nama Pelajar</th><th>Nama Sijil</th><th>Tindakan</th></tr></thead>
+            <tbody id="certTableBody">
+                <tr><td>Ahmad Ali</td><td>Sijil Kokurikulum 2026</td><td><button class="btn-secondary" style="padding:5px;">Lihat/Edit PDF</button></td></tr>
+            </tbody>
+        </table>
+        <button class="btn-danger" style="margin-top: 20px;" onclick="logout()">Log Keluar</button>
+    </div>
+
+    <!-- SKRIN 3: PENGIMBAS (SCANNER, OCR & JANA PDF) -->
+    <div id="scannerScreen" class="screen">
+        <div id="status">⏳ Sedang memuat AI... Sila tunggu.</div>
+        
+        <input type="text" id="studentName" placeholder="Masukkan Nama Pelajar (Cth: Ahmad Ali)">
+        <input type="text" id="certName" placeholder="Nama Sijil (Cth: Sijil Penyertaan Catur)">
+
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+
+        <div class="btn-group">
+            <!-- Langkah 1 & 2 -->
+            <button id="btnCapture" disabled>📸 Imbas & Ratakan</button>
+            <button id="btnFilter" class="btn-success" style="display:none;">✨ Buang Bayang (B&W)</button>
+            
+            <!-- Langkah 3 (Pilihan Guru) -->
+            <button id="btnPdfBasic" class="btn-primary" style="display:none;" onclick="generateAndSavePDF(false)">📄 Simpan PDF (Biasa)</button>
+            <button id="btnPdfOcr" class="btn-warning" style="display:none;" onclick="generateAndSavePDF(true)">📝 Simpan PDF + Teks (OCR)</button>
+            
+            <!-- Batal -->
+            <button id="btnRetake" class="btn-secondary" style="display:none;" onclick="resetScanner()">🔄 Batal</button>
+        </div>
+    </div>
+
+    <!-- Scripts: OpenCV (Crop AI), Tesseract (OCR AI), jsPDF (PDF Maker) -->
+    <script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvReady();"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.getElementById(screenId).classList.add('active-screen');
+        }
+
+        function login() {
+            switchScreen('dashboardScreen');
+        }
+
+        function logout() {
+            stopCamera();
+            switchScreen('loginScreen');
+        }
+
+        // ==========================================
+        // SISTEM KAMERA & AI OPENCV
+        // ==========================================
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        
+        const btnCapture = document.getElementById('btnCapture');
+        const btnFilter = document.getElementById('btnFilter');
+        const btnPdfBasic = document.getElementById('btnPdfBasic');
+        const btnPdfOcr = document.getElementById('btnPdfOcr');
+        const btnRetake = document.getElementById('btnRetake');
+        const statusText = document.getElementById('status');
+        let opencvReady = false;
+        let localStream = null;
+
+        function onOpenCvReady() {
+            opencvReady = true;
+            statusText.innerText = "✅ AI Bersedia! Halakan kamera pada sijil.";
+            statusText.style.color = "#28a745";
+            btnCapture.disabled = false;
+        }
+
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } })
+                .then(stream => { localStream = stream; video.srcObject = stream; })
+                .catch(err => { alert("Gagal akses kamera."); });
+        }
+
+        function stopCamera() {
+            if(localStream) localStream.getTracks().forEach(track => track.stop());
+        }
+
+        function resetScanner() {
+            video.style.display = 'block';
+            canvas.style.display = 'none';
+            btnCapture.style.display = 'inline-block';
+            btnFilter.style.display = 'none';
+            btnPdfBasic.style.display = 'none';
+            btnPdfOcr.style.display = 'none';
+            btnRetake.style.display = 'none';
+            statusText.innerText = "✅ AI Bersedia! Halakan kamera pada sijil.";
+            statusText.style.color = "#28a745";
+        }
+
+        // 1. CROP & RATAKAN PERSPEKTIF
+        btnCapture.addEventListener('click', () => {
+            if (!opencvReady) return;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            video.style.display = 'none';
+            canvas.style.display = 'block';
+            btnCapture.style.display = 'none';
+            btnRetake.style.display = 'inline-block';
+            statusText.innerText = "🔄 Mengira sudut 3D dan meratakan imej...";
+            setTimeout(detectAndWarpDocument, 100); 
+        });
+
+        function detectAndWarpDocument() {
+            try {
+                let src = cv.imread('canvas'); 
+                let dst = new cv.Mat();
+                cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0);
+                cv.GaussianBlur(dst, dst, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT);
+                cv.Canny(dst, dst, 75, 200);
+                
+                let contours = new cv.MatVector(), hierarchy = new cv.Mat();
+                cv.findContours(dst, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
+                
+                let maxArea = 0, maxContour = null;
+                for (let i = 0; i < contours.size(); ++i) {
+                    let cnt = contours.get(i), area = cv.contourArea(cnt);
+                    let approx = new cv.Mat();
+                    cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
+                    if (approx.rows === 4 && area > maxArea && area > 50000) { 
+                        maxArea = area;
+                        if (maxContour) maxContour.delete();
+                        maxContour = approx.clone();
+                    }
+                    approx.delete();
+                }
+                
+                if (maxContour) {
+                    let pts = [];
+                    for (let j = 0; j < 4; j++) pts.push({ x: maxContour.data32S[j * 2], y: maxContour.data32S[j * 2 + 1] });
+                    pts.sort((a, b) => a.y - b.y); 
+                    let top = pts.slice(0, 2).sort((a, b) => a.x - b.x); 
+                    let bottom = pts.slice(2, 4).sort((a, b) => a.x - b.x);
+                    let orderedPts = [top[0], top[1], bottom[1], bottom[0]];
+                    
+                    let maxWidth = Math.max(Math.hypot(orderedPts[2].x - orderedPts[3].x, orderedPts[2].y - orderedPts[3].y), Math.hypot(orderedPts[1].x - orderedPts[0].x, orderedPts[1].y - orderedPts[0].y));
+                    let maxHeight = Math.max(Math.hypot(orderedPts[1].x - orderedPts[2].x, orderedPts[1].y - orderedPts[2].y), Math.hypot(orderedPts[0].x - orderedPts[3].x, orderedPts[0].y - orderedPts[3].y));
+
+                    let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [orderedPts[0].x, orderedPts[0].y, orderedPts[1].x, orderedPts[1].y, orderedPts[2].x, orderedPts[2].y, orderedPts[3].x, orderedPts[3].y]);
+                    let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, maxWidth, 0, maxWidth, maxHeight, 0, maxHeight]);
+
+                    let M = cv.getPerspectiveTransform(srcTri, dstTri);
+                    let warped = new cv.Mat();
+                    cv.warpPerspective(src, warped, M, new cv.Size(maxWidth, maxHeight), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
+                    
+                    canvas.width = maxWidth; canvas.height = maxHeight;
+                    cv.imshow('canvas', warped);
+                    statusText.innerText = "✨ Sijil diratakan! Tekan 'Buang Bayang'.";
+                    btnFilter.style.display = 'inline-block';
+                    
+                    srcTri.delete(); dstTri.delete(); M.delete(); warped.delete();
+                } else {
+                    cv.imshow('canvas', src);
+                    statusText.innerText = "⚠️ Gagal kesan bucu. Anda boleh abaikan dan teruskan buang bayang.";
+                    btnFilter.style.display = 'inline-block';
+                }
+                src.delete(); dst.delete(); contours.delete(); hierarchy.delete();
+                if (maxContour) maxContour.delete();
+            } catch (err) { console.error(err); }
+        }
+
+        // 2. BUANG BAYANG
+        btnFilter.addEventListener('click', () => {
+            let src = cv.imread('canvas');
+            let dst = new cv.Mat();
+            cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0);
+            cv.adaptiveThreshold(dst, dst, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15);
+            cv.imshow('canvas', dst);
+            src.delete(); dst.delete();
+            
+            btnFilter.style.display = 'none';
+            // Tunjukkan dua pilihan PDF kepada guru
+            btnPdfBasic.style.display = 'inline-block';
+            btnPdfOcr.style.display = 'inline-block';
+            
+            statusText.innerText = "✅ Selesai! Sila pilih jenis PDF yang ingin dijanakan.";
+        });
+
+        // ==========================================
+        // 3. JANA PDF (PILIHAN DENGAN ATAU TANPA OCR)
+        // ==========================================
+        async function generateAndSavePDF(useOCR) {
+            let sName = document.getElementById('studentName').value || "Pelajar";
+            let cName = document.getElementById('certName').value || "Sijil";
+            
+            btnPdfBasic.disabled = true;
+            btnPdfOcr.disabled = true;
+            btnRetake.disabled = true;
+
+            try {
+                // Sediakan PDF Kosong menggunakan jsPDF
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
+                });
+
+                // Masukkan gambar Sijil ke halaman pertama
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+
+                // JIKA GURU MEMILIH PILIHAN OCR (Tesseract.js)
+                if (useOCR) {
+                    statusText.innerText = "⏳ AI sedang membaca teks (OCR)... Sila tunggu sebentar.";
+                    statusText.style.color = "#ffc107";
+                    
+                    const { data: { text } } = await Tesseract.recognize(canvas, 'eng+msa'); // Inggeris & Melayu
+                    
+                    // Tambah muka surat kedua mengandungi teks bersih
+                    pdf.addPage();
+                    pdf.setFontSize(12);
+                    pdf.text("Teks yang diekstrak (Boleh disalin dan dicari): \n\n" + text, 20, 30);
+                    
+                    statusText.innerText = "⏳ Sedang mengeksport PDF (Bersama teks)...";
+                } else {
+                    statusText.innerText = "⏳ Sedang mengeksport PDF Biasa (Lebih laju)...";
+                }
+
+                // Muat turun PDF
+                pdf.save(`${sName} - ${cName}.pdf`);
+                
+                statusText.innerText = "✅ Sijil PDF berjaya disimpan!";
+                statusText.style.color = "#28a745";
+                
+                alert("Fail PDF berjaya dijanakan. Dalam sistem sebenar, ia akan dihantar terus ke Google Drive.");
+                resetScanner();
+                switchScreen('dashboardScreen');
+                
+            } catch (err) {
+                console.error(err);
+                statusText.innerText = "❌ Ralat semasa menjana PDF.";
+            } finally {
+                btnPdfBasic.disabled = false;
+                btnPdfOcr.disabled = false;
+                btnRetake.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
