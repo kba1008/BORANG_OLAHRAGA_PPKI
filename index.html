@@ -12,18 +12,12 @@
     
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --secondary: #10b981;
-            --secondary-hover: #059669;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --bg-color: #f3f4f6;
-            --surface: #ffffff;
-            --text-main: #1f2937;
-            --text-light: #6b7280;
-            --border: #e5e7eb;
-            --radius: 12px;
+            --primary: #4f46e5; --primary-hover: #4338ca;
+            --secondary: #10b981; --secondary-hover: #059669;
+            --warning: #f59e0b; --danger: #ef4444;
+            --bg-color: #f3f4f6; --surface: #ffffff;
+            --text-main: #1f2937; --text-light: #6b7280;
+            --border: #e5e7eb; --radius: 12px;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
@@ -34,9 +28,7 @@
         .active-screen { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* UI Elements */
         .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 25px; }
-        
         input { width: 100%; padding: 12px 16px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; outline: none; transition: border 0.3s; }
         input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
         
@@ -46,65 +38,48 @@
         button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
         
         .btn-primary { background: var(--primary); }
-        .btn-primary:hover { background: var(--primary-hover); }
         .btn-success { background: var(--secondary); }
-        .btn-success:hover { background: var(--secondary-hover); }
         .btn-warning { background: var(--warning); color: #fff; }
         .btn-danger { background: var(--danger); }
         .btn-ghost { background: transparent; color: var(--primary); box-shadow: none; }
-        .btn-ghost:hover { background: rgba(79, 70, 229, 0.05); box-shadow: none; }
+        .btn-ghost:hover { background: rgba(79, 70, 229, 0.05); }
 
-        /* Login Screen Specifics */
         #loginScreen .card { max-width: 400px; margin: 10vh auto; text-align: center; }
-        #loginScreen h3 { margin-bottom: 20px; font-size: 24px; color: var(--text-main); }
-        .brand-icon { font-size: 40px; color: var(--primary); margin-bottom: 10px; }
-
-        /* Dashboard Split Layout */
         .dashboard-container { display: grid; grid-template-columns: 350px 1fr; gap: 20px; align-items: start; }
         @media (max-width: 768px) { .dashboard-container { grid-template-columns: 1fr; } }
         
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px 25px; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); }
-        .top-bar h2 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
-        
-        /* Left Sidebar: Student List */
-        .sidebar { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
-        .sidebar h3 { font-size: 16px; margin-bottom: 15px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
-        
+        .sidebar, .main-panel { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
         .add-student-box { display: flex; gap: 10px; margin-bottom: 20px; }
         .add-student-box input { margin: 0; }
         .add-student-box button { width: auto; padding: 12px 15px; }
-
         .student-list { list-style: none; max-height: 50vh; overflow-y: auto; }
         .student-item { padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; display: flex; align-items: center; gap: 10px; }
-        .student-item i { color: var(--text-light); }
-        .student-item:hover { background: var(--bg-color); }
         .student-item.active { background: rgba(79, 70, 229, 0.1); border-color: var(--primary); font-weight: 600; color: var(--primary); }
-        .student-item.active i { color: var(--primary); }
-
-        /* Right Content: Student Details & Certs */
-        .main-panel { background: var(--surface); border-radius: var(--radius); padding: 25px; box-shadow: var(--shadow); min-height: 60vh; }
-        .empty-state { text-align: center; color: var(--text-light); margin-top: 10vh; }
-        .empty-state i { font-size: 48px; color: #d1d5db; margin-bottom: 15px; }
         
         .student-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
-        .student-header h2 { font-size: 22px; }
-        .student-header button { width: auto; }
-
         .cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
         .cert-card { background: var(--bg-color); padding: 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px; }
-        .cert-card i { font-size: 24px; color: var(--danger); }
-        .cert-card-content h4 { font-size: 15px; margin-bottom: 4px; }
-        .cert-card-content p { font-size: 12px; color: var(--text-light); }
 
-        /* Scanner Screen */
+        /* Scanner Screen & Batch Editor */
         #scannerScreen { text-align: center; }
         #scannerScreen .card { max-width: 800px; margin: auto; }
-        .scanner-header { margin-bottom: 15px; }
-        video, canvas { width: 100%; max-height: 60vh; border-radius: 8px; background: #000; object-fit: contain; margin-bottom: 15px; }
+        video, canvas { width: 100%; max-height: 45vh; border-radius: 8px; background: #000; object-fit: contain; margin-bottom: 15px; }
         canvas { display: none; }
-        .btn-group { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
-        .btn-group button { width: auto; min-width: 150px; }
-        #status { font-weight: 600; color: var(--primary); padding: 12px; background: rgba(79, 70, 229, 0.1); border-radius: 8px; margin-bottom: 15px; display: inline-block; width: 100%; }
+        .btn-group { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;}
+        .btn-group button { width: auto; min-width: 140px; }
+        #status { font-weight: 600; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: inline-block; width: 100%; }
+        
+        /* CSS Untuk Galeri Kepingan PDF/Gambar (Batch Viewer) */
+        .batch-container { text-align: left; background: var(--bg-color); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border); }
+        .batch-gallery { display: flex; gap: 12px; overflow-x: auto; padding: 10px 0; min-height: 150px; align-items: center; }
+        .batch-item { position: relative; min-width: 120px; max-width: 120px; border: 2px solid var(--border); border-radius: 8px; overflow: hidden; background: #fff; box-shadow: var(--shadow); flex-shrink: 0; }
+        .batch-item img { width: 100%; height: 160px; object-fit: cover; display: block; }
+        .batch-actions { position: absolute; bottom: 0; width: 100%; display: flex; }
+        .batch-actions button { flex: 1; padding: 8px 0; font-size: 12px; border-radius: 0; background: rgba(0,0,0,0.7); color: white; }
+        .batch-actions button:hover { background: var(--primary); }
+        .batch-actions button.btn-trash:hover { background: var(--danger); }
+        .empty-batch { color: var(--text-light); text-align: center; width: 100%; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -112,16 +87,14 @@
     <!-- SKRIN 1: LOG MASUK -->
     <div id="loginScreen" class="screen">
         <div class="card">
-            <i class="fa-solid fa-expand brand-icon"></i>
+            <i class="fa-solid fa-expand" style="font-size: 40px; color: var(--primary); margin-bottom: 10px;"></i>
             <h3>Sistem Sijil Pro</h3>
             <p style="color: var(--text-light); margin-bottom: 20px; font-size: 14px;">Log masuk untuk mengurus rekod pelajar</p>
             
-            <input type="email" id="loginEmail" placeholder="Email Guru (Cth: guru@edu.my)" required>
-            <input type="password" id="loginPassword" placeholder="Kata Laluan" required>
+            <input type="email" id="loginEmail" placeholder="Email Guru (Cth: guru@edu.my)">
+            <input type="password" id="loginPassword" placeholder="Kata Laluan">
             
-            <button class="btn-primary" onclick="login()" style="margin-top: 15px;">
-                <i class="fa-solid fa-right-to-bracket"></i> Log Masuk
-            </button>
+            <button class="btn-primary" onclick="login()" style="margin-top: 15px;">Log Masuk</button>
             <button class="btn-ghost" onclick="register()">Daftar Akaun Baru</button>
         </div>
     </div>
@@ -132,101 +105,96 @@
             <h2><i class="fa-solid fa-graduation-cap"></i> Portal Guru</h2>
             <div style="display: flex; gap: 15px; align-items: center;">
                 <span id="userEmailDisplay" style="font-size: 14px; font-weight: 500;"></span>
-                <button class="btn-ghost" onclick="logout()" style="width: auto; padding: 8px 15px;" title="Log Keluar"><i class="fa-solid fa-power-off"></i></button>
+                <button class="btn-ghost" onclick="logout()" style="width: auto; padding: 8px 15px;"><i class="fa-solid fa-power-off"></i></button>
             </div>
         </div>
 
         <div class="dashboard-container">
-            <!-- Sidebar: Senarai Pelajar -->
             <div class="sidebar">
                 <h3><i class="fa-solid fa-users"></i> Urus Pelajar</h3>
                 <div class="add-student-box">
                     <input type="text" id="newStudentName" placeholder="Nama Pelajar Baru...">
                     <button class="btn-primary" onclick="addStudent()"><i class="fa-solid fa-plus"></i></button>
                 </div>
-                <ul class="student-list" id="studentListUI">
-                    <!-- Senarai pelajar akan dijana di sini oleh JS -->
-                </ul>
+                <ul class="student-list" id="studentListUI"></ul>
             </div>
 
-            <!-- Main Panel: Profil & Sijil Pelajar -->
             <div class="main-panel">
                 <div id="emptyState" class="empty-state">
                     <i class="fa-solid fa-user-graduate"></i>
                     <h3>Pilih nama pelajar di sebelah kiri</h3>
-                    <p>Atau tambah pelajar baru untuk mula mengurus sijil.</p>
                 </div>
-
                 <div id="studentDetails" style="display: none;">
                     <div class="student-header">
                         <div>
                             <h2 id="activeStudentTitle">Nama Pelajar</h2>
-                            <p style="color: var(--text-light); font-size: 14px;">Urus dan simpan rekod sijil untuk pelajar ini.</p>
                         </div>
+                        <!-- Buka Editor Sijil Berbilang -->
                         <button class="btn-success" onclick="openScanner()">
-                            <i class="fa-solid fa-camera"></i> Scan Sijil
+                            <i class="fa-solid fa-plus"></i> Editor Multi-Sijil
                         </button>
                     </div>
-                    
-                    <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-light);">Rekod Sijil Semasa (Sesi Ini)</h3>
-                    <div class="cert-grid" id="certGridUI">
-                        <!-- Sijil akan dipaparkan di sini -->
-                    </div>
+                    <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-light);">Rekod Sijil (Sesi Ini)</h3>
+                    <div class="cert-grid" id="certGridUI"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SKRIN 3: PENGIMBAS & MUAT NAIK FAIL -->
+    <!-- SKRIN 3: PENGIMBAS & EDITOR PDF POWER -->
     <div id="scannerScreen" class="screen">
         <div class="card">
-            <div class="scanner-header">
-                <h2><i class="fa-solid fa-wand-magic-sparkles"></i> AI Scanner & Uploader</h2>
+            <div class="scanner-header" style="margin-bottom: 15px;">
+                <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Editor Multi-Sijil (PDF Power)</h2>
                 <p style="color: var(--text-light);">Pelajar: <strong id="scannerStudentLabel"></strong></p>
             </div>
             
             <div id="status">⏳ Sedang memuat AI... Sila tunggu.</div>
             
-            <input type="text" id="certName" placeholder="Masukkan Nama Sijil (Cth: Sijil Penyertaan Catur 2026)" style="margin-bottom: 15px;">
+            <p style="text-align:left; font-size:13px; color:var(--text-light); margin-bottom:5px;">Nama Fail PDF (Boleh edit kemudian):</p>
+            <input type="text" id="certName" style="margin-bottom: 15px;">
 
-            <!-- Ruang paparan -->
+            <!-- Viewport Kamera / Pemprosesan -->
             <video id="video" autoplay playsinline></video>
             <canvas id="canvas"></canvas>
 
-            <!-- Butang File Input (Tersembunyi) -->
-            <input type="file" id="fileUploadInput" accept="image/*" style="display: none;">
+            <!-- Galeri Sijil Sementara (Batch Viewer) -->
+            <div class="batch-container">
+                <h4 style="font-size: 14px; margin-bottom: 10px;"><i class="fa-solid fa-layer-group"></i> Kepingan Sijil Untuk Digabungkan:</h4>
+                <div class="batch-gallery" id="batchGallery">
+                    <div class="empty-batch">Belum ada sijil. Snap kamera atau pilih fail di bawah.</div>
+                </div>
+            </div>
 
+            <!-- Input File Menerima Imej DAN PDF -->
+            <input type="file" id="fileUploadInput" accept="image/*,application/pdf" style="display: none;">
+
+            <!-- Butang Kawalan -->
             <div class="btn-group">
-                <!-- Kunci 'disabled' telah dibuang pada butang di bawah supaya tidak tersekat -->
-                <button id="btnCaptureCam" class="btn-primary"><i class="fa-solid fa-camera"></i> Snap Kamera</button>
-                <button id="btnUploadFile" class="btn-primary"><i class="fa-solid fa-folder-open"></i> Buka Fail/Drive</button>
-                
-                <button id="btnFilter" class="btn-success" style="display:none;"><i class="fa-solid fa-wand-magic-sparkles"></i> Buang Bayang (B&W)</button>
-                
-                <button id="btnPdfBasic" class="btn-primary" style="display:none;" onclick="generateAndSavePDF(false)"><i class="fa-solid fa-file-pdf"></i> Simpan PDF Biasa</button>
-                <button id="btnPdfOcr" class="btn-warning" style="display:none;" onclick="generateAndSavePDF(true)"><i class="fa-solid fa-file-contract"></i> Simpan PDF + OCR</button>
-                
-                <button id="btnRetake" class="btn-ghost" style="display:none;" onclick="resetScanner()"><i class="fa-solid fa-rotate-left"></i> Batal & Ambil Semula</button>
-                <button id="btnCancelScan" class="btn-danger" onclick="closeScanner()"><i class="fa-solid fa-xmark"></i> Tutup</button>
+                <button id="btnCaptureCam" class="btn-primary" disabled><i class="fa-solid fa-camera"></i> Tambah (Snap)</button>
+                <button id="btnUploadFile" class="btn-primary" onclick="document.getElementById('fileUploadInput').click();" disabled><i class="fa-solid fa-folder-open"></i> Tambah (Fail/PDF)</button>
+            </div>
+            <div class="btn-group" style="border-top: 1px solid var(--border); padding-top: 15px;">
+                <button id="btnPdfBasic" class="btn-success" onclick="generateAndSavePDF()"><i class="fa-solid fa-bolt"></i> Simpan Jadi PDF Power & Upload</button>
+                <button id="btnCancelScan" class="btn-danger" onclick="closeScanner()"><i class="fa-solid fa-xmark"></i> Batal & Tutup</button>
             </div>
         </div>
     </div>
 
-    <!-- Scripts: OpenCV, Tesseract, jsPDF -->
+    <!-- Scripts: OpenCV (Image AI), PDF.js (PDF Extractor), jsPDF (PDF Builder) -->
     <script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvReady();"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        // ==========================================
-        // TETAPAN GOOGLE APPS SCRIPT
-        // ==========================================
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxOrI7Q-Rpk8xtBe7Ol6TyiWzmSx2Mg5PUpc-YOuMadiKEPXeBzNpBkk79qk-nDrvtB/exec"; 
         
         let currentUserEmail = "";
-        let studentsList = ["Ahmad Ali bin Abu", "Siti Nurhaliza", "Tan Wei Han"];
+        let studentsList = ["Ahmad Ali bin Abu", "Siti Nurhaliza"];
         let activeStudent = "";
         let sessionCerts = [];
+        let currentBatch = []; // Array untuk menyimpan kepingan gambar sijil
 
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
@@ -235,8 +203,16 @@
             document.getElementById(screenId).classList.add('active-screen');
         }
 
+        function setStatus(msg, type="info") {
+            let el = document.getElementById('status');
+            el.innerHTML = msg;
+            if(type === "info") { el.style.color = "var(--primary)"; el.style.background = "rgba(79,70,229,0.1)"; }
+            if(type === "success") { el.style.color = "var(--secondary)"; el.style.background = "rgba(16,185,129,0.1)"; }
+            if(type === "error") { el.style.color = "var(--danger)"; el.style.background = "rgba(239,68,68,0.1)"; }
+        }
+
         // ==========================================
-        // AUTO-LOGIN (SEMAK MEMORI PERANTI)
+        // AUTO-LOGIN & AUTH
         // ==========================================
         document.addEventListener("DOMContentLoaded", () => {
             const savedUser = localStorage.getItem("sijilProUser");
@@ -245,427 +221,281 @@
                 document.getElementById('userEmailDisplay').innerText = savedUser;
                 renderStudentList();
                 switchScreen('dashboardScreen');
-            } else {
-                switchScreen('loginScreen');
-            }
+            } else switchScreen('loginScreen');
         });
 
-        // ==========================================
-        // SISTEM AUTENTIKASI
-        // ==========================================
         async function login() {
-            let email = document.getElementById('loginEmail').value;
-            let pass = document.getElementById('loginPassword').value;
-            
-            if(!email || !pass) return alert("Sila masukkan email dan kata laluan.");
-            
-            let btn = document.querySelector('#loginScreen button');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyemak...';
-            btn.disabled = true;
-            
+            let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value;
+            if(!email || !pass) return alert("Sila masukkan maklumat.");
             try {
-                let res = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: "login", email: email, password: pass })
-                });
+                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "login", email, password: pass }) });
                 let data = await res.json();
-                
                 if(data.status === "success") {
-                    currentUserEmail = email;
-                    localStorage.setItem("sijilProUser", email);
+                    currentUserEmail = email; localStorage.setItem("sijilProUser", email);
                     document.getElementById('userEmailDisplay').innerText = email;
-                    renderStudentList();
-                    switchScreen('dashboardScreen');
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) { alert("Ralat sistem sambungan pelayan."); console.error(err); }
-            finally {
-                btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Log Masuk';
-                btn.disabled = false;
-            }
+                    renderStudentList(); switchScreen('dashboardScreen');
+                } else alert(data.message);
+            } catch (err) { alert("Ralat pelayan."); }
         }
-
-        async function register() {
-            let email = document.getElementById('loginEmail').value;
-            let pass = document.getElementById('loginPassword').value;
-            if(!email || !pass) return alert("Sila taip email dan kata laluan di ruangan atas sebelum tekan Daftar.");
-            
-            try {
-                let res = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: "register", email: email, password: pass })
-                });
-                let data = await res.json();
-                alert(data.message);
-            } catch (err) { alert("Ralat pendaftaran."); console.error(err); }
-        }
-
+        
         function logout() {
-            currentUserEmail = "";
-            activeStudent = "";
-            localStorage.removeItem("sijilProUser");
-            stopCamera();
-            document.getElementById('loginEmail').value = "";
-            document.getElementById('loginPassword').value = "";
+            localStorage.removeItem("sijilProUser"); stopCamera();
             switchScreen('loginScreen');
         }
 
         // ==========================================
-        // SISTEM UI DASHBOARD
+        // UI DASHBOARD
         // ==========================================
         function renderStudentList() {
-            const ul = document.getElementById('studentListUI');
-            ul.innerHTML = "";
+            const ul = document.getElementById('studentListUI'); ul.innerHTML = "";
             studentsList.forEach(name => {
                 let li = document.createElement('li');
                 li.className = `student-item ${name === activeStudent ? 'active' : ''}`;
                 li.innerHTML = `<i class="fa-solid fa-user"></i> ${name}`;
-                li.onclick = () => selectStudent(name);
+                li.onclick = () => { activeStudent = name; renderStudentList(); 
+                    document.getElementById('emptyState').style.display='none'; 
+                    document.getElementById('studentDetails').style.display='block';
+                    document.getElementById('activeStudentTitle').innerText = name; renderCerts();
+                };
                 ul.appendChild(li);
             });
         }
-
         function addStudent() {
-            let input = document.getElementById('newStudentName');
-            let name = input.value.trim();
-            if(name && !studentsList.includes(name)) {
-                studentsList.push(name);
-                input.value = "";
-                selectStudent(name);
-            }
+            let name = document.getElementById('newStudentName').value.trim();
+            if(name && !studentsList.includes(name)) { studentsList.push(name); renderStudentList(); }
         }
-
-        function selectStudent(name) {
-            activeStudent = name;
-            renderStudentList();
-            document.getElementById('emptyState').style.display = 'none';
-            document.getElementById('studentDetails').style.display = 'block';
-            document.getElementById('activeStudentTitle').innerText = name;
-            renderCerts();
-        }
-
         function renderCerts() {
-            const grid = document.getElementById('certGridUI');
-            grid.innerHTML = "";
+            const grid = document.getElementById('certGridUI'); grid.innerHTML = "";
             let myCerts = sessionCerts.filter(c => c.student === activeStudent);
-            if(myCerts.length === 0) {
-                grid.innerHTML = `<p style="color:var(--text-light); font-size:14px;">Belum ada sijil diimbas untuk pelajar ini pada sesi ini.</p>`;
+            if(myCerts.length === 0) grid.innerHTML = `<p style="font-size:14px; color:grey;">Belum ada fail.</p>`;
+            myCerts.forEach(cert => grid.innerHTML += `<div class="cert-card"><i class="fa-solid fa-file-pdf"></i><div><h4>${cert.certName}</h4><p>Tersimpan di Drive</p></div></div>`);
+        }
+
+        // ==========================================
+        // SISTEM MULTI-SIJIL & PEMECAH PDF
+        // ==========================================
+        let opencvReady = false;
+        const video = document.getElementById('video'), canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
+
+        function onOpenCvReady() {
+            opencvReady = true; setStatus("<i class='fa-solid fa-check'></i> AI Bersedia!", "success");
+            document.getElementById('btnCaptureCam').disabled = false; document.getElementById('btnUploadFile').disabled = false;
+        }
+
+        function openScanner() {
+            if(!activeStudent) return alert("Pilih pelajar dahulu.");
+            document.getElementById('scannerStudentLabel').innerText = activeStudent;
+            
+            // HANTAM NAMA SIJIL DULU (Format: Sijil_TahunBulanHari_Masa)
+            let dateStr = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14);
+            document.getElementById('certName').value = `Sijil_${dateStr}`;
+            
+            currentBatch = []; // Kosongkan batch baru
+            updateBatchUI();
+            
+            switchScreen('scannerScreen'); startCamera();
+        }
+
+        function closeScanner() { stopCamera(); switchScreen('dashboardScreen'); }
+        function startCamera() { navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(stream => video.srcObject = stream).catch(e => setStatus("Kamera tak dijumpai.", "warning")); video.style.display = 'block'; canvas.style.display = 'none'; }
+        function stopCamera() { if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop()); }
+
+        // MENGEMAS KINI GALERI THUMBNAIL
+        function updateBatchUI() {
+            const gallery = document.getElementById('batchGallery');
+            if(currentBatch.length === 0) {
+                gallery.innerHTML = `<div class="empty-batch">Belum ada sijil. Tambah dari Kamera atau Fail.</div>`;
                 return;
             }
-            myCerts.forEach(cert => {
-                grid.innerHTML += `
-                    <div class="cert-card">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="cert-card-content">
-                            <h4>${cert.certName}</h4>
-                            <p>Tersimpan di Google Drive</p>
+            gallery.innerHTML = "";
+            currentBatch.forEach((base64Img, index) => {
+                gallery.innerHTML += `
+                    <div class="batch-item">
+                        <img src="${base64Img}">
+                        <div class="batch-actions">
+                            <button onclick="applyFilterToPage(${index})" title="Buang Bayang"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                            <button class="btn-trash" onclick="deletePage(${index})" title="Buang Kepingan Ini"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
                 `;
             });
         }
 
-        // ==========================================
-        // SISTEM SCANNER & AI OPENCV
-        // ==========================================
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        
-        const btnCaptureCam = document.getElementById('btnCaptureCam');
-        const btnUploadFile = document.getElementById('btnUploadFile');
-        const fileUploadInput = document.getElementById('fileUploadInput');
-        
-        const btnFilter = document.getElementById('btnFilter');
-        const btnPdfBasic = document.getElementById('btnPdfBasic');
-        const btnPdfOcr = document.getElementById('btnPdfOcr');
-        const btnRetake = document.getElementById('btnRetake');
-        const btnCancelScan = document.getElementById('btnCancelScan');
-        const statusText = document.getElementById('status');
-        
-        let opencvReady = false;
-        let localStream = null;
-
-        function onOpenCvReady() {
-            opencvReady = true;
-            let status = document.getElementById('status');
-            if(status) {
-                status.innerHTML = '<i class="fa-solid fa-check-circle"></i> AI Bersedia! Pilih kamera atau fail.';
-                status.style.color = "var(--secondary)";
-                status.style.background = "rgba(16, 185, 129, 0.1)";
-            }
-        }
-
-        function openScanner() {
-            if(!activeStudent) return alert("Sila pilih pelajar terlebih dahulu.");
-            document.getElementById('scannerStudentLabel').innerText = activeStudent;
-            switchScreen('scannerScreen');
-            startCamera();
-        }
-        
-        function closeScanner() {
-            stopCamera();
-            resetScanner();
-            switchScreen('dashboardScreen');
-        }
-
-        function startCamera() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } })
-                .then(stream => { localStream = stream; video.srcObject = stream; })
-                .catch(err => { console.log("Kamera tidak ditemui, gunakan fail."); });
-        }
-
-        function stopCamera() {
-            if(localStream) localStream.getTracks().forEach(track => track.stop());
-        }
-
-        function resetScanner() {
-            video.style.display = 'block'; canvas.style.display = 'none';
-            btnCaptureCam.style.display = 'inline-flex'; btnUploadFile.style.display = 'inline-flex';
-            btnCancelScan.style.display = 'inline-flex';
-            
-            btnFilter.style.display = 'none'; btnPdfBasic.style.display = 'none'; 
-            btnPdfOcr.style.display = 'none'; btnRetake.style.display = 'none';
-            fileUploadInput.value = "";
-            document.getElementById('certName').value = "";
-            
-            statusText.innerHTML = '<i class="fa-solid fa-check-circle"></i> AI Bersedia! Pilih kamera atau fail.';
-            statusText.style.color = "var(--secondary)";
-            statusText.style.background = "rgba(16, 185, 129, 0.1)";
-            
-            if(!localStream) startCamera();
+        function deletePage(index) {
+            currentBatch.splice(index, 1);
+            updateBatchUI();
         }
 
         // ==========================================
-        // PROSES IMEJ 1: SNAP KAMERA
+        // PROSES 1: SNAP KAMERA -> AUTO CROP -> MASUK BATCH
         // ==========================================
-        btnCaptureCam.addEventListener('click', () => {
-            if (!opencvReady) {
-                alert("AI OpenCV sedang memuat turun. Sila tunggu sebentar.");
-                return;
-            }
-            
-            // VALIDASI NAMA SIJIL KOSONG (Penting!)
-            let certInput = document.getElementById('certName').value.trim();
-            if(!certInput) {
-                statusText.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Sila taip Nama Sijil terlebih dahulu!";
-                statusText.style.color = "var(--danger)";
-                statusText.style.background = "rgba(239, 68, 68, 0.1)";
-                document.getElementById('certName').focus(); // Auto fokus ke kotak nama
-                return;
-            }
-            
+        document.getElementById('btnCaptureCam').addEventListener('click', () => {
+            if (!opencvReady) return alert("Tunggu AI");
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            video.style.display = 'none'; canvas.style.display = 'block';
-            btnCaptureCam.style.display = 'none'; btnUploadFile.style.display = 'none'; btnCancelScan.style.display = 'none';
-            btnRetake.style.display = 'inline-flex';
-            
-            statusText.innerHTML = '<i class="fa-solid fa-gear fa-spin"></i> AI meratakan sijil (Kamera)...';
-            statusText.style.color = "var(--primary)";
-            statusText.style.background = "rgba(79, 70, 229, 0.1)";
-            
-            setTimeout(detectAndWarpDocument, 100); 
+            setStatus("<i class='fa-solid fa-gear fa-spin'></i> AI Memotong gambar...", "info");
+            setTimeout(() => {
+                let processedImg = detectAndWarpDocument(canvas);
+                currentBatch.push(processedImg);
+                updateBatchUI();
+                setStatus("<i class='fa-solid fa-check'></i> Ditambah ke galeri! Snap lagi atau edit di bawah.", "success");
+            }, 100);
         });
 
         // ==========================================
-        // PROSES IMEJ 2: BUKA FAIL / DRIVE
+        // PROSES 2: BUKA FAIL (IMEJ ATAU PDF)
         // ==========================================
-        btnUploadFile.addEventListener('click', () => {
-            if (!opencvReady) {
-                alert("AI OpenCV sedang memuat turun. Sila tunggu sebentar.");
-                return;
-            }
-
-            // VALIDASI NAMA SIJIL KOSONG SEBELUM BUKA FAIL (Penting!)
-            let certInput = document.getElementById('certName').value.trim();
-            if(!certInput) {
-                statusText.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Sila taip Nama Sijil di kotak atas dahulu!";
-                statusText.style.color = "var(--danger)";
-                statusText.style.background = "rgba(239, 68, 68, 0.1)";
-                document.getElementById('certName').focus();
-                return;
-            }
+        document.getElementById('fileUploadInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0]; if(!file) return;
             
-            // Buka tetingkap fail jika nama telah diisi
-            fileUploadInput.click();
-        });
-
-        fileUploadInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if(!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(event) {
+            // JIKA FAIL ADALAH PDF (PECAHKAN MUKA SURAT)
+            if(file.type === "application/pdf") {
+                setStatus("<i class='fa-solid fa-spinner fa-spin'></i> AI sedang memecahkan helaian PDF...", "info");
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                    
+                    for(let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const viewport = page.getViewport({scale: 1.5}); // Kualiti tinggi
+                        canvas.width = viewport.width; canvas.height = viewport.height;
+                        await page.render({canvasContext: ctx, viewport: viewport}).promise;
+                        
+                        // Masukkan setiap helai ke dalam batch
+                        currentBatch.push(canvas.toDataURL('image/jpeg', 0.9));
+                    }
+                    updateBatchUI();
+                    setStatus("<i class='fa-solid fa-check-double'></i> Selesai dipecahkan! Anda boleh edit, buang atau tambah kepingan lain.", "success");
+                } catch(err) { setStatus("Gagal membaca PDF.", "error"); }
+            } 
+            // JIKA FAIL ADALAH GAMBAR (JALANKAN AUTO CROP)
+            else {
+                setStatus("<i class='fa-solid fa-gear fa-spin'></i> Memproses gambar...", "info");
                 const img = new Image();
                 img.onload = function() {
-                    canvas.width = img.width; canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
-                    
-                    stopCamera(); 
-                    video.style.display = 'none'; canvas.style.display = 'block';
-                    btnCaptureCam.style.display = 'none'; btnUploadFile.style.display = 'none'; btnCancelScan.style.display = 'none';
-                    btnRetake.style.display = 'inline-flex';
-                    
-                    statusText.innerHTML = '<i class="fa-solid fa-gear fa-spin"></i> AI meratakan sijil (Fail Muat Naik)...';
-                    statusText.style.color = "var(--primary)";
-                    
-                    setTimeout(detectAndWarpDocument, 200);
+                    canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0);
+                    let processedImg = detectAndWarpDocument(canvas);
+                    currentBatch.push(processedImg);
+                    updateBatchUI();
+                    setStatus("<i class='fa-solid fa-check'></i> Gambar ditambah ke galeri.", "success");
                 }
-                img.src = event.target.result;
+                img.src = URL.createObjectURL(file);
             }
-            reader.readAsDataURL(file);
+            e.target.value = ""; // Reset input
         });
 
         // ==========================================
-        // ALGORITMA OPENCV (PERSPECTIVE WARP)
+        // ALGORITMA OPENCV (Fungsi Guna Semula)
         // ==========================================
-        function detectAndWarpDocument() {
+        function detectAndWarpDocument(srcCanvas) {
             try {
-                let src = cv.imread('canvas'); let dst = new cv.Mat();
+                let src = cv.imread(srcCanvas); let dst = new cv.Mat();
                 cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0);
                 cv.GaussianBlur(dst, dst, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT);
                 cv.Canny(dst, dst, 75, 200);
                 
                 let contours = new cv.MatVector(), hierarchy = new cv.Mat();
                 cv.findContours(dst, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
-                
                 let maxArea = 0, maxContour = null;
                 for (let i = 0; i < contours.size(); ++i) {
                     let cnt = contours.get(i), area = cv.contourArea(cnt);
-                    let approx = new cv.Mat();
-                    cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
-                    if (approx.rows === 4 && area > maxArea && area > 50000) { 
-                        maxArea = area; if (maxContour) maxContour.delete(); maxContour = approx.clone();
-                    }
+                    let approx = new cv.Mat(); cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
+                    if (approx.rows === 4 && area > maxArea && area > 50000) { maxArea = area; if (maxContour) maxContour.delete(); maxContour = approx.clone(); }
                     approx.delete();
                 }
                 
                 if (maxContour) {
-                    let pts = [];
-                    for (let j = 0; j < 4; j++) pts.push({ x: maxContour.data32S[j * 2], y: maxContour.data32S[j * 2 + 1] });
-                    pts.sort((a, b) => a.y - b.y); 
-                    let top = pts.slice(0, 2).sort((a, b) => a.x - b.x); 
-                    let bottom = pts.slice(2, 4).sort((a, b) => a.x - b.x);
+                    let pts = []; for (let j = 0; j < 4; j++) pts.push({ x: maxContour.data32S[j*2], y: maxContour.data32S[j*2+1] });
+                    pts.sort((a, b) => a.y - b.y); let top = pts.slice(0, 2).sort((a, b) => a.x - b.x); let bottom = pts.slice(2, 4).sort((a, b) => a.x - b.x);
                     let orderedPts = [top[0], top[1], bottom[1], bottom[0]];
-                    
                     let maxWidth = Math.max(Math.hypot(orderedPts[2].x - orderedPts[3].x, orderedPts[2].y - orderedPts[3].y), Math.hypot(orderedPts[1].x - orderedPts[0].x, orderedPts[1].y - orderedPts[0].y));
                     let maxHeight = Math.max(Math.hypot(orderedPts[1].x - orderedPts[2].x, orderedPts[1].y - orderedPts[2].y), Math.hypot(orderedPts[0].x - orderedPts[3].x, orderedPts[0].y - orderedPts[3].y));
-
+                    
                     let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [orderedPts[0].x, orderedPts[0].y, orderedPts[1].x, orderedPts[1].y, orderedPts[2].x, orderedPts[2].y, orderedPts[3].x, orderedPts[3].y]);
                     let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, maxWidth, 0, maxWidth, maxHeight, 0, maxHeight]);
-
-                    let M = cv.getPerspectiveTransform(srcTri, dstTri);
-                    let warped = new cv.Mat();
+                    let M = cv.getPerspectiveTransform(srcTri, dstTri); let warped = new cv.Mat();
                     cv.warpPerspective(src, warped, M, new cv.Size(maxWidth, maxHeight), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
                     
-                    canvas.width = maxWidth; canvas.height = maxHeight;
-                    cv.imshow('canvas', warped);
-                    
-                    statusText.innerHTML = "<i class='fa-solid fa-check'></i> Gambar berjaya diratakan! Sila buang bayang.";
-                    btnFilter.style.display = 'inline-flex';
-                    
+                    cv.imshow(srcCanvas, warped);
                     srcTri.delete(); dstTri.delete(); M.delete(); warped.delete();
-                } else {
-                    cv.imshow('canvas', src);
-                    statusText.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> AI tidak menjumpai bucu lurus, tapi anda masih boleh buang bayang.";
-                    statusText.style.color = "var(--warning)";
-                    statusText.style.background = "rgba(245, 158, 11, 0.1)";
-                    btnFilter.style.display = 'inline-flex';
-                }
+                } 
                 src.delete(); dst.delete(); contours.delete(); hierarchy.delete();
                 if (maxContour) maxContour.delete();
-            } catch (err) { console.error(err); }
+                return srcCanvas.toDataURL('image/jpeg', 0.9);
+            } catch (err) { return srcCanvas.toDataURL('image/jpeg', 0.9); }
+        }
+
+        // FUNGSI BUANG BAYANG (Untuk kepingan individu)
+        function applyFilterToPage(index) {
+            setStatus("<i class='fa-solid fa-wand-magic-sparkles'></i> Membersihkan helaian...", "info");
+            let img = new Image();
+            img.onload = () => {
+                canvas.width = img.width; canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                let mat = cv.imread(canvas);
+                cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY, 0);
+                cv.adaptiveThreshold(mat, mat, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15);
+                cv.imshow(canvas, mat);
+                mat.delete();
+                
+                currentBatch[index] = canvas.toDataURL('image/jpeg', 0.9);
+                updateBatchUI();
+                setStatus("<i class='fa-solid fa-check'></i> Selesai dibersihkan!", "success");
+            };
+            img.src = currentBatch[index];
         }
 
         // ==========================================
-        // BUANG BAYANG (ADAPTIVE THRESHOLD)
+        // GABUNG SEMULA & UPLOAD JADI PDF POWER
         // ==========================================
-        btnFilter.addEventListener('click', () => {
-            let src = cv.imread('canvas'); let dst = new cv.Mat();
-            cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0);
-            cv.adaptiveThreshold(dst, dst, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15);
-            cv.imshow('canvas', dst);
-            src.delete(); dst.delete();
+        async function generateAndSavePDF() {
+            if(currentBatch.length === 0) return alert("Tiada kepingan sijil dalam galeri. Sila snap atau muat naik fail.");
             
-            btnFilter.style.display = 'none';
-            btnPdfBasic.style.display = 'inline-flex';
-            btnPdfOcr.style.display = 'inline-flex';
-            
-            statusText.innerHTML = "<i class='fa-solid fa-check-double'></i> Selesai! Pilih cara untuk eksport PDF.";
-        });
-
-        // ==========================================
-        // EKSORT PDF & UPLOAD KE GOOGLE DRIVE
-        // ==========================================
-        async function generateAndSavePDF(useOCR) {
-            let sName = activeStudent;
             let cName = document.getElementById('certName').value.trim();
-            let fileName = `${sName} - ${cName}`;
+            if(!cName) { alert("Sila pastikan ruangan Nama Fail tidak kosong."); document.getElementById('certName').focus(); return; }
             
-            btnPdfBasic.disabled = true; btnPdfOcr.disabled = true; btnRetake.disabled = true;
+            document.getElementById('btnPdfBasic').disabled = true;
+            setStatus("<i class='fa-solid fa-layer-group fa-beat'></i> Menggabungkan " + currentBatch.length + " kepingan menjadi PDF Power...", "info");
 
             try {
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({
-                    orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
-                    unit: 'px',
-                    format: [canvas.width, canvas.height]
-                });
+                const pdf = new jsPDF();
+                pdf.deletePage(1); // Buang muka surat kosong default
 
-                const imgData = canvas.toDataURL('image/jpeg', 0.9); 
-                pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
-
-                if (useOCR) {
-                    statusText.innerHTML = "<i class='fa-solid fa-brain fa-pulse'></i> AI OCR sedang mengekstrak teks (Tunggu sebentar)...";
-                    statusText.style.color = "var(--warning)";
-                    statusText.style.background = "rgba(245, 158, 11, 0.1)";
+                // Gabungkan setiap gambar mengikut saiz asalnya
+                for(let i = 0; i < currentBatch.length; i++) {
+                    let imgData = currentBatch[i];
+                    let img = new Image(); img.src = imgData;
+                    await new Promise(r => img.onload = r);
                     
-                    const { data: { text } } = await Tesseract.recognize(canvas, 'eng+msa'); 
-                    pdf.addPage();
-                    pdf.setFontSize(12);
-                    pdf.text("Teks yang diekstrak (AI): \n\n" + text, 20, 30);
+                    let orientation = img.width > img.height ? 'l' : 'p';
+                    pdf.addPage([img.width, img.height], orientation);
+                    pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
                 }
 
-                statusText.innerHTML = "<i class='fa-solid fa-cloud-arrow-up fa-bounce'></i> Memuat naik terus ke Google Drive...";
-                statusText.style.color = "var(--primary)";
-                
+                setStatus("<i class='fa-solid fa-cloud-arrow-up fa-bounce'></i> Memuat naik ke Google Drive...", "info");
                 const pdfBase64 = pdf.output('datauristring');
-
-                let payload = {
-                    action: "upload",
-                    pdfData: pdfBase64,
-                    fileName: fileName,
-                    studentName: sName,
-                    certName: cName,
-                    guruEmail: currentUserEmail
-                };
 
                 let res = await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        action: "upload", pdfData: pdfBase64,
+                        fileName: `${activeStudent} - ${cName}`, studentName: activeStudent,
+                        certName: cName, guruEmail: currentUserEmail
+                    })
                 });
                 
                 let result = await res.json();
                 
                 if (result.status === "success") {
-                    sessionCerts.push({ student: sName, certName: cName });
+                    sessionCerts.push({ student: activeStudent, certName: cName });
                     alert("Berjaya disimpan dalam Google Drive sekolah!");
-                    closeScanner();
-                    renderCerts(); 
-                } else {
-                    alert("Gagal muat naik: " + result.message);
-                    btnPdfBasic.disabled = false; btnPdfOcr.disabled = false; btnRetake.disabled = false;
-                }
+                    closeScanner(); renderCerts(); 
+                } else alert("Gagal muat naik: " + result.message);
 
-            } catch (err) {
-                console.error(err);
-                statusText.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Ralat semasa pemprosesan PDF / Upload.";
-                statusText.style.color = "var(--danger)";
-                btnPdfBasic.disabled = false; btnPdfOcr.disabled = false; btnRetake.disabled = false;
-            }
+            } catch (err) { setStatus("Ralat menggabungkan PDF.", "error"); }
+            finally { document.getElementById('btnPdfBasic').disabled = false; }
         }
     </script>
 </body>
