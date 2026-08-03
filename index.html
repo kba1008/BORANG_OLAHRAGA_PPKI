@@ -21,7 +21,6 @@
         .btn-danger { background: #dc3545; }
         .btn-warning { background: #ffc107; color: black; }
         
-        /* Scanner UI */
         #scannerScreen { max-width: 900px; }
         video, canvas { max-width: 100%; border: 2px solid #333; border-radius: 8px; margin-bottom: 10px; background-color: #000; }
         canvas { display: none; }
@@ -41,30 +40,32 @@
     <!-- SKRIN 1: LOG MASUK -->
     <div id="loginScreen" class="screen active-screen">
         <h3>Log Masuk Guru / Admin</h3>
-        <input type="text" id="loginEmail" placeholder="Email" required>
+        <input type="text" id="loginEmail" placeholder="Email (Cth: guru@sekolah.edu.my)" required>
         <input type="password" id="loginPassword" placeholder="Kata Laluan" required>
         <button onclick="login()">Log Masuk</button>
+        <button class="btn-secondary" style="background:none; color:#007bff; box-shadow:none; text-decoration:underline;" onclick="register()">Daftar Akaun Baru</button>
     </div>
 
     <!-- SKRIN 2: DASHBOARD GURU -->
     <div id="dashboardScreen" class="screen" style="max-width: 700px;">
         <h3>Dashboard Guru</h3>
+        <p id="userEmailDisplay"></p>
         <div class="btn-group">
             <button class="btn-success" onclick="switchScreen('scannerScreen'); startCamera();">➕ Scan Sijil Baru</button>
-            <button class="btn-warning" onclick="alert('Fungsi ini akan menggabungkan semua sijil di bawah ke dalam satu PDF')">📚 Muat Turun Semua (PDF)</button>
+            <button class="btn-warning" onclick="alert('Fungsi muat turun batch di Google Drive.')">📚 Muat Turun Semua (PDF)</button>
         </div>
         
         <h4 style="text-align:left; margin-top:30px;">Senarai Sijil Terkini</h4>
         <table>
             <thead><tr><th>Nama Pelajar</th><th>Nama Sijil</th><th>Tindakan</th></tr></thead>
             <tbody id="certTableBody">
-                <tr><td>Ahmad Ali</td><td>Sijil Kokurikulum 2026</td><td><button class="btn-secondary" style="padding:5px;">Lihat/Edit PDF</button></td></tr>
+                <tr><td>Ahmad Ali</td><td>Sijil Kokurikulum 2026</td><td><button class="btn-secondary" style="padding:5px;">Lihat PDF (Simulasi)</button></td></tr>
             </tbody>
         </table>
         <button class="btn-danger" style="margin-top: 20px;" onclick="logout()">Log Keluar</button>
     </div>
 
-    <!-- SKRIN 3: PENGIMBAS (SCANNER, OCR & JANA PDF) -->
+    <!-- SKRIN 3: PENGIMBAS -->
     <div id="scannerScreen" class="screen">
         <div id="status">⏳ Sedang memuat AI... Sila tunggu.</div>
         
@@ -75,25 +76,30 @@
         <canvas id="canvas"></canvas>
 
         <div class="btn-group">
-            <!-- Langkah 1 & 2 -->
             <button id="btnCapture" disabled>📸 Imbas & Ratakan</button>
             <button id="btnFilter" class="btn-success" style="display:none;">✨ Buang Bayang (B&W)</button>
             
-            <!-- Langkah 3 (Pilihan Guru) -->
-            <button id="btnPdfBasic" class="btn-primary" style="display:none;" onclick="generateAndSavePDF(false)">📄 Simpan PDF (Biasa)</button>
+            <!-- Pilihan PDF -->
+            <button id="btnPdfBasic" class="btn-primary" style="display:none;" onclick="generateAndSavePDF(false)">📄 Simpan PDF Biasa</button>
             <button id="btnPdfOcr" class="btn-warning" style="display:none;" onclick="generateAndSavePDF(true)">📝 Simpan PDF + Teks (OCR)</button>
             
-            <!-- Batal -->
             <button id="btnRetake" class="btn-secondary" style="display:none;" onclick="resetScanner()">🔄 Batal</button>
         </div>
     </div>
 
-    <!-- Scripts: OpenCV (Crop AI), Tesseract (OCR AI), jsPDF (PDF Maker) -->
     <script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvReady();"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
+        // ==========================================
+        // TETAPAN GOOGLE APPS SCRIPT
+        // ==========================================
+        // SILA MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwngY_n_gaHAY-fAe3H4zR6HY6VTdoJh4ChLooiM6PtwVE8lh_fz-VFoAHFhzEVT0Zn/exec"; 
+        
+        let currentUserEmail = "";
+
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
         function switchScreen(screenId) {
@@ -101,17 +107,63 @@
             document.getElementById(screenId).classList.add('active-screen');
         }
 
-        function login() {
-            switchScreen('dashboardScreen');
+        async function login() {
+            let email = document.getElementById('loginEmail').value;
+            let pass = document.getElementById('loginPassword').value;
+            
+            if(!email || !pass) return alert("Sila masukkan maklumat lengkap.");
+            
+            // Bypass simulasi sementara untuk uji fungsi UI sebelum Web App dimasukkan
+            if(WEB_APP_URL === "MASUKKAN_URL_WEB_APP_ANDA_DI_SINI") {
+                currentUserEmail = email;
+                document.getElementById('userEmailDisplay').innerText = "Log masuk sebagai: " + email;
+                switchScreen('dashboardScreen');
+                return;
+            }
+
+            try {
+                let res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "login", email: email, password: pass })
+                });
+                let data = await res.json();
+                
+                if(data.status === "success") {
+                    currentUserEmail = email;
+                    document.getElementById('userEmailDisplay').innerText = "Log masuk sebagai: " + email;
+                    switchScreen('dashboardScreen');
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) { alert("Ralat sistem sambungan."); }
+        }
+
+        async function register() {
+            let email = document.getElementById('loginEmail').value;
+            let pass = document.getElementById('loginPassword').value;
+            
+            if(!email || !pass) return alert("Sila masukkan maklumat pada ruangan log masuk untuk didaftarkan.");
+            
+            if(WEB_APP_URL === "MASUKKAN_URL_WEB_APP_ANDA_DI_SINI") return alert("Simulasi: Pendaftaran direkodkan.");
+
+            try {
+                let res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "register", email: email, password: pass })
+                });
+                let data = await res.json();
+                alert(data.message);
+            } catch (err) { alert("Ralat sambungan."); }
         }
 
         function logout() {
+            currentUserEmail = "";
             stopCamera();
             switchScreen('loginScreen');
         }
 
         // ==========================================
-        // SISTEM KAMERA & AI OPENCV
+        // OPENCV: KAMERA & AI PENGESAN BUCU
         // ==========================================
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
@@ -144,36 +196,27 @@
         }
 
         function resetScanner() {
-            video.style.display = 'block';
-            canvas.style.display = 'none';
-            btnCapture.style.display = 'inline-block';
-            btnFilter.style.display = 'none';
-            btnPdfBasic.style.display = 'none';
-            btnPdfOcr.style.display = 'none';
-            btnRetake.style.display = 'none';
-            statusText.innerText = "✅ AI Bersedia! Halakan kamera pada sijil.";
-            statusText.style.color = "#28a745";
+            video.style.display = 'block'; canvas.style.display = 'none';
+            btnCapture.style.display = 'inline-block'; btnFilter.style.display = 'none';
+            btnPdfBasic.style.display = 'none'; btnPdfOcr.style.display = 'none'; btnRetake.style.display = 'none';
+            statusText.innerText = "✅ AI Bersedia! Halakan kamera pada sijil."; statusText.style.color = "#28a745";
         }
 
-        // 1. CROP & RATAKAN PERSPEKTIF
+        // TANGKAP DAN WARP PERSPEKTIF
         btnCapture.addEventListener('click', () => {
             if (!opencvReady) return;
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            video.style.display = 'none';
-            canvas.style.display = 'block';
-            btnCapture.style.display = 'none';
-            btnRetake.style.display = 'inline-block';
-            statusText.innerText = "🔄 Mengira sudut 3D dan meratakan imej...";
+            video.style.display = 'none'; canvas.style.display = 'block';
+            btnCapture.style.display = 'none'; btnRetake.style.display = 'inline-block';
+            statusText.innerText = "🔄 Mengira sudut 3D...";
             setTimeout(detectAndWarpDocument, 100); 
         });
 
         function detectAndWarpDocument() {
             try {
-                let src = cv.imread('canvas'); 
-                let dst = new cv.Mat();
+                let src = cv.imread('canvas'); let dst = new cv.Mat();
                 cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0);
                 cv.GaussianBlur(dst, dst, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT);
                 cv.Canny(dst, dst, 75, 200);
@@ -187,9 +230,7 @@
                     let approx = new cv.Mat();
                     cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
                     if (approx.rows === 4 && area > maxArea && area > 50000) { 
-                        maxArea = area;
-                        if (maxContour) maxContour.delete();
-                        maxContour = approx.clone();
+                        maxArea = area; if (maxContour) maxContour.delete(); maxContour = approx.clone();
                     }
                     approx.delete();
                 }
@@ -220,7 +261,7 @@
                     srcTri.delete(); dstTri.delete(); M.delete(); warped.delete();
                 } else {
                     cv.imshow('canvas', src);
-                    statusText.innerText = "⚠️ Gagal kesan bucu. Anda boleh abaikan dan teruskan buang bayang.";
+                    statusText.innerText = "⚠️ Gagal kesan bucu automatik.";
                     btnFilter.style.display = 'inline-block';
                 }
                 src.delete(); dst.delete(); contours.delete(); hierarchy.delete();
@@ -228,36 +269,32 @@
             } catch (err) { console.error(err); }
         }
 
-        // 2. BUANG BAYANG
+        // BUANG BAYANG (ADAPTIVE THRESHOLD)
         btnFilter.addEventListener('click', () => {
-            let src = cv.imread('canvas');
-            let dst = new cv.Mat();
+            let src = cv.imread('canvas'); let dst = new cv.Mat();
             cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0);
             cv.adaptiveThreshold(dst, dst, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15);
             cv.imshow('canvas', dst);
             src.delete(); dst.delete();
             
             btnFilter.style.display = 'none';
-            // Tunjukkan dua pilihan PDF kepada guru
             btnPdfBasic.style.display = 'inline-block';
             btnPdfOcr.style.display = 'inline-block';
             
-            statusText.innerText = "✅ Selesai! Sila pilih jenis PDF yang ingin dijanakan.";
+            statusText.innerText = "✅ Selesai! Pilih mod PDF untuk dijanakan.";
         });
 
         // ==========================================
-        // 3. JANA PDF (PILIHAN DENGAN ATAU TANPA OCR)
+        // JANA PDF (Biasa / OCR) & HANTAR KE GOOGLE DRIVE
         // ==========================================
         async function generateAndSavePDF(useOCR) {
-            let sName = document.getElementById('studentName').value || "Pelajar";
-            let cName = document.getElementById('certName').value || "Sijil";
+            let sName = document.getElementById('studentName').value || "Pelajar_Tiada_Nama";
+            let cName = document.getElementById('certName').value || "Sijil_Umum";
+            let fileName = `${sName} - ${cName}`;
             
-            btnPdfBasic.disabled = true;
-            btnPdfOcr.disabled = true;
-            btnRetake.disabled = true;
+            btnPdfBasic.disabled = true; btnPdfOcr.disabled = true; btnRetake.disabled = true;
 
             try {
-                // Sediakan PDF Kosong menggunakan jsPDF
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF({
                     orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
@@ -265,44 +302,64 @@
                     format: [canvas.width, canvas.height]
                 });
 
-                // Masukkan gambar Sijil ke halaman pertama
-                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                const imgData = canvas.toDataURL('image/jpeg', 0.9); // Compress sikit supaya ringan (0.9)
                 pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
 
-                // JIKA GURU MEMILIH PILIHAN OCR (Tesseract.js)
                 if (useOCR) {
-                    statusText.innerText = "⏳ AI sedang membaca teks (OCR)... Sila tunggu sebentar.";
+                    statusText.innerText = "⏳ AI OCR membaca teks (Ini mengambil sedikit masa)...";
                     statusText.style.color = "#ffc107";
-                    
-                    const { data: { text } } = await Tesseract.recognize(canvas, 'eng+msa'); // Inggeris & Melayu
-                    
-                    // Tambah muka surat kedua mengandungi teks bersih
+                    const { data: { text } } = await Tesseract.recognize(canvas, 'eng+msa'); 
                     pdf.addPage();
                     pdf.setFontSize(12);
-                    pdf.text("Teks yang diekstrak (Boleh disalin dan dicari): \n\n" + text, 20, 30);
-                    
-                    statusText.innerText = "⏳ Sedang mengeksport PDF (Bersama teks)...";
-                } else {
-                    statusText.innerText = "⏳ Sedang mengeksport PDF Biasa (Lebih laju)...";
+                    pdf.text("Teks yang diekstrak: \n\n" + text, 20, 30);
                 }
 
-                // Muat turun PDF
-                pdf.save(`${sName} - ${cName}.pdf`);
+                statusText.innerText = "⏳ Sedang memuat naik PDF ke Google Drive...";
                 
-                statusText.innerText = "✅ Sijil PDF berjaya disimpan!";
-                statusText.style.color = "#28a745";
+                // Tukarkan file PDF kepada bentuk Base64 Data String
+                const pdfBase64 = pdf.output('datauristring');
+
+                // Jika tiada URL Web App dimasukkan, muat turun ke dalam telefon/komputer secara offline
+                if(WEB_APP_URL === "MASUKKAN_URL_WEB_APP_ANDA_DI_SINI") {
+                    pdf.save(fileName + ".pdf");
+                    alert("Sijil dimuat turun ke peranti anda (Simulasi Offline). Masukkan URL Web App untuk upload ke Drive.");
+                    resetScanner();
+                    switchScreen('dashboardScreen');
+                    return;
+                }
+
+                // Hantar Payload ke Google Apps Script (Code.gs)
+                let payload = {
+                    action: "upload",
+                    pdfData: pdfBase64,
+                    fileName: fileName,
+                    studentName: sName,
+                    certName: cName,
+                    guruEmail: currentUserEmail
+                };
+
+                let res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
                 
-                alert("Fail PDF berjaya dijanakan. Dalam sistem sebenar, ia akan dihantar terus ke Google Drive.");
-                resetScanner();
-                switchScreen('dashboardScreen');
+                let result = await res.json();
                 
+                if (result.status === "success") {
+                    statusText.innerText = "✅ Sijil berjaya dimuat naik ke Drive dan direkodkan!";
+                    statusText.style.color = "#28a745";
+                    alert("Berjaya disimpan dalam Google Drive/Sheets!");
+                    resetScanner();
+                    switchScreen('dashboardScreen');
+                } else {
+                    alert("Gagal muat naik: " + result.message);
+                }
+
             } catch (err) {
                 console.error(err);
-                statusText.innerText = "❌ Ralat semasa menjana PDF.";
+                statusText.innerText = "❌ Ralat semasa pemprosesan PDF atau Muat Naik.";
             } finally {
-                btnPdfBasic.disabled = false;
-                btnPdfOcr.disabled = false;
-                btnRetake.disabled = false;
+                btnPdfBasic.disabled = false; btnPdfOcr.disabled = false; btnRetake.disabled = false;
             }
         }
     </script>
