@@ -110,7 +110,7 @@
 <body>
 
     <!-- SKRIN 1: LOG MASUK -->
-    <div id="loginScreen" class="screen active-screen">
+    <div id="loginScreen" class="screen">
         <div class="card">
             <i class="fa-solid fa-expand brand-icon"></i>
             <h3>Sistem Sijil Pro</h3>
@@ -197,25 +197,22 @@
             <input type="file" id="fileUploadInput" accept="image/*" style="display: none;">
 
             <div class="btn-group">
-                <!-- Mod Ambil (Langkah 1) -->
-                <button id="btnCaptureCam" class="btn-primary" disabled><i class="fa-solid fa-camera"></i> Snap Kamera</button>
-                <button id="btnUploadFile" class="btn-primary" onclick="document.getElementById('fileUploadInput').click();" disabled><i class="fa-solid fa-folder-open"></i> Buka Fail/Drive</button>
+                <!-- Kunci 'disabled' telah dibuang pada butang di bawah supaya tidak tersekat -->
+                <button id="btnCaptureCam" class="btn-primary"><i class="fa-solid fa-camera"></i> Snap Kamera</button>
+                <button id="btnUploadFile" class="btn-primary"><i class="fa-solid fa-folder-open"></i> Buka Fail/Drive</button>
                 
-                <!-- Mod Ejas (Langkah 2) -->
                 <button id="btnFilter" class="btn-success" style="display:none;"><i class="fa-solid fa-wand-magic-sparkles"></i> Buang Bayang (B&W)</button>
                 
-                <!-- Mod Eksport (Langkah 3) -->
                 <button id="btnPdfBasic" class="btn-primary" style="display:none;" onclick="generateAndSavePDF(false)"><i class="fa-solid fa-file-pdf"></i> Simpan PDF Biasa</button>
                 <button id="btnPdfOcr" class="btn-warning" style="display:none;" onclick="generateAndSavePDF(true)"><i class="fa-solid fa-file-contract"></i> Simpan PDF + OCR</button>
                 
-                <!-- Batal & Tutup -->
                 <button id="btnRetake" class="btn-ghost" style="display:none;" onclick="resetScanner()"><i class="fa-solid fa-rotate-left"></i> Batal & Ambil Semula</button>
                 <button id="btnCancelScan" class="btn-danger" onclick="closeScanner()"><i class="fa-solid fa-xmark"></i> Tutup</button>
             </div>
         </div>
     </div>
 
-    <!-- Scripts: OpenCV (Crop AI), Tesseract (OCR AI), jsPDF (PDF Maker) -->
+    <!-- Scripts: OpenCV, Tesseract, jsPDF -->
     <script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvReady();"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -227,7 +224,7 @@
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxOrI7Q-Rpk8xtBe7Ol6TyiWzmSx2Mg5PUpc-YOuMadiKEPXeBzNpBkk79qk-nDrvtB/exec"; 
         
         let currentUserEmail = "";
-        let studentsList = ["Ahmad Ali bin Abu", "Siti Nurhaliza", "Tan Wei Han"]; // Rekod sementara
+        let studentsList = ["Ahmad Ali bin Abu", "Siti Nurhaliza", "Tan Wei Han"];
         let activeStudent = "";
         let sessionCerts = [];
 
@@ -237,6 +234,21 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
             document.getElementById(screenId).classList.add('active-screen');
         }
+
+        // ==========================================
+        // AUTO-LOGIN (SEMAK MEMORI PERANTI)
+        // ==========================================
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedUser = localStorage.getItem("sijilProUser");
+            if (savedUser) {
+                currentUserEmail = savedUser;
+                document.getElementById('userEmailDisplay').innerText = savedUser;
+                renderStudentList();
+                switchScreen('dashboardScreen');
+            } else {
+                switchScreen('loginScreen');
+            }
+        });
 
         // ==========================================
         // SISTEM AUTENTIKASI
@@ -260,6 +272,7 @@
                 
                 if(data.status === "success") {
                     currentUserEmail = email;
+                    localStorage.setItem("sijilProUser", email);
                     document.getElementById('userEmailDisplay').innerText = email;
                     renderStudentList();
                     switchScreen('dashboardScreen');
@@ -291,17 +304,19 @@
         function logout() {
             currentUserEmail = "";
             activeStudent = "";
+            localStorage.removeItem("sijilProUser");
             stopCamera();
+            document.getElementById('loginEmail').value = "";
+            document.getElementById('loginPassword').value = "";
             switchScreen('loginScreen');
         }
 
         // ==========================================
-        // SISTEM UI DASHBOARD (PENGURUSAN PELAJAR)
+        // SISTEM UI DASHBOARD
         // ==========================================
         function renderStudentList() {
             const ul = document.getElementById('studentListUI');
             ul.innerHTML = "";
-            
             studentsList.forEach(name => {
                 let li = document.createElement('li');
                 li.className = `student-item ${name === activeStudent ? 'active' : ''}`;
@@ -324,11 +339,9 @@
         function selectStudent(name) {
             activeStudent = name;
             renderStudentList();
-            
             document.getElementById('emptyState').style.display = 'none';
             document.getElementById('studentDetails').style.display = 'block';
             document.getElementById('activeStudentTitle').innerText = name;
-            
             renderCerts();
         }
 
@@ -336,12 +349,10 @@
             const grid = document.getElementById('certGridUI');
             grid.innerHTML = "";
             let myCerts = sessionCerts.filter(c => c.student === activeStudent);
-            
             if(myCerts.length === 0) {
                 grid.innerHTML = `<p style="color:var(--text-light); font-size:14px;">Belum ada sijil diimbas untuk pelajar ini pada sesi ini.</p>`;
                 return;
             }
-            
             myCerts.forEach(cert => {
                 grid.innerHTML += `
                     <div class="cert-card">
@@ -378,11 +389,12 @@
 
         function onOpenCvReady() {
             opencvReady = true;
-            statusText.innerHTML = '<i class="fa-solid fa-check-circle"></i> AI Bersedia! Pilih kamera atau fail.';
-            statusText.style.color = "var(--secondary)";
-            statusText.style.background = "rgba(16, 185, 129, 0.1)";
-            btnCaptureCam.disabled = false;
-            btnUploadFile.disabled = false;
+            let status = document.getElementById('status');
+            if(status) {
+                status.innerHTML = '<i class="fa-solid fa-check-circle"></i> AI Bersedia! Pilih kamera atau fail.';
+                status.style.color = "var(--secondary)";
+                status.style.background = "rgba(16, 185, 129, 0.1)";
+            }
         }
 
         function openScanner() {
@@ -401,7 +413,7 @@
         function startCamera() {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } })
                 .then(stream => { localStream = stream; video.srcObject = stream; })
-                .catch(err => { console.log("Kamera tidak ditemui, mod fail sahaja aktif."); });
+                .catch(err => { console.log("Kamera tidak ditemui, gunakan fail."); });
         }
 
         function stopCamera() {
@@ -416,6 +428,7 @@
             btnFilter.style.display = 'none'; btnPdfBasic.style.display = 'none'; 
             btnPdfOcr.style.display = 'none'; btnRetake.style.display = 'none';
             fileUploadInput.value = "";
+            document.getElementById('certName').value = "";
             
             statusText.innerHTML = '<i class="fa-solid fa-check-circle"></i> AI Bersedia! Pilih kamera atau fail.';
             statusText.style.color = "var(--secondary)";
@@ -425,12 +438,23 @@
         }
 
         // ==========================================
-        // PROSES IMEJ: 1. DARI KAMERA
+        // PROSES IMEJ 1: SNAP KAMERA
         // ==========================================
         btnCaptureCam.addEventListener('click', () => {
-            if (!opencvReady) return;
+            if (!opencvReady) {
+                alert("AI OpenCV sedang memuat turun. Sila tunggu sebentar.");
+                return;
+            }
+            
+            // VALIDASI NAMA SIJIL KOSONG (Penting!)
             let certInput = document.getElementById('certName').value.trim();
-            if(!certInput) return alert("Sila masukkan nama sijil di atas terlebih dahulu.");
+            if(!certInput) {
+                statusText.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Sila taip Nama Sijil terlebih dahulu!";
+                statusText.style.color = "var(--danger)";
+                statusText.style.background = "rgba(239, 68, 68, 0.1)";
+                document.getElementById('certName').focus(); // Auto fokus ke kotak nama
+                return;
+            }
             
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -441,32 +465,45 @@
             
             statusText.innerHTML = '<i class="fa-solid fa-gear fa-spin"></i> AI meratakan sijil (Kamera)...';
             statusText.style.color = "var(--primary)";
+            statusText.style.background = "rgba(79, 70, 229, 0.1)";
+            
             setTimeout(detectAndWarpDocument, 100); 
         });
 
         // ==========================================
-        // PROSES IMEJ: 2. DARI FAIL / GOOGLE DRIVE MUDAH ALIH
+        // PROSES IMEJ 2: BUKA FAIL / DRIVE
         // ==========================================
+        btnUploadFile.addEventListener('click', () => {
+            if (!opencvReady) {
+                alert("AI OpenCV sedang memuat turun. Sila tunggu sebentar.");
+                return;
+            }
+
+            // VALIDASI NAMA SIJIL KOSONG SEBELUM BUKA FAIL (Penting!)
+            let certInput = document.getElementById('certName').value.trim();
+            if(!certInput) {
+                statusText.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Sila taip Nama Sijil di kotak atas dahulu!";
+                statusText.style.color = "var(--danger)";
+                statusText.style.background = "rgba(239, 68, 68, 0.1)";
+                document.getElementById('certName').focus();
+                return;
+            }
+            
+            // Buka tetingkap fail jika nama telah diisi
+            fileUploadInput.click();
+        });
+
         fileUploadInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if(!file) return;
-            
-            let certInput = document.getElementById('certName').value.trim();
-            if(!certInput) {
-                alert("Sila masukkan nama sijil di atas sebelum memilih fail.");
-                fileUploadInput.value = "";
-                return;
-            }
 
             const reader = new FileReader();
             reader.onload = function(event) {
                 const img = new Image();
                 img.onload = function() {
-                    // Masukkan fail ke dalam canvas
                     canvas.width = img.width; canvas.height = img.height;
                     ctx.drawImage(img, 0, 0);
                     
-                    // Tutup kamera untuk jimat memori & ubah UI
                     stopCamera(); 
                     video.style.display = 'none'; canvas.style.display = 'block';
                     btnCaptureCam.style.display = 'none'; btnUploadFile.style.display = 'none'; btnCancelScan.style.display = 'none';
@@ -475,7 +512,6 @@
                     statusText.innerHTML = '<i class="fa-solid fa-gear fa-spin"></i> AI meratakan sijil (Fail Muat Naik)...';
                     statusText.style.color = "var(--primary)";
                     
-                    // Terus jalankan AI pada gambar yang dimuat naik
                     setTimeout(detectAndWarpDocument, 200);
                 }
                 img.src = event.target.result;
@@ -536,6 +572,7 @@
                     cv.imshow('canvas', src);
                     statusText.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> AI tidak menjumpai bucu lurus, tapi anda masih boleh buang bayang.";
                     statusText.style.color = "var(--warning)";
+                    statusText.style.background = "rgba(245, 158, 11, 0.1)";
                     btnFilter.style.display = 'inline-flex';
                 }
                 src.delete(); dst.delete(); contours.delete(); hierarchy.delete();
