@@ -5,88 +5,217 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Pengurusan Sijil AI</title>
     <link rel="manifest" href="manifest.json">
+    
+    <!-- Modern Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        body { font-family: sans-serif; text-align: center; background: #e9ecef; margin: 0; padding: 20px; }
-        .screen { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #10b981;
+            --secondary-hover: #059669;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-color: #f3f4f6;
+            --surface: #ffffff;
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; }
+        
+        .screen { display: none; width: 100%; max-width: 1200px; padding: 20px; animation: fadeIn 0.3s ease; }
         .active-screen { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* UI Elements */
+        .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 25px; }
         
-        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
-        button { background: #007bff; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
-        button:hover { background: #0056b3; }
-        button:disabled { background: #cccccc; cursor: not-allowed; }
+        input { width: 100%; padding: 12px 16px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; outline: none; transition: border 0.3s; }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
         
-        .btn-primary { background: #007bff; }
-        .btn-success { background: #28a745; }
-        .btn-secondary { background: #6c757d; }
-        .btn-danger { background: #dc3545; }
-        .btn-warning { background: #ffc107; color: black; }
+        button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 12px 20px; font-size: 15px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: white; width: 100%; }
+        button:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+        button:active { transform: translateY(0); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
         
-        #scannerScreen { max-width: 900px; }
-        video, canvas { max-width: 100%; border: 2px solid #333; border-radius: 8px; margin-bottom: 10px; background-color: #000; }
+        .btn-primary { background: var(--primary); }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-success { background: var(--secondary); }
+        .btn-success:hover { background: var(--secondary-hover); }
+        .btn-warning { background: var(--warning); color: #fff; }
+        .btn-danger { background: var(--danger); }
+        .btn-ghost { background: transparent; color: var(--primary); box-shadow: none; }
+        .btn-ghost:hover { background: rgba(79, 70, 229, 0.05); box-shadow: none; }
+
+        /* Login Screen Specifics */
+        #loginScreen .card { max-width: 400px; margin: 10vh auto; text-align: center; }
+        #loginScreen h3 { margin-bottom: 20px; font-size: 24px; color: var(--text-main); }
+        .brand-icon { font-size: 40px; color: var(--primary); margin-bottom: 10px; }
+
+        /* Dashboard Split Layout */
+        .dashboard-container { display: grid; grid-template-columns: 350px 1fr; gap: 20px; align-items: start; }
+        @media (max-width: 768px) { .dashboard-container { grid-template-columns: 1fr; } }
+        
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px 25px; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); }
+        .top-bar h2 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
+        
+        /* Left Sidebar: Student List */
+        .sidebar { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+        .sidebar h3 { font-size: 16px; margin-bottom: 15px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
+        
+        .add-student-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .add-student-box input { margin: 0; }
+        .add-student-box button { width: auto; padding: 12px 15px; }
+
+        .student-list { list-style: none; max-height: 50vh; overflow-y: auto; }
+        .student-item { padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; display: flex; align-items: center; gap: 10px; }
+        .student-item i { color: var(--text-light); }
+        .student-item:hover { background: var(--bg-color); }
+        .student-item.active { background: rgba(79, 70, 229, 0.1); border-color: var(--primary); font-weight: 600; color: var(--primary); }
+        .student-item.active i { color: var(--primary); }
+
+        /* Right Content: Student Details & Certs */
+        .main-panel { background: var(--surface); border-radius: var(--radius); padding: 25px; box-shadow: var(--shadow); min-height: 60vh; }
+        .empty-state { text-align: center; color: var(--text-light); margin-top: 10vh; }
+        .empty-state i { font-size: 48px; color: #d1d5db; margin-bottom: 15px; }
+        
+        .student-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
+        .student-header h2 { font-size: 22px; }
+        .student-header button { width: auto; }
+
+        .cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+        .cert-card { background: var(--bg-color); padding: 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px; }
+        .cert-card i { font-size: 24px; color: var(--danger); }
+        .cert-card-content h4 { font-size: 15px; margin-bottom: 4px; }
+        .cert-card-content p { font-size: 12px; color: var(--text-light); }
+
+        /* Scanner Screen */
+        #scannerScreen { text-align: center; }
+        #scannerScreen .card { max-width: 800px; margin: auto; }
+        .scanner-header { margin-bottom: 15px; }
+        video, canvas { width: 100%; max-height: 60vh; border-radius: 8px; background: #000; object-fit: contain; margin-bottom: 15px; }
         canvas { display: none; }
-        .btn-group { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top:10px; }
-        .btn-group button { width: auto; }
-        #status { margin-bottom: 15px; font-weight: bold; color: #d9534f; padding: 10px; background: #fff; border-radius: 5px; border: 1px solid #ddd; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
+        .btn-group { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+        .btn-group button { width: auto; min-width: 150px; }
+        #status { font-weight: 600; color: var(--primary); padding: 12px; background: rgba(79, 70, 229, 0.1); border-radius: 8px; margin-bottom: 15px; display: inline-block; width: 100%; }
     </style>
 </head>
 <body>
 
-    <h2>Sistem Pengurusan Sijil AI</h2>
-
     <!-- SKRIN 1: LOG MASUK -->
     <div id="loginScreen" class="screen active-screen">
-        <h3>Log Masuk Guru / Admin</h3>
-        <input type="text" id="loginEmail" placeholder="Email (Cth: guru@sekolah.edu.my)" required>
-        <input type="password" id="loginPassword" placeholder="Kata Laluan" required>
-        <button onclick="login()">Log Masuk</button>
-        <button class="btn-secondary" style="background:none; color:#007bff; box-shadow:none; text-decoration:underline;" onclick="register()">Daftar Akaun Baru</button>
+        <div class="card">
+            <i class="fa-solid fa-expand brand-icon"></i>
+            <h3>Sistem Sijil Pro</h3>
+            <p style="color: var(--text-light); margin-bottom: 20px; font-size: 14px;">Log masuk untuk mengurus rekod pelajar</p>
+            
+            <input type="email" id="loginEmail" placeholder="Email Guru (Cth: guru@edu.my)" required>
+            <input type="password" id="loginPassword" placeholder="Kata Laluan" required>
+            
+            <button class="btn-primary" onclick="login()" style="margin-top: 15px;">
+                <i class="fa-solid fa-right-to-bracket"></i> Log Masuk
+            </button>
+            <button class="btn-ghost" onclick="register()">Daftar Akaun Baru</button>
+        </div>
     </div>
 
     <!-- SKRIN 2: DASHBOARD GURU -->
-    <div id="dashboardScreen" class="screen" style="max-width: 700px;">
-        <h3>Dashboard Guru</h3>
-        <p id="userEmailDisplay"></p>
-        <div class="btn-group">
-            <button class="btn-success" onclick="switchScreen('scannerScreen'); startCamera();">➕ Scan Sijil Baru</button>
-            <button class="btn-warning" onclick="alert('Fungsi muat turun batch di Google Drive.')">📚 Muat Turun Semua (PDF)</button>
+    <div id="dashboardScreen" class="screen">
+        <div class="top-bar">
+            <h2><i class="fa-solid fa-graduation-cap"></i> Portal Guru</h2>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <span id="userEmailDisplay" style="font-size: 14px; font-weight: 500;"></span>
+                <button class="btn-ghost" onclick="logout()" style="width: auto; padding: 8px 15px;" title="Log Keluar"><i class="fa-solid fa-power-off"></i></button>
+            </div>
         </div>
-        
-        <h4 style="text-align:left; margin-top:30px;">Senarai Sijil Terkini</h4>
-        <table>
-            <thead><tr><th>Nama Pelajar</th><th>Nama Sijil</th><th>Tindakan</th></tr></thead>
-            <tbody id="certTableBody">
-                <tr><td>Ahmad Ali</td><td>Sijil Kokurikulum 2026</td><td><button class="btn-secondary" style="padding:5px;">Lihat PDF (Simulasi)</button></td></tr>
-            </tbody>
-        </table>
-        <button class="btn-danger" style="margin-top: 20px;" onclick="logout()">Log Keluar</button>
+
+        <div class="dashboard-container">
+            <!-- Sidebar: Senarai Pelajar -->
+            <div class="sidebar">
+                <h3><i class="fa-solid fa-users"></i> Urus Pelajar</h3>
+                <div class="add-student-box">
+                    <input type="text" id="newStudentName" placeholder="Nama Pelajar Baru...">
+                    <button class="btn-primary" onclick="addStudent()"><i class="fa-solid fa-plus"></i></button>
+                </div>
+                <ul class="student-list" id="studentListUI">
+                    <!-- Senarai pelajar akan dijana di sini oleh JS -->
+                </ul>
+            </div>
+
+            <!-- Main Panel: Profil & Sijil Pelajar -->
+            <div class="main-panel">
+                <div id="emptyState" class="empty-state">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <h3>Pilih nama pelajar di sebelah kiri</h3>
+                    <p>Atau tambah pelajar baru untuk mula mengurus sijil.</p>
+                </div>
+
+                <div id="studentDetails" style="display: none;">
+                    <div class="student-header">
+                        <div>
+                            <h2 id="activeStudentTitle">Nama Pelajar</h2>
+                            <p style="color: var(--text-light); font-size: 14px;">Urus dan simpan rekod sijil untuk pelajar ini.</p>
+                        </div>
+                        <button class="btn-success" onclick="openScanner()">
+                            <i class="fa-solid fa-camera"></i> Scan Sijil
+                        </button>
+                    </div>
+                    
+                    <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-light);">Rekod Sijil Semasa (Sesi Ini)</h3>
+                    <div class="cert-grid" id="certGridUI">
+                        <!-- Sijil akan dipaparkan di sini -->
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- SKRIN 3: PENGIMBAS -->
+    <!-- SKRIN 3: PENGIMBAS & MUAT NAIK FAIL -->
     <div id="scannerScreen" class="screen">
-        <div id="status">⏳ Sedang memuat AI... Sila tunggu.</div>
-        
-        <input type="text" id="studentName" placeholder="Masukkan Nama Pelajar (Cth: Ahmad Ali)">
-        <input type="text" id="certName" placeholder="Nama Sijil (Cth: Sijil Penyertaan Catur)">
-
-        <video id="video" autoplay playsinline></video>
-        <canvas id="canvas"></canvas>
-
-        <div class="btn-group">
-            <button id="btnCapture" disabled>📸 Imbas & Ratakan</button>
-            <button id="btnFilter" class="btn-success" style="display:none;">✨ Buang Bayang (B&W)</button>
+        <div class="card">
+            <div class="scanner-header">
+                <h2><i class="fa-solid fa-wand-magic-sparkles"></i> AI Scanner & Uploader</h2>
+                <p style="color: var(--text-light);">Pelajar: <strong id="scannerStudentLabel"></strong></p>
+            </div>
             
-            <!-- Pilihan PDF -->
-            <button id="btnPdfBasic" class="btn-primary" style="display:none;" onclick="generateAndSavePDF(false)">📄 Simpan PDF Biasa</button>
-            <button id="btnPdfOcr" class="btn-warning" style="display:none;" onclick="generateAndSavePDF(true)">📝 Simpan PDF + Teks (OCR)</button>
+            <div id="status">⏳ Sedang memuat AI... Sila tunggu.</div>
             
-            <button id="btnRetake" class="btn-secondary" style="display:none;" onclick="resetScanner()">🔄 Batal</button>
+            <input type="text" id="certName" placeholder="Masukkan Nama Sijil (Cth: Sijil Penyertaan Catur 2026)" style="margin-bottom: 15px;">
+
+            <!-- Ruang paparan -->
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+
+            <!-- Butang File Input (Tersembunyi) -->
+            <input type="file" id="fileUploadInput" accept="image/*" style="display: none;">
+
+            <div class="btn-group">
+                <!-- Mod Ambil (Langkah 1) -->
+                <button id="btnCaptureCam" class="btn-primary" disabled><i class="fa-solid fa-camera"></i> Snap Kamera</button>
+                <button id="btnUploadFile" class="btn-primary" onclick="document.getElementById('fileUploadInput').click();" disabled><i class="fa-solid fa-folder-open"></i> Buka Fail/Drive</button>
+                
+                <!-- Mod Ejas (Langkah 2) -->
+                <button id="btnFilter" class="btn-success" style="display:none;"><i class="fa-solid fa-wand-magic-sparkles"></i> Buang Bayang (B&W)</button>
+                
+                <!-- Mod Eksport (Langkah 3) -->
+                <button id="btnPdfBasic" class="btn-primary" style="display:none;" onclick="generateAndSavePDF(false)"><i class="fa-solid fa-file-pdf"></i> Simpan PDF Biasa</button>
+                <button id="btnPdfOcr" class="btn-warning" style="display:none;" onclick="generateAndSavePDF(true)"><i class="fa-solid fa-file-contract"></i> Simpan PDF + OCR</button>
+                
+                <!-- Batal & Tutup -->
+                <button id="btnRetake" class="btn-ghost" style="display:none;" onclick="resetScanner()"><i class="fa-solid fa-rotate-left"></i> Batal & Ambil Semula</button>
+                <button id="btnCancelScan" class="btn-danger" onclick="closeScanner()"><i class="fa-solid fa-xmark"></i> Tutup</button>
+            </div>
         </div>
     </div>
 
+    <!-- Scripts: OpenCV (Crop AI), Tesseract (OCR AI), jsPDF (PDF Maker) -->
     <script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvReady();"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -95,10 +224,12 @@
         // ==========================================
         // TETAPAN GOOGLE APPS SCRIPT
         // ==========================================
-        // SILA MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwngY_n_gaHAY-fAe3H4zR6HY6VTdoJh4ChLooiM6PtwVE8lh_fz-VFoAHFhzEVT0Zn/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxOrI7Q-Rpk8xtBe7Ol6TyiWzmSx2Mg5PUpc-YOuMadiKEPXeBzNpBkk79qk-nDrvtB/exec"; 
         
         let currentUserEmail = "";
+        let studentsList = ["Ahmad Ali bin Abu", "Siti Nurhaliza", "Tan Wei Han"]; // Rekod sementara
+        let activeStudent = "";
+        let sessionCerts = [];
 
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
@@ -107,20 +238,19 @@
             document.getElementById(screenId).classList.add('active-screen');
         }
 
+        // ==========================================
+        // SISTEM AUTENTIKASI
+        // ==========================================
         async function login() {
             let email = document.getElementById('loginEmail').value;
             let pass = document.getElementById('loginPassword').value;
             
-            if(!email || !pass) return alert("Sila masukkan maklumat lengkap.");
+            if(!email || !pass) return alert("Sila masukkan email dan kata laluan.");
             
-            // Bypass simulasi sementara untuk uji fungsi UI sebelum Web App dimasukkan
-            if(WEB_APP_URL === "MASUKKAN_URL_WEB_APP_ANDA_DI_SINI") {
-                currentUserEmail = email;
-                document.getElementById('userEmailDisplay').innerText = "Log masuk sebagai: " + email;
-                switchScreen('dashboardScreen');
-                return;
-            }
-
+            let btn = document.querySelector('#loginScreen button');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyemak...';
+            btn.disabled = true;
+            
             try {
                 let res = await fetch(WEB_APP_URL, {
                     method: 'POST',
@@ -130,22 +260,24 @@
                 
                 if(data.status === "success") {
                     currentUserEmail = email;
-                    document.getElementById('userEmailDisplay').innerText = "Log masuk sebagai: " + email;
+                    document.getElementById('userEmailDisplay').innerText = email;
+                    renderStudentList();
                     switchScreen('dashboardScreen');
                 } else {
                     alert(data.message);
                 }
-            } catch (err) { alert("Ralat sistem sambungan."); }
+            } catch (err) { alert("Ralat sistem sambungan pelayan."); console.error(err); }
+            finally {
+                btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Log Masuk';
+                btn.disabled = false;
+            }
         }
 
         async function register() {
             let email = document.getElementById('loginEmail').value;
             let pass = document.getElementById('loginPassword').value;
+            if(!email || !pass) return alert("Sila taip email dan kata laluan di ruangan atas sebelum tekan Daftar.");
             
-            if(!email || !pass) return alert("Sila masukkan maklumat pada ruangan log masuk untuk didaftarkan.");
-            
-            if(WEB_APP_URL === "MASUKKAN_URL_WEB_APP_ANDA_DI_SINI") return alert("Simulasi: Pendaftaran direkodkan.");
-
             try {
                 let res = await fetch(WEB_APP_URL, {
                     method: 'POST',
@@ -153,42 +285,123 @@
                 });
                 let data = await res.json();
                 alert(data.message);
-            } catch (err) { alert("Ralat sambungan."); }
+            } catch (err) { alert("Ralat pendaftaran."); console.error(err); }
         }
 
         function logout() {
             currentUserEmail = "";
+            activeStudent = "";
             stopCamera();
             switchScreen('loginScreen');
         }
 
         // ==========================================
-        // OPENCV: KAMERA & AI PENGESAN BUCU
+        // SISTEM UI DASHBOARD (PENGURUSAN PELAJAR)
+        // ==========================================
+        function renderStudentList() {
+            const ul = document.getElementById('studentListUI');
+            ul.innerHTML = "";
+            
+            studentsList.forEach(name => {
+                let li = document.createElement('li');
+                li.className = `student-item ${name === activeStudent ? 'active' : ''}`;
+                li.innerHTML = `<i class="fa-solid fa-user"></i> ${name}`;
+                li.onclick = () => selectStudent(name);
+                ul.appendChild(li);
+            });
+        }
+
+        function addStudent() {
+            let input = document.getElementById('newStudentName');
+            let name = input.value.trim();
+            if(name && !studentsList.includes(name)) {
+                studentsList.push(name);
+                input.value = "";
+                selectStudent(name);
+            }
+        }
+
+        function selectStudent(name) {
+            activeStudent = name;
+            renderStudentList();
+            
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('studentDetails').style.display = 'block';
+            document.getElementById('activeStudentTitle').innerText = name;
+            
+            renderCerts();
+        }
+
+        function renderCerts() {
+            const grid = document.getElementById('certGridUI');
+            grid.innerHTML = "";
+            let myCerts = sessionCerts.filter(c => c.student === activeStudent);
+            
+            if(myCerts.length === 0) {
+                grid.innerHTML = `<p style="color:var(--text-light); font-size:14px;">Belum ada sijil diimbas untuk pelajar ini pada sesi ini.</p>`;
+                return;
+            }
+            
+            myCerts.forEach(cert => {
+                grid.innerHTML += `
+                    <div class="cert-card">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <div class="cert-card-content">
+                            <h4>${cert.certName}</h4>
+                            <p>Tersimpan di Google Drive</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // ==========================================
+        // SISTEM SCANNER & AI OPENCV
         // ==========================================
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         
-        const btnCapture = document.getElementById('btnCapture');
+        const btnCaptureCam = document.getElementById('btnCaptureCam');
+        const btnUploadFile = document.getElementById('btnUploadFile');
+        const fileUploadInput = document.getElementById('fileUploadInput');
+        
         const btnFilter = document.getElementById('btnFilter');
         const btnPdfBasic = document.getElementById('btnPdfBasic');
         const btnPdfOcr = document.getElementById('btnPdfOcr');
         const btnRetake = document.getElementById('btnRetake');
+        const btnCancelScan = document.getElementById('btnCancelScan');
         const statusText = document.getElementById('status');
+        
         let opencvReady = false;
         let localStream = null;
 
         function onOpenCvReady() {
             opencvReady = true;
-            statusText.innerText = "✅ AI Bersedia! Halakan kamera pada sijil.";
-            statusText.style.color = "#28a745";
-            btnCapture.disabled = false;
+            statusText.innerHTML = '<i class="fa-solid fa-check-circle"></i> AI Bersedia! Pilih kamera atau fail.';
+            statusText.style.color = "var(--secondary)";
+            statusText.style.background = "rgba(16, 185, 129, 0.1)";
+            btnCaptureCam.disabled = false;
+            btnUploadFile.disabled = false;
+        }
+
+        function openScanner() {
+            if(!activeStudent) return alert("Sila pilih pelajar terlebih dahulu.");
+            document.getElementById('scannerStudentLabel').innerText = activeStudent;
+            switchScreen('scannerScreen');
+            startCamera();
+        }
+        
+        function closeScanner() {
+            stopCamera();
+            resetScanner();
+            switchScreen('dashboardScreen');
         }
 
         function startCamera() {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } })
                 .then(stream => { localStream = stream; video.srcObject = stream; })
-                .catch(err => { alert("Gagal akses kamera."); });
+                .catch(err => { console.log("Kamera tidak ditemui, mod fail sahaja aktif."); });
         }
 
         function stopCamera() {
@@ -197,23 +410,82 @@
 
         function resetScanner() {
             video.style.display = 'block'; canvas.style.display = 'none';
-            btnCapture.style.display = 'inline-block'; btnFilter.style.display = 'none';
-            btnPdfBasic.style.display = 'none'; btnPdfOcr.style.display = 'none'; btnRetake.style.display = 'none';
-            statusText.innerText = "✅ AI Bersedia! Halakan kamera pada sijil."; statusText.style.color = "#28a745";
+            btnCaptureCam.style.display = 'inline-flex'; btnUploadFile.style.display = 'inline-flex';
+            btnCancelScan.style.display = 'inline-flex';
+            
+            btnFilter.style.display = 'none'; btnPdfBasic.style.display = 'none'; 
+            btnPdfOcr.style.display = 'none'; btnRetake.style.display = 'none';
+            fileUploadInput.value = "";
+            
+            statusText.innerHTML = '<i class="fa-solid fa-check-circle"></i> AI Bersedia! Pilih kamera atau fail.';
+            statusText.style.color = "var(--secondary)";
+            statusText.style.background = "rgba(16, 185, 129, 0.1)";
+            
+            if(!localStream) startCamera();
         }
 
-        // TANGKAP DAN WARP PERSPEKTIF
-        btnCapture.addEventListener('click', () => {
+        // ==========================================
+        // PROSES IMEJ: 1. DARI KAMERA
+        // ==========================================
+        btnCaptureCam.addEventListener('click', () => {
             if (!opencvReady) return;
+            let certInput = document.getElementById('certName').value.trim();
+            if(!certInput) return alert("Sila masukkan nama sijil di atas terlebih dahulu.");
+            
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
             video.style.display = 'none'; canvas.style.display = 'block';
-            btnCapture.style.display = 'none'; btnRetake.style.display = 'inline-block';
-            statusText.innerText = "🔄 Mengira sudut 3D...";
+            btnCaptureCam.style.display = 'none'; btnUploadFile.style.display = 'none'; btnCancelScan.style.display = 'none';
+            btnRetake.style.display = 'inline-flex';
+            
+            statusText.innerHTML = '<i class="fa-solid fa-gear fa-spin"></i> AI meratakan sijil (Kamera)...';
+            statusText.style.color = "var(--primary)";
             setTimeout(detectAndWarpDocument, 100); 
         });
 
+        // ==========================================
+        // PROSES IMEJ: 2. DARI FAIL / GOOGLE DRIVE MUDAH ALIH
+        // ==========================================
+        fileUploadInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            
+            let certInput = document.getElementById('certName').value.trim();
+            if(!certInput) {
+                alert("Sila masukkan nama sijil di atas sebelum memilih fail.");
+                fileUploadInput.value = "";
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    // Masukkan fail ke dalam canvas
+                    canvas.width = img.width; canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // Tutup kamera untuk jimat memori & ubah UI
+                    stopCamera(); 
+                    video.style.display = 'none'; canvas.style.display = 'block';
+                    btnCaptureCam.style.display = 'none'; btnUploadFile.style.display = 'none'; btnCancelScan.style.display = 'none';
+                    btnRetake.style.display = 'inline-flex';
+                    
+                    statusText.innerHTML = '<i class="fa-solid fa-gear fa-spin"></i> AI meratakan sijil (Fail Muat Naik)...';
+                    statusText.style.color = "var(--primary)";
+                    
+                    // Terus jalankan AI pada gambar yang dimuat naik
+                    setTimeout(detectAndWarpDocument, 200);
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        });
+
+        // ==========================================
+        // ALGORITMA OPENCV (PERSPECTIVE WARP)
+        // ==========================================
         function detectAndWarpDocument() {
             try {
                 let src = cv.imread('canvas'); let dst = new cv.Mat();
@@ -255,21 +527,25 @@
                     
                     canvas.width = maxWidth; canvas.height = maxHeight;
                     cv.imshow('canvas', warped);
-                    statusText.innerText = "✨ Sijil diratakan! Tekan 'Buang Bayang'.";
-                    btnFilter.style.display = 'inline-block';
+                    
+                    statusText.innerHTML = "<i class='fa-solid fa-check'></i> Gambar berjaya diratakan! Sila buang bayang.";
+                    btnFilter.style.display = 'inline-flex';
                     
                     srcTri.delete(); dstTri.delete(); M.delete(); warped.delete();
                 } else {
                     cv.imshow('canvas', src);
-                    statusText.innerText = "⚠️ Gagal kesan bucu automatik.";
-                    btnFilter.style.display = 'inline-block';
+                    statusText.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> AI tidak menjumpai bucu lurus, tapi anda masih boleh buang bayang.";
+                    statusText.style.color = "var(--warning)";
+                    btnFilter.style.display = 'inline-flex';
                 }
                 src.delete(); dst.delete(); contours.delete(); hierarchy.delete();
                 if (maxContour) maxContour.delete();
             } catch (err) { console.error(err); }
         }
 
+        // ==========================================
         // BUANG BAYANG (ADAPTIVE THRESHOLD)
+        // ==========================================
         btnFilter.addEventListener('click', () => {
             let src = cv.imread('canvas'); let dst = new cv.Mat();
             cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0);
@@ -278,18 +554,18 @@
             src.delete(); dst.delete();
             
             btnFilter.style.display = 'none';
-            btnPdfBasic.style.display = 'inline-block';
-            btnPdfOcr.style.display = 'inline-block';
+            btnPdfBasic.style.display = 'inline-flex';
+            btnPdfOcr.style.display = 'inline-flex';
             
-            statusText.innerText = "✅ Selesai! Pilih mod PDF untuk dijanakan.";
+            statusText.innerHTML = "<i class='fa-solid fa-check-double'></i> Selesai! Pilih cara untuk eksport PDF.";
         });
 
         // ==========================================
-        // JANA PDF (Biasa / OCR) & HANTAR KE GOOGLE DRIVE
+        // EKSORT PDF & UPLOAD KE GOOGLE DRIVE
         // ==========================================
         async function generateAndSavePDF(useOCR) {
-            let sName = document.getElementById('studentName').value || "Pelajar_Tiada_Nama";
-            let cName = document.getElementById('certName').value || "Sijil_Umum";
+            let sName = activeStudent;
+            let cName = document.getElementById('certName').value.trim();
             let fileName = `${sName} - ${cName}`;
             
             btnPdfBasic.disabled = true; btnPdfOcr.disabled = true; btnRetake.disabled = true;
@@ -302,33 +578,25 @@
                     format: [canvas.width, canvas.height]
                 });
 
-                const imgData = canvas.toDataURL('image/jpeg', 0.9); // Compress sikit supaya ringan (0.9)
+                const imgData = canvas.toDataURL('image/jpeg', 0.9); 
                 pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
 
                 if (useOCR) {
-                    statusText.innerText = "⏳ AI OCR membaca teks (Ini mengambil sedikit masa)...";
-                    statusText.style.color = "#ffc107";
+                    statusText.innerHTML = "<i class='fa-solid fa-brain fa-pulse'></i> AI OCR sedang mengekstrak teks (Tunggu sebentar)...";
+                    statusText.style.color = "var(--warning)";
+                    statusText.style.background = "rgba(245, 158, 11, 0.1)";
+                    
                     const { data: { text } } = await Tesseract.recognize(canvas, 'eng+msa'); 
                     pdf.addPage();
                     pdf.setFontSize(12);
-                    pdf.text("Teks yang diekstrak: \n\n" + text, 20, 30);
+                    pdf.text("Teks yang diekstrak (AI): \n\n" + text, 20, 30);
                 }
 
-                statusText.innerText = "⏳ Sedang memuat naik PDF ke Google Drive...";
+                statusText.innerHTML = "<i class='fa-solid fa-cloud-arrow-up fa-bounce'></i> Memuat naik terus ke Google Drive...";
+                statusText.style.color = "var(--primary)";
                 
-                // Tukarkan file PDF kepada bentuk Base64 Data String
                 const pdfBase64 = pdf.output('datauristring');
 
-                // Jika tiada URL Web App dimasukkan, muat turun ke dalam telefon/komputer secara offline
-                if(WEB_APP_URL === "MASUKKAN_URL_WEB_APP_ANDA_DI_SINI") {
-                    pdf.save(fileName + ".pdf");
-                    alert("Sijil dimuat turun ke peranti anda (Simulasi Offline). Masukkan URL Web App untuk upload ke Drive.");
-                    resetScanner();
-                    switchScreen('dashboardScreen');
-                    return;
-                }
-
-                // Hantar Payload ke Google Apps Script (Code.gs)
                 let payload = {
                     action: "upload",
                     pdfData: pdfBase64,
@@ -346,19 +614,19 @@
                 let result = await res.json();
                 
                 if (result.status === "success") {
-                    statusText.innerText = "✅ Sijil berjaya dimuat naik ke Drive dan direkodkan!";
-                    statusText.style.color = "#28a745";
-                    alert("Berjaya disimpan dalam Google Drive/Sheets!");
-                    resetScanner();
-                    switchScreen('dashboardScreen');
+                    sessionCerts.push({ student: sName, certName: cName });
+                    alert("Berjaya disimpan dalam Google Drive sekolah!");
+                    closeScanner();
+                    renderCerts(); 
                 } else {
                     alert("Gagal muat naik: " + result.message);
+                    btnPdfBasic.disabled = false; btnPdfOcr.disabled = false; btnRetake.disabled = false;
                 }
 
             } catch (err) {
                 console.error(err);
-                statusText.innerText = "❌ Ralat semasa pemprosesan PDF atau Muat Naik.";
-            } finally {
+                statusText.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Ralat semasa pemprosesan PDF / Upload.";
+                statusText.style.color = "var(--danger)";
                 btnPdfBasic.disabled = false; btnPdfOcr.disabled = false; btnRetake.disabled = false;
             }
         }
