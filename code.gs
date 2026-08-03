@@ -14,8 +14,8 @@ namespace WebScannerBackend
         // ==============================================================
         // TETAPAN GOOGLE API (SILA MASUKKAN ID ANDA DI SINI)
         // ==============================================================
-        static string spreadsheetId = "MASUKKAN_SPREADSHEET_ID_ANDA_DI_SINI";
-        static string folderId = "MASUKKAN_FOLDER_ID_GOOGLE_DRIVE_DI_SINI"; 
+        static string spreadsheetId = "1rcfHlyjMoEVJw1cv6RZvo8vXT2vuURTHAVqxT6McjQw";
+        static string folderId = "1Nz0S__dRbA4vP4Ca0xBRhpdPNUj4KVOf"; 
         
         static string sheetPengguna = "Pengguna"; // Sheet untuk Login Guru
         static string sheetSijil = "SijilPelajar"; // Sheet untuk simpan rekod sijil
