@@ -107,6 +107,14 @@
 </head>
 <body>
 
+    <!-- GLOBAL FULLSCREEN LOADING SPINNER -->
+    <div id="globalLoading" class="modal-overlay" style="z-index: 10000; flex-direction: column;">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size: 60px; color: var(--primary); margin-bottom: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);"></i>
+        <div id="loadingText" style="color: white; font-size: 18px; font-weight: bold; text-align: center; padding: 0 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+            Sila tunggu sebentar...
+        </div>
+    </div>
+
     <!-- CUSTOM POPUP ALERT -->
     <div id="customAlert" class="modal-overlay">
         <div class="modal-box" style="max-width: 400px;">
@@ -238,6 +246,10 @@
             <video id="video" autoplay playsinline></video>
             <canvas id="canvas"></canvas>
 
+            <div class="batch-container hidden">
+                <div class="batch-gallery" id="batchGallery"></div>
+            </div>
+
             <input type="file" id="fileUploadInput" accept="image/*,application/pdf" style="display: none;">
             
             <div class="btn-group">
@@ -259,10 +271,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxPJkwobSwewbTe_X-XdCXulbo0UXGcnQCT-5ymAnA7PWnSJwKUoH47495KBbspU5QX/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxOrI7Q-Rpk8xtBe7Ol6TyiWzmSx2Mg5PUpc-YOuMadiKEPXeBzNpBkk79qk-nDrvtB/exec"; 
         
         let currentUserEmail = "";
-        let studentsList = []; // Kini menyimpan Object [{name, kelas, ic, ...}]
+        let studentsList = []; // Object [{name, kelas, ic, ...}]
         let activeStudent = null; // Object
         
         let sessionCerts = []; 
@@ -273,8 +285,16 @@
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
         // ==========================================
-        // SISTEM ALERT
+        // SISTEM ALERT & LOADING OVERLAY (DIPERBAHARUI)
         // ==========================================
+        function showLoading(msg = "Mohon tunggu sebentar ya...") {
+            document.getElementById('loadingText').innerText = msg;
+            document.getElementById('globalLoading').style.display = 'flex';
+        }
+        function hideLoading() {
+            document.getElementById('globalLoading').style.display = 'none';
+        }
+
         function showAppAlert(title, message, type = "info", rawError = null) {
             const overlay = document.getElementById('customAlert'), icon = document.getElementById('alertIcon'), btn = document.getElementById('alertBtn'), logEl = document.getElementById('alertErrorLog');
             icon.className = 'fa-solid'; btn.style.backgroundColor = "var(--primary)";
@@ -307,16 +327,19 @@
 
         async function login() {
             let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value;
-            if(!email || !pass) return showAppAlert("Maklumat Tidak Lengkap", "Masukkan email & kata laluan.", "error");
+            if(!email || !pass) return showAppAlert("Maklumat Tidak Lengkap", "Masukkan email & kata laluan.", "warning");
+            
+            showLoading("Sedang menyemak butiran log masuk anda...");
             try {
                 let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "login", email, password: pass }) });
                 let data = await res.json();
+                hideLoading();
                 if(data.status === "success") {
                     currentUserEmail = email; localStorage.setItem("sijilProUser", email);
                     document.getElementById('userEmailDisplay').innerText = email;
                     fetchStudents(); switchScreen('dashboardScreen');
-                } else showAppAlert("Gagal Log Masuk", data.message, "error");
-            } catch (err) { showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error", err.toString()); }
+                } else showAppAlert("Maaf", data.message, "error");
+            } catch (err) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error", err.toString()); }
         }
         function logout() { localStorage.removeItem("sijilProUser"); sessionCerts=[]; switchScreen('loginScreen'); }
 
@@ -354,35 +377,30 @@
             let name = document.getElementById('regName').value.trim();
             if(!name) return showAppAlert("Wajib", "Nama pelajar wajib diisi.", "warning");
             
-            let btn = document.getElementById('btnSubmitStudent');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...'; btn.disabled = true;
+            showLoading("Sedang merekodkan maklumat pelajar. Mohon tunggu sebentar...");
+            let btn = document.getElementById('btnSubmitStudent'); btn.disabled = true;
             
             let picBase64 = "";
             let fileInput = document.getElementById('regGambar').files[0];
             if(fileInput) picBase64 = await compressImage(fileInput);
 
             let payload = {
-                action: "addStudent",
-                studentName: name,
-                kelas: document.getElementById('regKelas').value,
-                ic: document.getElementById('regIc').value,
-                jantina: document.getElementById('regJantina').value,
-                kategori: document.getElementById('regKategori').value,
-                gambarBase64: picBase64,
-                guruEmail: currentUserEmail
+                action: "addStudent", studentName: name, kelas: document.getElementById('regKelas').value,
+                ic: document.getElementById('regIc').value, jantina: document.getElementById('regJantina').value,
+                kategori: document.getElementById('regKategori').value, gambarBase64: picBase64, guruEmail: currentUserEmail
             };
 
             try {
                 let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
                 let data = await res.json();
+                hideLoading();
                 if(data.status === "success") { 
                     document.getElementById('addStudentModal').style.display='none';
-                    showAppAlert("Berjaya", data.message, "success");
-                    await fetchStudents(); 
-                    selectStudent(name); 
+                    showAppAlert("Alhamdulillah", data.message, "success");
+                    await fetchStudents(); selectStudent(name); 
                 } else showAppAlert("Gagal Daftar", data.message, "error");
-            } catch (err) { showAppAlert("Ralat", "Pelayan tergendala. Pastikan Deploy terbaru dibuat.", "error", err.toString()); } 
-            finally { btn.innerHTML = '<i class="fa-solid fa-save"></i> Simpan Rekod'; btn.disabled = false; }
+            } catch (err) { hideLoading(); showAppAlert("Ralat", "Pelayan tergendala.", "error", err.toString()); } 
+            finally { btn.disabled = false; }
         }
 
         function renderStudentList() {
@@ -390,7 +408,6 @@
             studentsList.forEach(student => {
                 let li = document.createElement('li'); 
                 li.className = `student-item ${(activeStudent && student.name === activeStudent.name) ? 'active' : ''}`;
-                
                 let pic = student.gambar ? student.gambar : "https://via.placeholder.com/40";
                 li.innerHTML = `<img src="${pic}"> <span>${student.name}</span>`; 
                 li.onclick = () => selectStudent(student.name); 
@@ -401,20 +418,19 @@
         function selectStudent(nameStr) {
             activeStudent = studentsList.find(s => s.name === nameStr);
             renderStudentList(); 
-            document.getElementById('emptyState').style.display='none'; 
-            document.getElementById('studentDetails').style.display='block';
+            document.getElementById('emptyState').style.display='none'; document.getElementById('studentDetails').style.display='block';
             
             document.getElementById('activeStudentTitle').innerText = activeStudent.name;
             document.getElementById('activeStudentInfo').innerText = `Kelas: ${activeStudent.kelas||"-"} | IC: ${activeStudent.ic||"-"} | Kategori: ${activeStudent.kategori||"-"}`;
             document.getElementById('activeStudentPic').src = activeStudent.gambar ? activeStudent.gambar : "https://via.placeholder.com/150";
             
             renderCerts();
-            fetchCertsFromDB(activeStudent.name); // AUTO CHECK DATABASE
+            fetchCertsFromDB(activeStudent.name);
         }
 
         async function fetchCertsFromDB(studentName) {
             const container = document.getElementById('dbCertsContainer');
-            container.innerHTML = "<p style='color:var(--text-light);'><i class='fa-solid fa-spinner fa-spin'></i> Menyemak fail PDF terdahulu...</p>";
+            container.innerHTML = "<p style='color:var(--text-light);'><i class='fa-solid fa-spinner fa-spin'></i> Sedang menyemak rekod sijil terdahulu...</p>";
             try {
                 let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "getCerts", studentName: studentName }) });
                 let data = await res.json();
@@ -436,7 +452,7 @@
                         });
                     }
                 }
-            } catch(e) { container.innerHTML = "<p style='color:red;'>Gagal tarik data lama.</p>"; }
+            } catch(e) { container.innerHTML = "<p style='color:red;'>Gagal menarik data lama.</p>"; }
         }
 
         // ==========================================
@@ -503,33 +519,30 @@
         function dragStart(e, certIdx, pageIdx) { dragSourceCertIndex = certIdx; dragSourcePageIndex = pageIdx; e.dataTransfer.effectAllowed = 'move'; e.target.classList.add('dragging'); }
         function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.add('drag-over'); }
         function dragLeave(e) { if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over'); }
-        
         function drop(e, targetCertIdx, targetPageIdx) {
             e.preventDefault(); e.stopPropagation();
             if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over');
-            if (dragSourceCertIndex !== targetCertIdx) return showAppAlert("Dilarang", "Sila susun di dalam rekod sijil yang sama.", "warning");
+            if (dragSourceCertIndex !== targetCertIdx) return showAppAlert("Maaf", "Sila susun di dalam rekod sijil yang sama.", "warning");
             if (dragSourcePageIndex === targetPageIdx) return;
-            
-            let cert = sessionCerts[targetCertIdx];
-            let itemMoved = cert.images.splice(dragSourcePageIndex, 1)[0];
-            cert.images.splice(targetPageIdx, 0, itemMoved); 
-            cert.needsSync = true; renderCerts(); 
+            let cert = sessionCerts[targetCertIdx]; let itemMoved = cert.images.splice(dragSourcePageIndex, 1)[0];
+            cert.images.splice(targetPageIdx, 0, itemMoved); cert.needsSync = true; renderCerts(); 
         }
         function dropAtEnd(e, targetCertIdx) {
             e.preventDefault();
             if (dragSourceCertIndex !== targetCertIdx || dragSourcePageIndex === sessionCerts[targetCertIdx].images.length -1) return;
-            let cert = sessionCerts[targetCertIdx];
-            let itemMoved = cert.images.splice(dragSourcePageIndex, 1)[0];
+            let cert = sessionCerts[targetCertIdx]; let itemMoved = cert.images.splice(dragSourcePageIndex, 1)[0];
             cert.images.push(itemMoved); cert.needsSync = true; renderCerts();
         }
 
         // ==========================================
-        // FUNGSI INLINE ADD & EDIT PAGE
+        // FUNGSI INLINE ADD (DENGAN LOADING BERSOPAN)
         // ==========================================
         document.getElementById('inlineAddFileInput').addEventListener('change', async (e) => {
             if(targetInlineCertIndex === -1) return;
             const file = e.target.files[0]; if(!file) return;
             let cert = sessionCerts[targetInlineCertIndex];
+            
+            showLoading("Sedang memasukkan fail anda ke dalam Editor. Mohon bersabar ya...");
             
             if(file.type === "application/pdf") {
                 try {
@@ -541,18 +554,22 @@
                         cert.images.push(canvas.toDataURL('image/jpeg', 0.9));
                     }
                     cert.needsSync = true; renderCerts();
-                } catch(err) {}
+                    hideLoading();
+                    showAppAlert("Alhamdulillah Selesai!", "Fail PDF telah berjaya dipecahkan dan dimasukkan ke dalam senarai susunan.", "success");
+                } catch(err) { hideLoading(); showAppAlert("Maaf", "Gagal membaca PDF tersebut.", "error"); }
             } else {
                 const img = new Image();
                 img.onload = function() {
                     canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0);
                     cert.images.push(canvas.toDataURL('image/jpeg', 0.9)); cert.needsSync = true; renderCerts();
+                    hideLoading();
+                    showAppAlert("Selesai!", "Gambar telah berjaya dimasukkan ke dalam senarai.", "success");
                 }
                 img.src = URL.createObjectURL(file);
             } e.target.value = "";
         });
         function triggerInlineAdd(certIdx) { targetInlineCertIndex = certIdx; document.getElementById('inlineAddFileInput').click(); }
-        function deleteLocalThumbnail(certIdx, pageIdx) { if(confirm("Buang page ini?")) { sessionCerts[certIdx].images.splice(pageIdx, 1); sessionCerts[certIdx].needsSync = true; renderCerts(); } }
+        function deleteLocalThumbnail(certIdx, pageIdx) { if(confirm("Adakah anda pasti untuk membuang page ini?")) { sessionCerts[certIdx].images.splice(pageIdx, 1); sessionCerts[certIdx].needsSync = true; renderCerts(); } }
 
         function openQuickEdit(cIdx, pIdx) {
             activeEditCertIndex = cIdx; activeEditPageIndex = pIdx;
@@ -561,7 +578,7 @@
             document.getElementById('quickEditModal').style.display = 'flex';
         }
         function applyFilterToQuickEdit() {
-            if(!opencvReady) return showAppAlert("AI Belum Sedia", "Tunggu.", "warning");
+            if(!opencvReady) return showAppAlert("Mohon Maaf", "Sistem AI masih belum sedia sepenuhnya.", "warning");
             document.getElementById('quickEditStatus').innerText = "⏳ Memproses AI Filter...";
             setTimeout(() => {
                 let img = document.getElementById('quickEditImg');
@@ -580,11 +597,11 @@
         // ==========================================
         async function syncUpdateToCloud(certIndex) {
             let cert = sessionCerts[certIndex];
-            if(cert.images.length === 0) return showAppAlert("Sijil Kosong", "Sijil kosong.", "error");
+            if(cert.images.length === 0) return showAppAlert("Maaf", "Sijil kosong tidak boleh dihantar.", "error");
             
+            showLoading("Sedang mencantum dan memuat naik fail PDF terkini anda ke dalam Google Drive. Mohon bersabar sebentar ya...");
             let btnList = document.querySelectorAll('.cert-card')[certIndex].querySelectorAll('button');
             btnList.forEach(b => b.disabled = true);
-            showAppAlert("Mengemas kini Awan", "Sistem sedang menggantikan PDF lama anda di Google Drive. Sila tunggu...", "info");
             
             try {
                 const { jsPDF } = window.jspdf; const pdf = new jsPDF(); pdf.deletePage(1);
@@ -598,12 +615,13 @@
                     method: 'POST', body: JSON.stringify({ action: "updateFile", pdfData: pdfBase64, fileName: `${activeStudent.name} - ${cert.certName}`, studentName: activeStudent.name, certName: cert.certName, guruEmail: currentUserEmail })
                 });
                 let result = await res.json();
+                hideLoading();
                 if (result.status === "success") {
-                    cert.needsSync = false; closeAppAlert();
-                    showAppAlert("Berjaya Dikemaskini", "Susunan & filter terbaru telah dihantar ke Google Drive.", "success");
-                    renderCerts(); fetchCertsFromDB(activeStudent.name); // Refresh list lama
-                } else showAppAlert("Gagal", result.message, "error");
-            } catch (err) { showAppAlert("Ralat", "Ralat menyambung ke server.", "error", err.toString()); } 
+                    cert.needsSync = false;
+                    showAppAlert("Alhamdulillah", "Susunan dan suntingan terbaru anda telah berjaya dihantar ke Google Drive.", "success");
+                    renderCerts(); fetchCertsFromDB(activeStudent.name); 
+                } else showAppAlert("Harap Maaf", result.message, "error");
+            } catch (err) { hideLoading(); showAppAlert("Ralat", "Talian terputus atau ralat pelayan.", "error", err.toString()); } 
             finally { btnList.forEach(b => b.disabled = false); }
         }
 
@@ -620,11 +638,11 @@
         }
 
         // ==========================================
-        // SISTEM SCANNER ASAL (Deraf Pertama)
+        // SISTEM BATCH UPLOADER ASAL (DENGAN LOADING BERSOPAN)
         // ==========================================
         function onOpenCvReady() { opencvReady = true; setStatus("<i class='fa-solid fa-check'></i> AI Bersedia!", "success"); }
         function openScanner() {
-            if(!activeStudent) return showAppAlert("Perhatian", "Pilih pelajar.", "info");
+            if(!activeStudent) return showAppAlert("Perhatian", "Sila pilih nama pelajar terlebih dahulu.", "info");
             document.getElementById('scannerStudentLabel').innerText = activeStudent.name;
             let dateStr = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14); document.getElementById('certName').value = `Sijil_${dateStr}`;
             currentBatch = []; switchScreen('scannerScreen'); startCamera();
@@ -635,17 +653,19 @@
 
         document.getElementById('btnCaptureCam').addEventListener('click', () => {
             canvas.width = video.videoWidth; canvas.height = video.videoHeight; ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            setStatus("<i class='fa-solid fa-gear fa-spin'></i> Menyimpan...", "info");
+            setStatus("<i class='fa-solid fa-gear fa-spin'></i> Memproses gambar...", "info");
             setTimeout(() => {
                 let processedImg = (!opencvReady) ? canvas.toDataURL('image/jpeg', 0.9) : detectAndWarpDocument(canvas);
-                currentBatch.push(processedImg); setStatus("<i class='fa-solid fa-check'></i> Ditambah ke memori.", "success");
+                currentBatch.push(processedImg); setStatus("<i class='fa-solid fa-check'></i> Gambar diterima. Boleh tambah lagi atau tekan butang Simpan.", "success");
             }, 100);
         });
 
         document.getElementById('fileUploadInput').addEventListener('change', async (e) => {
             const file = e.target.files[0]; if(!file) return;
+            
+            showLoading("Sedang memproses fail anda. Mohon tunggu sebentar ya...");
+            
             if(file.type === "application/pdf") {
-                setStatus("<i class='fa-solid fa-spinner fa-spin'></i> Mengekstrak...", "info");
                 try {
                     const arrayBuffer = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
                     for(let i = 1; i <= pdf.numPages; i++) {
@@ -654,13 +674,18 @@
                         await page.render({canvasContext: ctx, viewport: viewport}).promise;
                         currentBatch.push(canvas.toDataURL('image/jpeg', 0.9));
                     }
+                    hideLoading();
+                    showAppAlert("Alhamdulillah Selesai!", "Helaian PDF berjaya dimasukkan ke dalam memori sementara. Sila tekan 'Simpan Ke Editor'.", "success");
                     setStatus("<i class='fa-solid fa-check-double'></i> Selesai!", "success");
-                } catch(err) { }
+                } catch(err) { hideLoading(); showAppAlert("Maaf", "Gagal memproses fail PDF tersebut.", "error"); }
             } else {
                 const img = new Image(); img.onload = function() {
                     canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0);
                     let processedImg = (!opencvReady) ? canvas.toDataURL('image/jpeg', 0.9) : detectAndWarpDocument(canvas);
-                    currentBatch.push(processedImg); setStatus("<i class='fa-solid fa-check'></i> Ditambah!", "success");
+                    currentBatch.push(processedImg); 
+                    hideLoading();
+                    showAppAlert("Selesai!", "Gambar telah dimasukkan ke memori sementara. Sila tekan 'Simpan Ke Editor'.", "success");
+                    setStatus("<i class='fa-solid fa-check'></i> Gambar diterima!", "success");
                 }
                 img.src = URL.createObjectURL(file);
             } e.target.value = ""; 
@@ -695,9 +720,9 @@
         }
 
         function saveToDashboardLocal() {
-            if(currentBatch.length === 0) return showAppAlert("Kosong", "Sila tambah gambar.", "warning");
+            if(currentBatch.length === 0) return showAppAlert("Maaf", "Sila tambah gambar terlebih dahulu.", "warning");
             let cName = document.getElementById('certName').value.trim();
-            if(!cName) return showAppAlert("Nama", "Sila letak nama sijil.", "warning");
+            if(!cName) return showAppAlert("Peringatan", "Sila masukkan nama untuk sijil ini.", "warning");
             sessionCerts.push({ student: activeStudent.name, certName: cName, images: [...currentBatch], needsSync: true });
             currentBatch = []; closeScanner(); renderCerts();
         }
