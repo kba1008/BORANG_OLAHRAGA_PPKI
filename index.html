@@ -18,7 +18,8 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; overscroll-behavior: none; }
+        html { overflow-x: hidden; }
+        body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; overscroll-behavior: none; overflow-x: hidden; max-width: 100%; }
 
         .screen { display: none; width: 100%; max-width: 1200px; padding: 20px; animation: fadeIn 0.3s ease; }
         .active-screen { display: block; }
@@ -84,6 +85,9 @@
         .page-badge { position:absolute; top:6px; left:6px; background:rgba(31,41,55,0.85); color:#fff; font-size:11px; font-weight:600; padding:2px 8px; border-radius:20px; }
         .thumb-actions { display: flex; flex-direction: column; }
         .thumb-actions button { border-radius: 0; padding: 10px 0; font-size: 12px; }
+        .thumb-edit-row { display:flex; border-top:1px solid var(--border); }
+        .thumb-edit-row button { flex:1; border-radius:0; padding:9px 0; font-size:12px; }
+        .thumb-item img.pending { opacity:.55; }
         .thumb-move { display:flex; border-top:1px solid var(--border); }
         .thumb-move button { flex:1; border:none; background:#f3f4f6; color:var(--primary); font-size:14px; padding:9px 0; cursor:pointer; border-radius:0; }
         .thumb-move button:active { background:#e0e7ff; }
@@ -117,8 +121,9 @@
         .btn-group { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;}
         .btn-group button { width: auto; min-width: 140px; }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 9999; justify-content: center; align-items: center; animation: fadeIn 0.2s ease; }
-        .modal-box { background: var(--surface); padding: 25px; border-radius: 20px; width: 95%; max-width: 500px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-height: 95vh; display: flex; flex-direction: column; overflow-y:auto; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 9999; justify-content: center; align-items: center; animation: fadeIn 0.2s ease; padding: 14px; overflow-y: auto; overflow-x: hidden; }
+        .modal-box { background: var(--surface); padding: 25px; border-radius: 20px; width: 100%; max-width: 500px; margin: auto; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-height: calc(100dvh - 28px); display: flex; flex-direction: column; overflow-y:auto; }
+        body.modal-open { overflow: hidden; }
         .hidden { display: none !important; }
 
         #editorModalBox { max-width: 950px; width: 98%; height: 96vh; padding: 15px; }
@@ -179,7 +184,7 @@
         .scan-range { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #d1d5db; }
         .scan-range input[type=range] { flex: 1; margin: 0; padding: 0; }
 
-        .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+        .choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 10px; }
         .choice-btn { border: 2px dashed var(--primary); border-radius: var(--radius); padding: 22px 10px; background: rgba(79,70,229,.06); color: var(--primary); font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; }
         .choice-btn i { font-size: 26px; }
 
@@ -480,6 +485,39 @@
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6ctqKJB2XLa9eRFdXXQVzR6deoK4auu-hS6W1Yqah61q6twG7EIKfOYhjmPWsgZ6o/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
+        /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
+        (function () {
+            let busy = false;
+            function fitOverlay(el) {
+                if (!el || !el.classList || !el.classList.contains('modal-overlay')) return;
+                if (getComputedStyle(el).display === 'none') return;
+                const vv = window.visualViewport;
+                const L = vv ? vv.offsetLeft : 0, T = vv ? vv.offsetTop : 0;
+                const W = vv ? vv.width : window.innerWidth, H = vv ? vv.height : window.innerHeight;
+                el.style.left = L + 'px'; el.style.top = T + 'px';
+                el.style.width = W + 'px'; el.style.height = H + 'px';
+            }
+            function fitAll() {
+                if (busy) return; busy = true;
+                document.querySelectorAll('.modal-overlay').forEach(fitOverlay);
+                const anyOpen = [...document.querySelectorAll('.modal-overlay')]
+                    .some(el => getComputedStyle(el).display !== 'none');
+                document.body.classList.toggle('modal-open', anyOpen);
+                requestAnimationFrame(() => { busy = false; });
+            }
+            const mo = new MutationObserver(() => fitAll());
+            document.querySelectorAll('.modal-overlay').forEach(el =>
+                mo.observe(el, { attributes: true, attributeFilter: ['style', 'class'] }));
+            if (window.visualViewport) {
+                visualViewport.addEventListener('resize', fitAll);
+                visualViewport.addEventListener('scroll', fitAll);
+            }
+            window.addEventListener('resize', fitAll);
+            window.addEventListener('orientationchange', () => setTimeout(fitAll, 250));
+            window.fitOverlays = fitAll;
+            fitAll();
+        })();
+
         const RENDER_MAX_W = 1400;      // resolusi page PDF untuk PDF akhir
         const THUMB_W = 260;            // resolusi kecil untuk paparan thumbnail
 
@@ -1053,23 +1091,92 @@ ${hairPath}
             } finally { btn.disabled = false; }
         }
 
+        /** Placeholder thumbnail semasa page belum siap dirender */
+        const PENDING_THUMB = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="280"><rect width="100%" height="100%" fill="#eef0f5"/><text x="50%" y="50%" font-size="16" fill="#9aa0ae" text-anchor="middle" font-family="Arial">Memuat...</text></svg>');
+
+        /** Pastikan imej resolusi penuh untuk satu page wujud (render atas permintaan sahaja) */
+        async function ensurePageImage(cert, pIdx) {
+            if (cert.images[pIdx]) return cert.images[pIdx];
+            const src = cert.lazy && cert.lazy[pIdx];
+            if (!src) return null;
+            const pdf = await getPdfDoc(src.url);
+            const full = await renderPdfPage(pdf, src.pageNo, RENDER_MAX_W, 0.85);
+            cert.images[pIdx] = full;
+            if (!cert.thumbs[pIdx]) cert.thumbs[pIdx] = await makeThumb(full);
+            return full;
+        }
+
+        /** Render thumbnail yang belum siap, di latar belakang (tidak menyekat UI) */
+        async function backgroundThumbs(cert) {
+            if (cert._bg) return; cert._bg = true;
+            try {
+                for (let i = 0; i < cert.thumbs.length; i++) {
+                    if (cert.thumbs[i]) continue;
+                    const src = cert.lazy && cert.lazy[i];
+                    if (!src) continue;
+                    const pdf = await getPdfDoc(src.url);
+                    const t = await renderPdfPage(pdf, src.pageNo, THUMB_W, 0.65);
+                    const pos = cert.lazy.indexOf(src);       // ikut susunan terkini
+                    cert.thumbs[pos < 0 ? i : pos] = t;
+                    const el = document.querySelector(`img[data-thumb-key="${src.key}"]`);
+                    if (el) { el.src = t; el.classList.remove('pending'); }
+                    await new Promise(r => setTimeout(r, 0));
+                }
+            } catch (e) { console.warn('thumb bg', e); }
+            finally { cert._bg = false; }
+        }
+
         async function pullFromCloudToEditor(url, certName) {
-            showLoading("Menarik fail PDF dari Cloud ke Editor...");
+            showLoading("Membuka fail PDF...");
             try {
                 const pdf = await getPdfDoc(url);
-                const images = [], thumbs = [];
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    images.push(await renderPdfPage(pdf, i, RENDER_MAX_W, 0.85));
-                    thumbs.push(await renderPdfPage(pdf, i, THUMB_W, 0.7));
-                    setProgress(i, pdf.numPages);
-                    document.getElementById('loadingText').innerText = `Memproses page ${i} daripada ${pdf.numPages}...`;
+                const n = pdf.numPages;
+                const images = new Array(n).fill(null);
+                const thumbs = new Array(n).fill(null);
+                const lazy = [];
+                for (let i = 1; i <= n; i++) lazy.push({ url, pageNo: i, key: `${Date.now()}_${i}_${Math.random().toString(36).slice(2, 7)}` });
+
+                // Hanya beberapa page pertama dirender sebelum editor dibuka - selebihnya di latar belakang.
+                const firstBatch = Math.min(n, 4);
+                for (let i = 0; i < firstBatch; i++) {
+                    thumbs[i] = await renderPdfPage(pdf, i + 1, THUMB_W, 0.65);
+                    setProgress(i + 1, firstBatch);
+                    document.getElementById('loadingText').innerText = `Menyediakan editor... (${i + 1}/${firstBatch})`;
                 }
-                sessionCerts.push({ student: activeStudent.name, certName: certName, images, thumbs, needsSync: true });
+
+                const cert = { student: activeStudent.name, certName: certName, images, thumbs, lazy, needsSync: true };
+                sessionCerts.push(cert);
                 hideLoading();
-                showAppAlert("Sedia Diedit", `${pdf.numPages} page dimasukkan ke Ruangan Editor.`, "success");
                 renderCerts();
                 document.getElementById('certGridUI').scrollIntoView({ behavior: 'smooth' });
+                showAppAlert("Sedia Diedit", `${n} page dibuka. Page dimuatkan bila diperlukan sahaja - jadi cepat walaupun 100 page.`, "success");
+                backgroundThumbs(cert);
             } catch (err) { hideLoading(); showAppAlert("Ralat", "Gagal: " + err.message, "error"); }
+        }
+
+        /* Bantuan susunan page: kekalkan images/thumbs/lazy segerak */
+        const PAGE_ARRAYS = ['images', 'thumbs', 'lazy'];
+        function certMove(cert, from, to) {
+            PAGE_ARRAYS.forEach(k => { if (Array.isArray(cert[k])) cert[k].splice(to, 0, cert[k].splice(from, 1)[0]); });
+        }
+        function certRemove(cert, i) {
+            PAGE_ARRAYS.forEach(k => { if (Array.isArray(cert[k])) cert[k].splice(i, 1); });
+        }
+        function certPush(cert, full, thumb) {
+            if (!cert.thumbs) cert.thumbs = [];
+            if (!cert.lazy) cert.lazy = new Array(cert.images.length).fill(null);
+            cert.images.push(full); cert.thumbs.push(thumb); cert.lazy.push(null);
+        }
+        /** Semua page (render yang tertunggak) - dipanggil sebelum jana PDF */
+        async function ensureAllPages(cert) {
+            for (let i = 0; i < cert.images.length; i++) {
+                if (!cert.images[i]) {
+                    document.getElementById('loadingText').innerText = `Menyediakan page ${i + 1} / ${cert.images.length}...`;
+                    setProgress(i + 1, cert.images.length);
+                    await ensurePageImage(cert, i);
+                }
+            }
         }
 
         /* ==========================================
@@ -1143,8 +1250,11 @@ ${hairPath}
                     const im = document.createElement('img');
                     im.loading = "lazy";
                     im.alt = `Page ${pIdx + 1}`;
-                    im.src = (cert.thumbs && cert.thumbs[pIdx]) ? cert.thumbs[pIdx] : imgData; // src terus, bukan innerHTML
-                    im.onclick = () => openPowerEditor(idx, pIdx);
+                    const ready = (cert.thumbs && cert.thumbs[pIdx]) || imgData;
+                    im.src = ready || PENDING_THUMB;
+                    if (!ready) im.classList.add('pending');
+                    if (cert.lazy && cert.lazy[pIdx]) im.dataset.thumbKey = cert.lazy[pIdx].key;
+                    im.onclick = () => openScanEditorForPage(idx, pIdx);
 
                     const badge = document.createElement('span');
                     badge.className = 'page-badge';
@@ -1152,6 +1262,21 @@ ${hairPath}
 
                     const actions = document.createElement('div');
                     actions.className = 'thumb-actions';
+
+                    const editRow = document.createElement('div');
+                    editRow.className = 'thumb-edit-row';
+                    const bScan = document.createElement('button');
+                    bScan.className = 'btn-primary';
+                    bScan.innerHTML = '<i class="fa-solid fa-crop-simple"></i> Imbas';
+                    bScan.onclick = (ev) => { ev.stopPropagation(); openScanEditorForPage(idx, pIdx); };
+                    const bText = document.createElement('button');
+                    bText.className = 'btn-ghost';
+                    bText.style.cssText = "background:#f3f4f6;";
+                    bText.innerHTML = '<i class="fa-solid fa-pen"></i> Teks';
+                    bText.onclick = (ev) => { ev.stopPropagation(); openPowerEditor(idx, pIdx); };
+                    editRow.appendChild(bScan); editRow.appendChild(bText);
+                    actions.appendChild(editRow);
+
                     const del = document.createElement('button');
                     del.className = 'btn-danger'; del.innerText = "Buang";
                     del.onclick = () => deleteLocalThumbnail(idx, pIdx);
@@ -1191,8 +1316,7 @@ ${hairPath}
         function movePage(certIdx, from, to) {
             const cert = sessionCerts[certIdx];
             if (!cert || to < 0 || to >= cert.images.length || from === to) return;
-            cert.images.splice(to, 0, cert.images.splice(from, 1)[0]);
-            if (cert.thumbs) cert.thumbs.splice(to, 0, cert.thumbs.splice(from, 1)[0]);
+            certMove(cert, from, to);
             cert.needsSync = true; renderCerts();
         }
         function dragStart(e, cIdx, pIdx) { dragSourceCertIndex = cIdx; dragSourcePageIndex = pIdx; e.dataTransfer.effectAllowed = 'move'; e.currentTarget.classList.add('dragging'); }
@@ -1203,8 +1327,7 @@ ${hairPath}
             if (e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over');
             if (dragSourceCertIndex !== tCIdx || dragSourcePageIndex === tPIdx) return;
             const cert = sessionCerts[tCIdx];
-            cert.images.splice(tPIdx, 0, cert.images.splice(dragSourcePageIndex, 1)[0]);
-            if (cert.thumbs) cert.thumbs.splice(tPIdx, 0, cert.thumbs.splice(dragSourcePageIndex, 1)[0]);
+            certMove(cert, dragSourcePageIndex, tPIdx);
             cert.needsSync = true; renderCerts();
         }
         function dropAtEnd(e, tCIdx) {
@@ -1212,14 +1335,12 @@ ${hairPath}
             if (dragSourceCertIndex !== tCIdx) return;
             const cert = sessionCerts[tCIdx];
             if (dragSourcePageIndex === cert.images.length - 1) return;
-            cert.images.push(cert.images.splice(dragSourcePageIndex, 1)[0]);
-            if (cert.thumbs) cert.thumbs.push(cert.thumbs.splice(dragSourcePageIndex, 1)[0]);
+            certMove(cert, dragSourcePageIndex, cert.images.length - 1);
             cert.needsSync = true; renderCerts();
         }
         function deleteLocalThumbnail(certIdx, pageIdx) {
             if (!confirm("Buang page ini?")) return;
-            sessionCerts[certIdx].images.splice(pageIdx, 1);
-            if (sessionCerts[certIdx].thumbs) sessionCerts[certIdx].thumbs.splice(pageIdx, 1);
+            certRemove(sessionCerts[certIdx], pageIdx);
             sessionCerts[certIdx].needsSync = true; renderCerts();
         }
 
@@ -1254,11 +1375,7 @@ ${hairPath}
             showLoading("Menambah page...");
             try {
                 if (pdfs.length) {
-                    await importFilesToPages(pdfs, (full, thumb) => {
-                        cert.images.push(full);
-                        if (!cert.thumbs) cert.thumbs = [];
-                        cert.thumbs.push(thumb);
-                    });
+                    await importFilesToPages(pdfs, (full, thumb) => certPush(cert, full, thumb));
                     cert.needsSync = true;
                     renderCerts();
                 }
@@ -1279,7 +1396,14 @@ ${hairPath}
         const edCtx = editorCanvas.getContext('2d', { willReadFrequently: true });
         let editorImg = new Image(), edTool = '', isDrawing = false, cropStartX, cropStartY, cropEndX, cropEndY, editHistory = [], tempImgDataForCrop = null;
 
-        function openPowerEditor(cIdx, pIdx) {
+        async function openPowerEditor(cIdx, pIdx) {
+            const cert = sessionCerts[cIdx];
+            let src = cert.images[pIdx];
+            if (!src) {
+                showLoading("Menyediakan page...");
+                try { src = await ensurePageImage(cert, pIdx); } finally { hideLoading(); }
+            }
+            if (!src) return showAppAlert("Ralat", "Page ini tidak dapat dibuka.", "error");
             activeEditCertIndex = cIdx; activeEditPageIndex = pIdx;
             document.getElementById('powerEditorModal').style.display = 'flex';
             editHistory = [];
@@ -1288,7 +1412,20 @@ ${hairPath}
                 editorCanvas.width = editorImg.naturalWidth; editorCanvas.height = editorImg.naturalHeight;
                 edCtx.drawImage(editorImg, 0, 0); saveHistory(); setTool('');
             };
-            editorImg.src = sessionCerts[cIdx].images[pIdx];
+            editorImg.src = src;
+        }
+
+        /** Buka Scan Studio (crop 4 bucu + penapis) untuk page sedia ada */
+        async function openScanEditorForPage(cIdx, pIdx) {
+            const cert = sessionCerts[cIdx];
+            if (!cert) return;
+            let src = cert.images[pIdx];
+            if (!src) {
+                showLoading("Menyediakan page untuk diedit...");
+                try { src = await ensurePageImage(cert, pIdx); } finally { hideLoading(); }
+            }
+            if (!src) return showAppAlert("Ralat", "Page ini tidak dapat dibuka.", "error");
+            startScanPipeline([src], { type: 'replace', idx: cIdx, page: pIdx });
         }
         function closeEditor() { document.getElementById('powerEditorModal').style.display = 'none'; setTool(''); }
         function saveHistory() { if (editHistory.length > 12) editHistory.shift(); editHistory.push(editorCanvas.toDataURL('image/jpeg', 0.9)); }
@@ -1306,6 +1443,7 @@ ${hairPath}
             cert.images[activeEditPageIndex] = full;
             if (!cert.thumbs) cert.thumbs = [];
             cert.thumbs[activeEditPageIndex] = await makeThumb(full);
+            if (cert.lazy) cert.lazy[activeEditPageIndex] = null;
             cert.needsSync = true;
             closeEditor(); renderCerts();
         }
@@ -1369,6 +1507,7 @@ ${hairPath}
          * 8. SYNC CLOUD & PDF
          * ========================================== */
         async function buildPdf(cert) {
+            await ensureAllPages(cert);
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF();
             pdf.deletePage(1);
@@ -1722,7 +1861,9 @@ ${hairPath}
 
         function afterScanFinished() {
             renderCerts();
-            if (scanTarget && scanTarget.type === 'batch') {
+            if (scanTarget && scanTarget.type === 'replace') {
+                showAppAlert("Berjaya", "Page dikemas kini.", "success");
+            } else if (scanTarget && scanTarget.type === 'batch') {
                 setStatus(`${currentBatch.length} page sedia untuk disimpan.`, "success");
             } else {
                 showAppAlert("Berjaya", "Page baru ditambah ke deraf.", "success");
@@ -2103,9 +2244,18 @@ ${hairPath}
                 const finalCanvas = applyScanFilter(scanWarpedCanvas, scanFilterName, b, ct);
                 const full = finalCanvas.toDataURL('image/jpeg', SCAN_QUALITY);
                 const thumb = await makeThumb(full);
-                if (scanTarget && scanTarget.type === 'cert') {
+                if (scanTarget && scanTarget.type === 'replace') {
                     const cert = sessionCerts[scanTarget.idx];
-                    if (cert) { cert.images.push(full); if (!cert.thumbs) cert.thumbs = []; cert.thumbs.push(thumb); cert.needsSync = true; }
+                    if (cert) {
+                        cert.images[scanTarget.page] = full;
+                        if (!cert.thumbs) cert.thumbs = [];
+                        cert.thumbs[scanTarget.page] = thumb;
+                        if (cert.lazy) cert.lazy[scanTarget.page] = null;
+                        cert.needsSync = true;
+                    }
+                } else if (scanTarget && scanTarget.type === 'cert') {
+                    const cert = sessionCerts[scanTarget.idx];
+                    if (cert) { certPush(cert, full, thumb); cert.needsSync = true; }
                 } else {
                     currentBatch.push({ full, thumb });
                 }
