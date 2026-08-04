@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Pengurusan Sijil AI</title>
     <link rel="manifest" href="manifest.json">
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -220,11 +219,11 @@
                         </button>
                     </div>
 
-                    <!-- Ruangan Sijil DB (Terdahulu) -->
+                    <!-- Ruangan Sijil DB -->
                     <h3 style="font-size: 15px; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-cloud"></i> Pangkalan Data Sijil (Terdahulu)</h3>
                     <div id="dbCertsContainer" style="margin-bottom: 25px; padding:15px; background: #eef2ff; border-radius: 8px; border: 1px dashed var(--primary);"></div>
                     
-                    <!-- Ruangan Sijil Editor (Lokal Sesi Ini) -->
+                    <!-- Ruangan Sijil Editor -->
                     <h3 style="font-size: 15px; color: var(--text-main); margin-bottom: 10px;"><i class="fa-solid fa-pen-ruler"></i> Ruangan Editor (Deraf & Susunan)</h3>
                     <div class="cert-list" id="certGridUI"></div>
                     
@@ -271,7 +270,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxPJkwobSwewbTe_X-XdCXulbo0UXGcnQCT-5ymAnA7PWnSJwKUoH47495KBbspU5QX/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxOrI7Q-Rpk8xtBe7Ol6TyiWzmSx2Mg5PUpc-YOuMadiKEPXeBzNpBkk79qk-nDrvtB/exec"; 
         
         let currentUserEmail = "";
         let studentsList = []; // Object [{name, kelas, ic, ...}]
@@ -285,7 +284,7 @@
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
         // ==========================================
-        // SISTEM ALERT & LOADING OVERLAY (DIPERBAHARUI)
+        // SISTEM ALERT & LOADING OVERLAY 
         // ==========================================
         function showLoading(msg = "Mohon tunggu sebentar ya...") {
             document.getElementById('loadingText').innerText = msg;
@@ -354,6 +353,7 @@
             } catch (err) { console.log("Gagal sync DB"); }
         }
         
+        // FUNGSI COMPRESS GAMBAR PROFIL KE SAIZ KECIL (BASE64)
         async function compressImage(file) {
             return new Promise((resolve) => {
                 let reader = new FileReader();
@@ -361,11 +361,12 @@
                     let img = new Image();
                     img.onload = function() {
                         let canvas = document.createElement('canvas');
-                        let MAX = 400; let w = img.width, h = img.height;
+                        let MAX = 200; // Saiz dikecilkan supaya muat dalam sel Google Sheet tanpa sangkut
+                        let w = img.width, h = img.height;
                         if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } else { if (h > MAX) { w *= MAX / h; h = MAX; } }
                         canvas.width = w; canvas.height = h;
                         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.8));
+                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Kualiti diturunkan ke 70%
                     }
                     img.src = e.target.result;
                 }
@@ -535,7 +536,7 @@
         }
 
         // ==========================================
-        // FUNGSI INLINE ADD (DENGAN LOADING BERSOPAN)
+        // FUNGSI INLINE ADD (PENAMBAHBAIKAN BACA PDF)
         // ==========================================
         document.getElementById('inlineAddFileInput').addEventListener('change', async (e) => {
             if(targetInlineCertIndex === -1) return;
@@ -545,18 +546,23 @@
             showLoading("Sedang memasukkan fail anda ke dalam Editor. Mohon bersabar ya...");
             
             if(file.type === "application/pdf") {
-                try {
-                    const arrayBuffer = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-                    for(let i = 1; i <= pdf.numPages; i++) {
-                        const page = await pdf.getPage(i); const viewport = page.getViewport({scale: 1.5}); 
-                        canvas.width = viewport.width; canvas.height = viewport.height;
-                        await page.render({canvasContext: ctx, viewport: viewport}).promise;
-                        cert.images.push(canvas.toDataURL('image/jpeg', 0.9));
-                    }
-                    cert.needsSync = true; renderCerts();
-                    hideLoading();
-                    showAppAlert("Alhamdulillah Selesai!", "Fail PDF telah berjaya dipecahkan dan dimasukkan ke dalam senarai susunan.", "success");
-                } catch(err) { hideLoading(); showAppAlert("Maaf", "Gagal membaca PDF tersebut.", "error"); }
+                const fileReader = new FileReader();
+                fileReader.onload = async function() {
+                    try {
+                        const typedarray = new Uint8Array(this.result);
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        for(let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i); const viewport = page.getViewport({scale: 1.5}); 
+                            canvas.width = viewport.width; canvas.height = viewport.height;
+                            await page.render({canvasContext: ctx, viewport: viewport}).promise;
+                            cert.images.push(canvas.toDataURL('image/jpeg', 0.9));
+                        }
+                        cert.needsSync = true; renderCerts();
+                        hideLoading();
+                        showAppAlert("Alhamdulillah Selesai!", "Fail PDF telah berjaya dipecahkan dan dimasukkan ke dalam senarai susunan.", "success");
+                    } catch(err) { hideLoading(); showAppAlert("Maaf", "Gagal membaca PDF tersebut.", "error", err.toString()); }
+                };
+                fileReader.readAsArrayBuffer(file);
             } else {
                 const img = new Image();
                 img.onload = function() {
@@ -568,6 +574,7 @@
                 img.src = URL.createObjectURL(file);
             } e.target.value = "";
         });
+        
         function triggerInlineAdd(certIdx) { targetInlineCertIndex = certIdx; document.getElementById('inlineAddFileInput').click(); }
         function deleteLocalThumbnail(certIdx, pageIdx) { if(confirm("Adakah anda pasti untuk membuang page ini?")) { sessionCerts[certIdx].images.splice(pageIdx, 1); sessionCerts[certIdx].needsSync = true; renderCerts(); } }
 
@@ -638,7 +645,7 @@
         }
 
         // ==========================================
-        // SISTEM BATCH UPLOADER ASAL (DENGAN LOADING BERSOPAN)
+        // SISTEM BATCH UPLOADER ASAL (PENAMBAHBAIKAN BACA PDF)
         // ==========================================
         function onOpenCvReady() { opencvReady = true; setStatus("<i class='fa-solid fa-check'></i> AI Bersedia!", "success"); }
         function openScanner() {
@@ -666,18 +673,25 @@
             showLoading("Sedang memproses fail anda. Mohon tunggu sebentar ya...");
             
             if(file.type === "application/pdf") {
-                try {
-                    const arrayBuffer = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-                    for(let i = 1; i <= pdf.numPages; i++) {
-                        const page = await pdf.getPage(i); const viewport = page.getViewport({scale: 1.5}); 
-                        canvas.width = viewport.width; canvas.height = viewport.height;
-                        await page.render({canvasContext: ctx, viewport: viewport}).promise;
-                        currentBatch.push(canvas.toDataURL('image/jpeg', 0.9));
+                const fileReader = new FileReader();
+                fileReader.onload = async function() {
+                    try {
+                        const typedarray = new Uint8Array(this.result);
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        for(let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i); const viewport = page.getViewport({scale: 1.5}); 
+                            canvas.width = viewport.width; canvas.height = viewport.height;
+                            await page.render({canvasContext: ctx, viewport: viewport}).promise;
+                            currentBatch.push(canvas.toDataURL('image/jpeg', 0.9));
+                        }
+                        hideLoading();
+                        showAppAlert("Alhamdulillah Selesai!", "Helaian PDF berjaya dimasukkan ke dalam memori sementara. Sila tekan 'Simpan Ke Editor'.", "success");
+                        setStatus("<i class='fa-solid fa-check-double'></i> Selesai!", "success");
+                    } catch(err) { 
+                        hideLoading(); showAppAlert("Maaf", "Gagal memproses fail PDF tersebut.", "error", err.toString()); 
                     }
-                    hideLoading();
-                    showAppAlert("Alhamdulillah Selesai!", "Helaian PDF berjaya dimasukkan ke dalam memori sementara. Sila tekan 'Simpan Ke Editor'.", "success");
-                    setStatus("<i class='fa-solid fa-check-double'></i> Selesai!", "success");
-                } catch(err) { hideLoading(); showAppAlert("Maaf", "Gagal memproses fail PDF tersebut.", "error"); }
+                };
+                fileReader.readAsArrayBuffer(file);
             } else {
                 const img = new Image(); img.onload = function() {
                     canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0);
