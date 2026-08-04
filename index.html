@@ -229,7 +229,7 @@
             color: var(--text-light); 
         }
         
-        /* Dashboard - Galeri Sijil */
+        /* Dashboard - Galeri Sijil Editor Lokal */
         .cert-list { 
             display: flex; 
             flex-direction: column; 
@@ -237,7 +237,7 @@
         }
 
         .cert-card { 
-            background: var(--surface); 
+            background: #fff; 
             padding: 20px; 
             border-radius: var(--radius); 
             border: 1px solid var(--border); 
@@ -311,20 +311,9 @@
             flex-direction: column;
         }
 
-        .thumb-item:active { 
-            cursor: grabbing; 
-        }
-
-        .thumb-item.dragging { 
-            opacity: 0.5; 
-            transform: scale(0.95); 
-            border: 2px dashed var(--primary); 
-        }
-
-        .thumb-item.drag-over { 
-            border-left: 4px solid var(--primary); 
-            transform: translateX(5px); 
-        }
+        .thumb-item:active { cursor: grabbing; }
+        .thumb-item.dragging { opacity: 0.5; transform: scale(0.95); border: 2px dashed var(--primary); }
+        .thumb-item.drag-over { border-left: 4px solid var(--primary); transform: translateX(5px); }
 
         .thumb-item img { 
             width: 100%; 
@@ -335,9 +324,7 @@
             cursor: pointer; 
         }
 
-        .thumb-item img:hover { 
-            filter: brightness(0.8); 
-        }
+        .thumb-item img:hover { filter: brightness(0.8); }
 
         .img-overlay-text { 
             position: absolute; 
@@ -352,20 +339,10 @@
             transition: opacity 0.2s; 
         }
 
-        .thumb-item:hover .img-overlay-text { 
-            opacity: 1; 
-        }
+        .thumb-item:hover .img-overlay-text { opacity: 1; }
         
-        .thumb-actions { 
-            display: flex; 
-            flex-direction: column; 
-        }
-
-        .thumb-actions button { 
-            border-radius: 0; 
-            padding: 10px 0; 
-            font-size: 12px; 
-        }
+        .thumb-actions { display: flex; flex-direction: column; }
+        .thumb-actions button { border-radius: 0; padding: 10px 0; font-size: 12px; }
 
         .thumb-add-btn { 
             min-width: 150px; 
@@ -382,10 +359,10 @@
             background: rgba(79, 70, 229, 0.05); 
         }
 
-        /* CLOUD THUMBNAILS UI (Baharu) */
+        /* CLOUD THUMBNAILS UI (Pangkalan Data) */
         .cloud-certs-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
             gap: 15px; 
             margin-bottom: 25px; 
         }
@@ -398,13 +375,6 @@
             overflow: hidden; 
             display: flex; 
             flex-direction: column; 
-            transition: transform 0.2s; 
-            cursor: pointer;
-        }
-
-        .cloud-cert-card:hover { 
-            transform: translateY(-3px); 
-            border-color: var(--primary); 
         }
 
         .cloud-cert-card img { 
@@ -435,38 +405,15 @@
             text-overflow: ellipsis;
         }
 
-        .cloud-cert-date { 
-            font-size: 11px; 
-            color: var(--text-light); 
-        }
+        .cloud-cert-date { font-size: 11px; color: var(--text-light); margin-bottom: 10px;}
 
         /* Scanner Screen */
         #scannerScreen { text-align: center; }
         #scannerScreen .card { max-width: 800px; margin: auto; }
-        
-        video, canvas { 
-            width: 100%; 
-            max-height: 45vh; 
-            border-radius: 8px; 
-            background: #000; 
-            object-fit: contain; 
-            margin-bottom: 15px; 
-        }
-
+        video, canvas { width: 100%; max-height: 45vh; border-radius: 8px; background: #000; object-fit: contain; margin-bottom: 15px; }
         canvas { display: none; }
-        
-        .btn-group { 
-            display: flex; 
-            justify-content: center; 
-            flex-wrap: wrap; 
-            gap: 10px; 
-            margin-bottom: 15px;
-        }
-
-        .btn-group button { 
-            width: auto; 
-            min-width: 140px; 
-        }
+        .btn-group { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;}
+        .btn-group button { width: auto; min-width: 140px; }
 
         /* Modals & Alerts */
         .modal-overlay { 
@@ -503,13 +450,8 @@
         .hidden { display: none !important; }
 
         /* EDITOR POWER UI */
-        #editorModalBox { 
-            max-width: 950px; 
-            width: 98%; 
-            height: 96vh; 
-            padding: 15px; 
-        }
-
+        #editorModalBox { max-width: 950px; width: 98%; height: 96vh; padding: 15px; }
+        
         .editor-toolbar { 
             display: flex; 
             gap: 8px; 
@@ -762,7 +704,7 @@
 
     <!-- KOD JAVASCRIPT UTAMA -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoBM8mpG5ZV6tV4heFQ5GgA_085iOkGJwUprlecdeYfEVSQoZb1vdXiCQD5zzvOdv1/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxOrI7Q-Rpk8xtBe7Ol6TyiWzmSx2Mg5PUpc-YOuMadiKEPXeBzNpBkk79qk-nDrvtB/exec"; 
         
         let currentUserEmail = ""; 
         let studentsList = []; 
@@ -905,7 +847,6 @@
             } catch (err) { console.error(err); }
         }
         
-        // Kompres gambar profil sebelum upload ke Google Sheet
         async function compressImage(file) {
             return new Promise((resolve) => {
                 let reader = new FileReader(); 
@@ -1003,7 +944,58 @@
             fetchCertsFromDB(activeStudent.name);
         }
 
-        // TUKAR LINK GOOGLE DRIVE KE THUMBNAIL PREVIEW
+        // Fungsi Tarik PDF dari Google Drive untuk di Edit Semula
+        async function pullFromCloudToEditor(url, certName) {
+            showLoading("Mengekstrak fail PDF dari Cloud untuk diedit semula. Proses ini mungkin mengambil masa...");
+            try {
+                let res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "getRawPdf", fileUrl: url })
+                });
+                let data = await res.json();
+                
+                if(data.status === "success") {
+                    let pdfData = atob(data.base64Data);
+                    let uint8Array = new Uint8Array(pdfData.length);
+                    for (let i = 0; i < pdfData.length; i++) {
+                        uint8Array[i] = pdfData.charCodeAt(i);
+                    }
+
+                    const pdf = await pdfjsLib.getDocument(uint8Array).promise;
+                    let extractedImages = [];
+                    for(let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const viewport = page.getViewport({scale: 1.5});
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+                        await page.render({canvasContext: ctx, viewport: viewport}).promise;
+                        extractedImages.push(canvas.toDataURL('image/jpeg', 0.9));
+                    }
+
+                    // Push ke Ruangan Editor
+                    sessionCerts.push({
+                        student: activeStudent.name,
+                        certName: certName + " (Edit)",
+                        images: extractedImages,
+                        needsSync: true
+                    });
+
+                    hideLoading();
+                    showAppAlert("Sedia Diedit", "Fail dari Cloud telah berjaya dimasukkan ke dalam Ruangan Editor di bawah. Anda boleh mula menyusun atau mengeditnya sekarang.", "success");
+                    renderCerts();
+                    
+                    // Skrol pengguna ke bawah perlahan-lahan
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                } else {
+                    hideLoading();
+                    showAppAlert("Ralat PDF Cloud", data.message, "error");
+                }
+            } catch(err) {
+                hideLoading();
+                showAppAlert("Ralat", "Gagal menghubungi pelayan Cloud.", "error");
+            }
+        }
+
         function getDriveThumb(url) {
             let match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
             let id = match ? match[1] : null;
@@ -1033,11 +1025,15 @@
                         data.data.forEach(c => { 
                             let thumbUrl = getDriveThumb(c.url);
                             html += `
-                            <div class="cloud-cert-card" onclick="window.open('${c.url}', '_blank')">
-                                <img src="${thumbUrl}" onerror="this.src='https://via.placeholder.com/150?text=Sijil+PDF'">
+                            <div class="cloud-cert-card">
+                                <img src="${thumbUrl}" onerror="this.src='https://via.placeholder.com/150?text=Sijil+PDF'" onclick="window.open('${c.url}', '_blank')">
                                 <div class="cloud-cert-info">
                                     <div class="cloud-cert-name"><i class="fa-solid fa-file-pdf" style="color:var(--danger);"></i> ${c.certName}</div>
                                     <div class="cloud-cert-date">Tarikh: ${new Date(c.date).toLocaleDateString('ms-MY')}</div>
+                                    <div style="display:flex; gap:8px; margin-top:10px;">
+                                        <button class="btn-ghost" onclick="window.open('${c.url}', '_blank')" style="flex:1; padding:6px; font-size:12px; background:rgba(79, 70, 229, 0.1);"><i class="fa-solid fa-eye"></i> Buka</button>
+                                        <button class="btn-warning" onclick="pullFromCloudToEditor('${c.url}', '${c.certName}')" style="flex:1; padding:6px; font-size:12px;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                                    </div>
                                 </div>
                             </div>`; 
                         }); 
@@ -1101,7 +1097,7 @@
             });
         }
 
-        // Drag & Drop Editor Gallery
+        // Drag & Drop
         function dragStart(e, cIdx, pIdx) { dragSourceCertIndex = cIdx; dragSourcePageIndex = pIdx; e.dataTransfer.effectAllowed = 'move'; e.target.classList.add('dragging'); }
         function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.add('drag-over'); }
         function dragLeave(e) { if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over'); }
@@ -1128,7 +1124,7 @@
             renderCerts(); 
         }
 
-        // Fungsi Tambah Muka Surat Inline (Tengah-tengah edit)
+        // Tambah Page Baru Dalam Deraf
         document.getElementById('inlineAddFileInput').addEventListener('change', async (e) => {
             if(targetInlineCertIndex === -1) return; 
             const file = e.target.files[0]; 
@@ -1350,7 +1346,7 @@
         }
 
         function applyAiFilter() {
-            if(!opencvReady) return; 
+            if(!opencvReady) return showAppAlert("Perhatian", "AI sedang dimuat turun. Tunggu sebentar.", "warning");
             showLoading("Memproses AI Filter...");
             setTimeout(() => { 
                 let mat = cv.imread(editorCanvas); 
@@ -1370,7 +1366,7 @@
             let cert = sessionCerts[certIndex]; 
             if(cert.images.length === 0) return;
             
-            showLoading("Menyusun dan memuat naik sijil ke Google Drive...");
+            showLoading("Menyusun dan memuat naik PDF ke Google Drive...");
             let btnList = document.querySelectorAll('.cert-card')[certIndex].querySelectorAll('button'); 
             btnList.forEach(b => b.disabled = true);
             
