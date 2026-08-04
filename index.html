@@ -14,7 +14,8 @@
         :root {
             --primary: #4f46e5; --primary-hover: #4338ca;
             --secondary: #10b981; --secondary-hover: #059669;
-            --warning: #f59e0b; --danger: #ef4444;
+            --warning: #f59e0b; --warning-hover: #d97706;
+            --danger: #ef4444; --danger-hover: #dc2626;
             --bg-color: #f3f4f6; --surface: #ffffff;
             --text-main: #1f2937; --text-light: #6b7280;
             --border: #e5e7eb; --radius: 12px;
@@ -32,17 +33,16 @@
         input { width: 100%; padding: 12px 16px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; outline: none; transition: border 0.3s; }
         input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
         
-        button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 12px 20px; font-size: 15px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: white; width: 100%; }
+        button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 12px 20px; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: white; width: 100%; }
         button:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
         button:active { transform: translateY(0); }
         button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
         
-        .btn-primary { background: var(--primary); }
-        .btn-success { background: var(--secondary); }
-        .btn-warning { background: var(--warning); color: #fff; }
-        .btn-danger { background: var(--danger); }
-        .btn-ghost { background: transparent; color: var(--primary); box-shadow: none; }
-        .btn-ghost:hover { background: rgba(79, 70, 229, 0.05); }
+        .btn-primary { background: var(--primary); } .btn-primary:hover { background: var(--primary-hover); }
+        .btn-success { background: var(--secondary); } .btn-success:hover { background: var(--secondary-hover); }
+        .btn-warning { background: var(--warning); color: #fff; } .btn-warning:hover { background: var(--warning-hover); }
+        .btn-danger { background: var(--danger); } .btn-danger:hover { background: var(--danger-hover); }
+        .btn-ghost { background: transparent; color: var(--primary); box-shadow: none; } .btn-ghost:hover { background: rgba(79, 70, 229, 0.05); }
 
         #loginScreen .card { max-width: 400px; margin: 10vh auto; text-align: center; }
         .dashboard-container { display: grid; grid-template-columns: 350px 1fr; gap: 20px; align-items: start; }
@@ -51,16 +51,29 @@
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px 25px; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); }
         .sidebar, .main-panel { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
         .add-student-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        .add-student-box input { margin: 0; }
-        .add-student-box button { width: auto; padding: 12px 15px; }
+        .add-student-box input { margin: 0; } .add-student-box button { width: auto; padding: 12px 15px; }
+        
         .student-list { list-style: none; max-height: 50vh; overflow-y: auto; }
         .student-item { padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; display: flex; align-items: center; gap: 10px; }
         .student-item.active { background: rgba(79, 70, 229, 0.1); border-color: var(--primary); font-weight: 600; color: var(--primary); }
         
         .student-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
-        .cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-        .cert-card { background: var(--bg-color); padding: 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px; }
+        
+        /* Dashboard - Galeri Sijil */
+        .cert-list { display: flex; flex-direction: column; gap: 20px; }
+        .cert-card { background: var(--bg-color); padding: 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 15px; }
+        .cert-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #d1d5db; padding-bottom: 10px; flex-wrap: wrap; gap: 10px;}
+        .cert-header h4 { font-size: 16px; margin-bottom: 5px; color: var(--primary); }
+        .cert-status { font-size:12px; color:var(--text-light); }
+        .cert-status.drive { color: var(--primary); font-weight: 500; }
+        
+        .cert-thumbnails { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; align-items: flex-start; }
+        .thumb-item { min-width: 130px; max-width: 130px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: #fff; box-shadow: var(--shadow); flex-shrink: 0; }
+        .thumb-item img { width: 100%; height: 170px; object-fit: cover; display: block; border-bottom: 1px solid var(--border); }
+        .thumb-actions { display: flex; flex-direction: column; }
+        .thumb-actions button { border-radius: 0; padding: 8px 0; font-size: 12px; }
 
+        /* Scanner Screen & Batch Editor */
         #scannerScreen { text-align: center; }
         #scannerScreen .card { max-width: 800px; margin: auto; }
         video, canvas { width: 100%; max-height: 45vh; border-radius: 8px; background: #000; object-fit: contain; margin-bottom: 15px; }
@@ -79,52 +92,26 @@
         .batch-actions button.btn-trash:hover { background: var(--danger); }
         .empty-batch { color: var(--text-light); text-align: center; width: 100%; font-size: 14px; }
 
-        /* ==========================================
-           CSS UNTUK CUSTOM POPUP ALERT (GEMPAK)
-           ========================================== */
-        .modal-overlay { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 9999; 
-            justify-content: center; align-items: center; animation: fadeIn 0.2s ease; 
-        }
-        .modal-box { 
-            background: var(--surface); padding: 30px; border-radius: 20px; width: 90%; 
-            max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
-            transform: scale(0.9); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
-        }
+        /* Custom Popup Alert */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center; animation: fadeIn 0.2s ease; }
+        .modal-box { background: var(--surface); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.9); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes popIn { to { transform: scale(1); } }
-        
         .modal-icon { font-size: 55px; margin-bottom: 15px; }
-        .icon-error { color: var(--danger); }
-        .icon-success { color: var(--secondary); }
-        .icon-info { color: var(--primary); }
-        
+        .icon-error { color: var(--danger); } .icon-success { color: var(--secondary); } .icon-info { color: var(--primary); } .icon-warning { color: var(--warning); }
         .modal-title { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--text-main); }
         .modal-message { font-size: 15px; color: var(--text-light); margin-bottom: 20px; line-height: 1.5; }
-        
-        /* Ruangan Khusus Error Log Admin */
-        .error-log { 
-            background: #fee2e2; color: #991b1b; font-family: monospace; font-size: 12px; 
-            padding: 12px; border-radius: 8px; text-align: left; overflow-x: auto; 
-            margin-bottom: 20px; display: none; border: 1px solid #fca5a5;
-            max-height: 100px; overflow-y: auto;
-        }
+        .error-log { background: #fee2e2; color: #991b1b; font-family: monospace; font-size: 12px; padding: 12px; border-radius: 8px; text-align: left; overflow-x: auto; margin-bottom: 20px; display: none; border: 1px solid #fca5a5; max-height: 100px; overflow-y: auto; }
     </style>
 </head>
 <body>
 
-    <!-- ==========================================
-         SISTEM CUSTOM POPUP ALERT (GANTI ALERT DEFAULT)
-         ========================================== -->
+    <!-- CUSTOM POPUP ALERT -->
     <div id="customAlert" class="modal-overlay">
         <div class="modal-box">
             <i id="alertIcon" class="modal-icon fa-solid fa-circle-info"></i>
             <div id="alertTitle" class="modal-title">Tajuk</div>
             <div id="alertMessage" class="modal-message">Mesej kandungan di sini...</div>
-            
-            <!-- Paparan kod ralat khas jika error -->
             <div id="alertErrorLog" class="error-log"></div>
-            
             <button id="alertBtn" class="btn-primary" style="width: 100%; border-radius: 50px; padding: 12px;" onclick="closeAppAlert()">Tutup</button>
         </div>
     </div>
@@ -135,10 +122,8 @@
             <i class="fa-solid fa-expand" style="font-size: 40px; color: var(--primary); margin-bottom: 10px;"></i>
             <h3>Sistem Sijil Pro</h3>
             <p style="color: var(--text-light); margin-bottom: 20px; font-size: 14px;">Log masuk untuk mengurus rekod pelajar</p>
-            
             <input type="email" id="loginEmail" placeholder="Email Guru (Cth: guru@edu.my)">
             <input type="password" id="loginPassword" placeholder="Kata Laluan">
-            
             <button class="btn-primary" onclick="login()" style="margin-top: 15px;">Log Masuk</button>
             <button class="btn-ghost" onclick="register()">Daftar Akaun Baru</button>
         </div>
@@ -175,11 +160,14 @@
                             <h2 id="activeStudentTitle">Nama Pelajar</h2>
                         </div>
                         <button class="btn-success" onclick="openScanner()">
-                            <i class="fa-solid fa-plus"></i> Editor Multi-Sijil
+                            <i class="fa-solid fa-plus"></i> Buka Editor Sijil
                         </button>
                     </div>
                     <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-light);">Rekod Sijil (Sesi Ini)</h3>
-                    <div class="cert-grid" id="certGridUI"></div>
+                    
+                    <!-- Senarai Sijil beserta Thumbnail & Butang Download Lokal akan dipaparkan di sini -->
+                    <div class="cert-list" id="certGridUI"></div>
+                    
                 </div>
             </div>
         </div>
@@ -210,12 +198,16 @@
 
             <input type="file" id="fileUploadInput" accept="image/*,application/pdf" style="display: none;">
 
+            <!-- KUMPULAN BUTANG 1: TAMBAH GAMBAR -->
             <div class="btn-group">
-                <button id="btnCaptureCam" class="btn-primary" disabled><i class="fa-solid fa-camera"></i> Tambah (Snap)</button>
-                <button id="btnUploadFile" class="btn-primary" onclick="document.getElementById('fileUploadInput').click();" disabled><i class="fa-solid fa-folder-open"></i> Tambah (Fail/PDF)</button>
+                <button id="btnCaptureCam" class="btn-primary" disabled><i class="fa-solid fa-camera"></i> 1. Tambah (Kamera)</button>
+                <button id="btnUploadFile" class="btn-primary" onclick="document.getElementById('fileUploadInput').click();" disabled><i class="fa-solid fa-folder-open"></i> 1. Tambah (Fail/PDF)</button>
             </div>
-            <div class="btn-group" style="border-top: 1px solid var(--border); padding-top: 15px;">
-                <button id="btnPdfBasic" class="btn-success" onclick="generateAndSavePDF()"><i class="fa-solid fa-bolt"></i> Simpan Jadi PDF Power & Upload</button>
+            
+            <!-- KUMPULAN BUTANG 2: SIMPAN (Tindakan Wajib) -->
+            <div class="btn-group" style="border-top: 1px solid var(--border); padding-top: 15px; margin-top: 5px;">
+                <button id="btnPdfBasic" class="btn-success" onclick="generateAndSavePDF()"><i class="fa-solid fa-cloud-arrow-up"></i> 2. Simpan & Upload Drive</button>
+                <button id="btnSaveLocal" class="btn-warning" onclick="saveToDashboardLocal()"><i class="fa-solid fa-sd-card"></i> 2. Simpan ke Dashboard Saja</button>
                 <button id="btnCancelScan" class="btn-danger" onclick="closeScanner()"><i class="fa-solid fa-xmark"></i> Batal & Tutup</button>
             </div>
         </div>
@@ -228,12 +220,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyFVY85u_ADSFbla7HBrxNx3lo4hJrEJOlvV0PlqpcWqWuoMkmxnWZvW7LNp0DJfBG0/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxOrI7Q-Rpk8xtBe7Ol6TyiWzmSx2Mg5PUpc-YOuMadiKEPXeBzNpBkk79qk-nDrvtB/exec"; 
         
         let currentUserEmail = "";
         let studentsList = []; 
         let activeStudent = "";
-        let sessionCerts = [];
+        let sessionCerts = []; 
         let currentBatch = []; 
 
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
@@ -247,47 +239,23 @@
             const btn = document.getElementById('alertBtn');
             const logEl = document.getElementById('alertErrorLog');
             
-            // Reset Kelas
             icon.className = 'modal-icon fa-solid';
-            
-            // Tetapan Jenis UI (Error / Success / Info)
-            if (type === "error") {
-                icon.classList.add('fa-circle-xmark', 'icon-error');
-                btn.style.backgroundColor = "var(--danger)";
-            } else if (type === "success") {
-                icon.classList.add('fa-circle-check', 'icon-success');
-                btn.style.backgroundColor = "var(--secondary)";
-            } else {
-                icon.classList.add('fa-circle-info', 'icon-info');
-                btn.style.backgroundColor = "var(--primary)";
-            }
+            if (type === "error") { icon.classList.add('fa-circle-xmark', 'icon-error'); btn.style.backgroundColor = "var(--danger)"; }
+            else if (type === "success") { icon.classList.add('fa-circle-check', 'icon-success'); btn.style.backgroundColor = "var(--secondary)"; }
+            else if (type === "warning") { icon.classList.add('fa-triangle-exclamation', 'icon-warning'); btn.style.backgroundColor = "var(--warning)"; }
+            else { icon.classList.add('fa-circle-info', 'icon-info'); btn.style.backgroundColor = "var(--primary)"; }
 
             document.getElementById('alertTitle').innerText = title;
             document.getElementById('alertMessage').innerText = message;
             
-            // Paparkan Log Ralat Khas jika dihantar
-            if (rawError) {
-                logEl.style.display = 'block';
-                logEl.innerText = "Sistem Log: \n" + rawError;
-            } else {
-                logEl.style.display = 'none';
-            }
-
+            if (rawError) { logEl.style.display = 'block'; logEl.innerText = "Sistem Log: \n" + rawError; }
+            else { logEl.style.display = 'none'; }
             overlay.style.display = 'flex';
         }
-
-        function closeAppAlert() {
-            document.getElementById('customAlert').style.display = 'none';
-        }
-
-        function switchScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
-            document.getElementById(screenId).classList.add('active-screen');
-        }
-
+        function closeAppAlert() { document.getElementById('customAlert').style.display = 'none'; }
+        function switchScreen(screenId) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(screenId).classList.add('active-screen'); }
         function setStatus(msg, type="info") {
-            let el = document.getElementById('status');
-            el.innerHTML = msg;
+            let el = document.getElementById('status'); el.innerHTML = msg;
             if(type === "info") { el.style.color = "var(--primary)"; el.style.background = "rgba(79,70,229,0.1)"; }
             if(type === "success") { el.style.color = "var(--secondary)"; el.style.background = "rgba(16,185,129,0.1)"; }
             if(type === "error") { el.style.color = "var(--danger)"; el.style.background = "rgba(239,68,68,0.1)"; }
@@ -315,93 +283,49 @@
                 if(data.status === "success") {
                     currentUserEmail = email; localStorage.setItem("sijilProUser", email);
                     document.getElementById('userEmailDisplay').innerText = email;
-                    fetchStudents(); 
-                    switchScreen('dashboardScreen');
+                    fetchStudents(); switchScreen('dashboardScreen');
                 } else showAppAlert("Gagal Log Masuk", data.message, "error");
-            } catch (err) { 
-                showAppAlert("Ralat Sambungan", "Gagal menghubungi pangkalan data pelayan.", "error", err.toString()); 
-            }
+            } catch (err) { showAppAlert("Ralat Sambungan", "Gagal menghubungi pangkalan data pelayan.", "error", err.toString()); }
         }
-        
-        function logout() {
-            localStorage.removeItem("sijilProUser"); stopCamera();
-            studentsList = []; 
-            switchScreen('loginScreen');
-        }
+        function logout() { localStorage.removeItem("sijilProUser"); stopCamera(); studentsList = []; switchScreen('loginScreen'); }
 
         // ==========================================
-        // DB SYNC: TARIK & SIMPAN PELAJAR KE GOOGLE SHEET
+        // DB SYNC (PELAJAR)
         // ==========================================
         async function fetchStudents() {
             const ul = document.getElementById('studentListUI');
-            ul.innerHTML = `<li style="text-align:center; padding:15px; color:grey;"><i class="fa-solid fa-spinner fa-spin"></i> Menyegerak Pangkalan Data...</li>`;
-            
+            ul.innerHTML = `<li style="text-align:center; padding:15px; color:grey;"><i class="fa-solid fa-spinner fa-spin"></i> Menyegerak DB...</li>`;
             try {
                 let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "getStudents" }) });
                 if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
                 let data = await res.json();
-                
-                if (data.status === "success") {
-                    studentsList = data.data;
-                    renderStudentList();
-                }
-            } catch (err) {
-                ul.innerHTML = `<li style="text-align:center; color:red;">Gagal menarik data pelajar. Cuba lagi.</li>`;
-                showAppAlert("Ralat Skrip Pelayan", "Pastikan anda telah menekan butang 'New Deployment' di dalam Google Apps Script.", "error", err.toString());
-            }
+                if (data.status === "success") { studentsList = data.data; renderStudentList(); }
+            } catch (err) { ul.innerHTML = `<li style="text-align:center; color:red;">Gagal menarik data. Pastikan anda Deploy script.</li>`; }
         }
 
         async function addStudent() {
-            let input = document.getElementById('newStudentName');
-            let name = input.value.trim();
+            let input = document.getElementById('newStudentName'), name = input.value.trim();
             if(!name) return;
-            if(studentsList.includes(name)) return showAppAlert("Pelajar Wujud", `Nama "${name}" sudah ada dalam pangkalan data.`, "warning");
-            
-            let btn = document.getElementById('btnAddStudent');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            btn.disabled = true;
-
+            if(studentsList.includes(name)) return showAppAlert("Pelajar Wujud", `Nama "${name}" sudah ada.`, "warning");
+            let btn = document.getElementById('btnAddStudent'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; btn.disabled = true;
             try {
-                let res = await fetch(WEB_APP_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ action: "addStudent", studentName: name, guruEmail: currentUserEmail }) 
-                });
-                
-                // Jika URL dipasang dengan skrip lama (belum buat new deployment), JSON akan gagal dibaca.
-                let data;
-                try {
-                    data = await res.json();
-                } catch(parseError) {
-                    throw new Error("Skrip pelayan lama dikesan. Anda mesti klik 'New Deployment' di Google Apps Script.\n\n[Details: " + parseError.message + "]");
-                }
-                
+                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "addStudent", studentName: name, guruEmail: currentUserEmail }) });
+                let data = await res.json();
                 if(data.status === "success") {
-                    studentsList.push(name);
-                    studentsList.sort();
-                    input.value = "";
-                    renderStudentList();
-                    selectStudent(name);
-                    showAppAlert("Berjaya", `Nama "${name}" berjaya ditambah dan disimpan di pangkalan data.`, "success");
-                } else {
-                    showAppAlert("Ralat Semasa Menyimpan", data.message, "error");
-                }
-            } catch (err) {
-                showAppAlert("Sistem Gagal", "Proses terhenti. Sila rujuk ralat di bawah.", "error", err.toString());
-            } finally {
-                btn.innerHTML = '<i class="fa-solid fa-plus"></i>';
-                btn.disabled = false;
-            }
+                    studentsList.push(name); studentsList.sort(); input.value = "";
+                    renderStudentList(); selectStudent(name);
+                    showAppAlert("Berjaya", `Nama "${name}" disimpan.`, "success");
+                } else showAppAlert("Ralat Menyimpan", data.message, "error");
+            } catch (err) { showAppAlert("Ralat Gagal", "Proses terhenti.", "error", err.toString()); } 
+            finally { btn.innerHTML = '<i class="fa-solid fa-plus"></i>'; btn.disabled = false; }
         }
 
         // ==========================================
-        // UI DASHBOARD
+        // UI DASHBOARD (Galeri Sijil)
         // ==========================================
         function renderStudentList() {
             const ul = document.getElementById('studentListUI'); ul.innerHTML = "";
-            if(studentsList.length === 0) {
-                ul.innerHTML = `<li style="text-align:center; padding:15px; color:grey; font-size: 14px;">Belum ada pelajar didaftarkan. Sila tambah.</li>`;
-                return;
-            }
+            if(studentsList.length === 0) { ul.innerHTML = `<li style="text-align:center; padding:15px; color:grey; font-size: 14px;">Belum ada pelajar.</li>`; return; }
             studentsList.forEach(name => {
                 let li = document.createElement('li');
                 li.className = `student-item ${name === activeStudent ? 'active' : ''}`;
@@ -410,7 +334,6 @@
                 ul.appendChild(li);
             });
         }
-        
         function selectStudent(name) {
             activeStudent = name; renderStudentList(); 
             document.getElementById('emptyState').style.display='none'; 
@@ -419,20 +342,105 @@
         }
 
         function renderCerts() {
-            const grid = document.getElementById('certGridUI'); grid.innerHTML = "";
+            const listUI = document.getElementById('certGridUI');
+            listUI.innerHTML = "";
+            
             let myCerts = sessionCerts.filter(c => c.student === activeStudent);
-            if(myCerts.length === 0) grid.innerHTML = `<p style="font-size:14px; color:grey;">Belum ada sijil diproses untuk sesi ini.</p>`;
-            myCerts.forEach(cert => grid.innerHTML += `<div class="cert-card"><i class="fa-solid fa-file-pdf"></i><div><h4>${cert.certName}</h4><p>Tersimpan di Drive</p></div></div>`);
+            if(myCerts.length === 0) {
+                listUI.innerHTML = `<p style="font-size:14px; color:grey;">Belum ada sijil diproses untuk sesi ini.</p>`;
+                return;
+            }
+
+            sessionCerts.forEach((cert, certIndex) => {
+                if (cert.student !== activeStudent || cert.images.length === 0) return;
+
+                let thumbsHTML = "";
+                cert.images.forEach((imgData, imgIndex) => {
+                    thumbsHTML += `
+                        <div class="thumb-item">
+                            <img src="${imgData}" alt="Page ${imgIndex + 1}">
+                            <div class="thumb-actions">
+                                <button class="btn-success" onclick="downloadLocalPDF(${certIndex}, ${imgIndex})" style="background: var(--secondary);"><i class="fa-solid fa-download"></i> 1 Page</button>
+                                <button class="btn-danger" onclick="deleteLocalThumbnail(${certIndex}, ${imgIndex})" style="background: var(--danger);"><i class="fa-solid fa-trash"></i> Buang</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                // Tentukan status simpanan
+                let statusLabel = cert.type === 'drive' 
+                    ? `<span class="cert-status drive"><i class="fa-solid fa-cloud-check"></i> Disimpan di Google Drive & Lokal</span>` 
+                    : `<span class="cert-status"><i class="fa-solid fa-mobile-screen"></i> Disimpan di Peranti Ini Sahaja (Lokal)</span>`;
+
+                listUI.innerHTML += `
+                    <div class="cert-card">
+                        <div class="cert-header">
+                            <div>
+                                <h4>${cert.certName}</h4>
+                                ${statusLabel}
+                            </div>
+                            <button class="btn-primary" onclick="downloadLocalPDF(${certIndex}, 'ALL')" style="width:auto; padding: 10px 20px;">
+                                <i class="fa-solid fa-file-pdf"></i> Download Semua PDF
+                            </button>
+                        </div>
+                        <div class="cert-thumbnails">
+                            ${thumbsHTML}
+                        </div>
+                    </div>
+                `;
+            });
         }
 
         // ==========================================
-        // SISTEM MULTI-SIJIL & PEMECAH PDF
+        // FUNGSI DOWNLOAD PDF LOKAL
+        // ==========================================
+        async function downloadLocalPDF(certIndex, pageIndex) {
+            try {
+                let cert = sessionCerts[certIndex];
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF();
+                pdf.deletePage(1);
+
+                if (pageIndex === 'ALL') {
+                    if (cert.images.length === 0) return showAppAlert("Sijil Kosong", "Semua gambar telah dibuang.", "warning");
+                    for(let i = 0; i < cert.images.length; i++) {
+                        let imgData = cert.images[i];
+                        let img = new Image(); img.src = imgData;
+                        await new Promise(r => img.onload = r);
+                        let orientation = img.width > img.height ? 'l' : 'p';
+                        pdf.addPage([img.width, img.height], orientation);
+                        pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
+                    }
+                    pdf.save(`${cert.certName}_Compiled.pdf`);
+                } else {
+                    let imgData = cert.images[pageIndex];
+                    let img = new Image(); img.src = imgData;
+                    await new Promise(r => img.onload = r);
+                    let orientation = img.width > img.height ? 'l' : 'p';
+                    pdf.addPage([img.width, img.height], orientation);
+                    pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
+                    pdf.save(`${cert.certName}_Page_${pageIndex + 1}.pdf`);
+                }
+            } catch (err) {
+                showAppAlert("Ralat PDF", "Gagal menjana fail PDF di peranti anda.", "error", err.toString());
+            }
+        }
+
+        function deleteLocalThumbnail(certIndex, pageIndex) {
+            if(confirm("Adakah anda pasti mahu membuang muka surat ini?")) {
+                sessionCerts[certIndex].images.splice(pageIndex, 1);
+                renderCerts(); 
+            }
+        }
+
+        // ==========================================
+        // SISTEM SCANNER & EDITOR
         // ==========================================
         let opencvReady = false;
         const video = document.getElementById('video'), canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
 
         function onOpenCvReady() {
-            opencvReady = true; setStatus("<i class='fa-solid fa-check'></i> AI Bersedia!", "success");
+            opencvReady = true; setStatus("<i class='fa-solid fa-check'></i> AI Bersedia! Sila tambah gambar.", "success");
             document.getElementById('btnCaptureCam').disabled = false; document.getElementById('btnUploadFile').disabled = false;
         }
 
@@ -447,16 +455,23 @@
             switchScreen('scannerScreen'); startCamera();
         }
 
-        function closeScanner() { stopCamera(); switchScreen('dashboardScreen'); }
-        function startCamera() { navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(stream => video.srcObject = stream).catch(e => setStatus("Kamera tak dijumpai.", "warning")); video.style.display = 'block'; canvas.style.display = 'none'; }
+        function closeScanner() { 
+            // Amaran jika pengguna tekan Tutup tapi belum simpan gambar
+            if (currentBatch.length > 0) {
+                if(!confirm("⚠️ Anda ada gambar yang BELUM DISIMPAN! Adakah anda pasti mahu membuang hasil kerja ini dan tutup Editor?")) {
+                    return; // Batal tindakan tutup
+                }
+            }
+            stopCamera(); 
+            switchScreen('dashboardScreen'); 
+        }
+
+        function startCamera() { navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(stream => video.srcObject = stream).catch(e => setStatus("Kamera tidak ditemui, sila guna butang Fail.", "warning")); video.style.display = 'block'; canvas.style.display = 'none'; }
         function stopCamera() { if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop()); }
 
         function updateBatchUI() {
             const gallery = document.getElementById('batchGallery');
-            if(currentBatch.length === 0) {
-                gallery.innerHTML = `<div class="empty-batch">Belum ada sijil. Snap kamera atau pilih fail di bawah.</div>`;
-                return;
-            }
+            if(currentBatch.length === 0) { gallery.innerHTML = `<div class="empty-batch">Koleksi kosong. Sila guna Butang 1 di bawah.</div>`; return; }
             gallery.innerHTML = "";
             currentBatch.forEach((base64Img, index) => {
                 gallery.innerHTML += `
@@ -474,20 +489,19 @@
         function deletePage(index) { currentBatch.splice(index, 1); updateBatchUI(); }
 
         document.getElementById('btnCaptureCam').addEventListener('click', () => {
-            if (!opencvReady) return showAppAlert("Sabar", "Sistem AI sedang bersiap sedia. Sila tunggu.", "warning");
+            if (!opencvReady) return showAppAlert("Sabar", "Sistem AI sedang bersiap sedia.", "warning");
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             setStatus("<i class='fa-solid fa-gear fa-spin'></i> AI Memotong gambar...", "info");
             setTimeout(() => {
                 let processedImg = detectAndWarpDocument(canvas);
                 currentBatch.push(processedImg); updateBatchUI();
-                setStatus("<i class='fa-solid fa-check'></i> Ditambah ke galeri! Snap lagi atau edit di bawah.", "success");
+                setStatus("<i class='fa-solid fa-check'></i> Dimasukkan ke galeri! Sila tekan Butang 2 untuk simpan.", "success");
             }, 100);
         });
 
         document.getElementById('fileUploadInput').addEventListener('change', async (e) => {
             const file = e.target.files[0]; if(!file) return;
-            
             if(file.type === "application/pdf") {
                 setStatus("<i class='fa-solid fa-spinner fa-spin'></i> AI sedang memecahkan helaian PDF...", "info");
                 try {
@@ -500,12 +514,8 @@
                         await page.render({canvasContext: ctx, viewport: viewport}).promise;
                         currentBatch.push(canvas.toDataURL('image/jpeg', 0.9));
                     }
-                    updateBatchUI();
-                    setStatus("<i class='fa-solid fa-check-double'></i> Selesai dipecahkan!", "success");
-                } catch(err) { 
-                    setStatus("Gagal membaca PDF.", "error"); 
-                    showAppAlert("Ralat PDF", "Gagal mengekstrak fail PDF yang dipilih.", "error", err.toString());
-                }
+                    updateBatchUI(); setStatus("<i class='fa-solid fa-check-double'></i> Selesai dipecahkan! Sila tekan Butang 2 untuk simpan.", "success");
+                } catch(err) { showAppAlert("Ralat PDF", "Gagal mengekstrak fail PDF.", "error", err.toString()); }
             } else {
                 setStatus("<i class='fa-solid fa-gear fa-spin'></i> Memproses gambar...", "info");
                 const img = new Image();
@@ -513,7 +523,7 @@
                     canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0);
                     let processedImg = detectAndWarpDocument(canvas);
                     currentBatch.push(processedImg); updateBatchUI();
-                    setStatus("<i class='fa-solid fa-check'></i> Gambar ditambah ke galeri.", "success");
+                    setStatus("<i class='fa-solid fa-check'></i> Gambar ditambah! Sila tekan Butang 2 untuk simpan.", "success");
                 }
                 img.src = URL.createObjectURL(file);
             }
@@ -523,37 +533,28 @@
         function detectAndWarpDocument(srcCanvas) {
             try {
                 let src = cv.imread(srcCanvas); let dst = new cv.Mat();
-                cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0);
-                cv.GaussianBlur(dst, dst, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT);
-                cv.Canny(dst, dst, 75, 200);
-                
-                let contours = new cv.MatVector(), hierarchy = new cv.Mat();
-                cv.findContours(dst, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
+                cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0); cv.GaussianBlur(dst, dst, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT); cv.Canny(dst, dst, 75, 200);
+                let contours = new cv.MatVector(), hierarchy = new cv.Mat(); cv.findContours(dst, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
                 let maxArea = 0, maxContour = null;
                 for (let i = 0; i < contours.size(); ++i) {
-                    let cnt = contours.get(i), area = cv.contourArea(cnt);
-                    let approx = new cv.Mat(); cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
+                    let cnt = contours.get(i), area = cv.contourArea(cnt), approx = new cv.Mat();
+                    cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
                     if (approx.rows === 4 && area > maxArea && area > 50000) { maxArea = area; if (maxContour) maxContour.delete(); maxContour = approx.clone(); }
                     approx.delete();
                 }
-                
                 if (maxContour) {
                     let pts = []; for (let j = 0; j < 4; j++) pts.push({ x: maxContour.data32S[j*2], y: maxContour.data32S[j*2+1] });
-                    pts.sort((a, b) => a.y - b.y); let top = pts.slice(0, 2).sort((a, b) => a.x - b.x); let bottom = pts.slice(2, 4).sort((a, b) => a.x - b.x);
+                    pts.sort((a, b) => a.y - b.y); let top = pts.slice(0, 2).sort((a, b) => a.x - b.x), bottom = pts.slice(2, 4).sort((a, b) => a.x - b.x);
                     let orderedPts = [top[0], top[1], bottom[1], bottom[0]];
                     let maxWidth = Math.max(Math.hypot(orderedPts[2].x - orderedPts[3].x, orderedPts[2].y - orderedPts[3].y), Math.hypot(orderedPts[1].x - orderedPts[0].x, orderedPts[1].y - orderedPts[0].y));
                     let maxHeight = Math.max(Math.hypot(orderedPts[1].x - orderedPts[2].x, orderedPts[1].y - orderedPts[2].y), Math.hypot(orderedPts[0].x - orderedPts[3].x, orderedPts[0].y - orderedPts[3].y));
-                    
                     let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [orderedPts[0].x, orderedPts[0].y, orderedPts[1].x, orderedPts[1].y, orderedPts[2].x, orderedPts[2].y, orderedPts[3].x, orderedPts[3].y]);
                     let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, maxWidth, 0, maxWidth, maxHeight, 0, maxHeight]);
                     let M = cv.getPerspectiveTransform(srcTri, dstTri); let warped = new cv.Mat();
                     cv.warpPerspective(src, warped, M, new cv.Size(maxWidth, maxHeight), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
-                    
-                    cv.imshow(srcCanvas, warped);
-                    srcTri.delete(); dstTri.delete(); M.delete(); warped.delete();
+                    cv.imshow(srcCanvas, warped); srcTri.delete(); dstTri.delete(); M.delete(); warped.delete();
                 } 
-                src.delete(); dst.delete(); contours.delete(); hierarchy.delete();
-                if (maxContour) maxContour.delete();
+                src.delete(); dst.delete(); contours.delete(); hierarchy.delete(); if (maxContour) maxContour.delete();
                 return srcCanvas.toDataURL('image/jpeg', 0.9);
             } catch (err) { return srcCanvas.toDataURL('image/jpeg', 0.9); }
         }
@@ -563,28 +564,42 @@
             let img = new Image();
             img.onload = () => {
                 canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0);
-                let mat = cv.imread(canvas);
-                cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY, 0);
-                cv.adaptiveThreshold(mat, mat, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15);
+                let mat = cv.imread(canvas); cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY, 0); cv.adaptiveThreshold(mat, mat, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15);
                 cv.imshow(canvas, mat); mat.delete();
-                currentBatch[index] = canvas.toDataURL('image/jpeg', 0.9); updateBatchUI();
-                setStatus("<i class='fa-solid fa-check'></i> Selesai dibersihkan!", "success");
+                currentBatch[index] = canvas.toDataURL('image/jpeg', 0.9); updateBatchUI(); setStatus("<i class='fa-solid fa-check'></i> Selesai dibersihkan!", "success");
             };
             img.src = currentBatch[index];
         }
 
-        async function generateAndSavePDF() {
-            if(currentBatch.length === 0) return showAppAlert("Sijil Kosong", "Tiada kepingan sijil dalam galeri. Sila scan atau upload dahulu.", "warning");
-            
+        // ==========================================
+        // FUNGSI SIMPAN KE LOKAL (Baru)
+        // ==========================================
+        function saveToDashboardLocal() {
+            if(currentBatch.length === 0) return showAppAlert("Koleksi Kosong", "Sila tambah gambar sijil terlebih dahulu.", "warning");
             let cName = document.getElementById('certName').value.trim();
-            if(!cName) { 
-                showAppAlert("Nama Diperlukan", "Sila masukkan nama untuk fail PDF ini.", "warning");
-                document.getElementById('certName').focus(); 
-                return; 
-            }
+            if(!cName) { showAppAlert("Nama Fail Diperlukan", "Sila taip nama fail di ruangan atas.", "warning"); return; }
+            
+            // Masukkan ke Dashboard sebagai 'local'
+            sessionCerts.push({ student: activeStudent, certName: cName, images: [...currentBatch], type: 'local' });
+            
+            currentBatch = []; // Kosongkan memori sementara supaya tak prompt amaran
+            showAppAlert("Tersimpan (Lokal)", "Sijil berjaya disimpan terus ke dalam paparan Dashboard tanpa menggunakan internet.", "success");
+            
+            stopCamera();
+            switchScreen('dashboardScreen');
+            renderCerts(); 
+        }
+
+        // ==========================================
+        // FUNGSI SIMPAN & UPLOAD KE GOOGLE DRIVE
+        // ==========================================
+        async function generateAndSavePDF() {
+            if(currentBatch.length === 0) return showAppAlert("Koleksi Kosong", "Sila tambah gambar sijil terlebih dahulu.", "warning");
+            let cName = document.getElementById('certName').value.trim();
+            if(!cName) { showAppAlert("Nama Fail Diperlukan", "Sila taip nama fail di ruangan atas.", "warning"); return; }
             
             document.getElementById('btnPdfBasic').disabled = true;
-            setStatus("<i class='fa-solid fa-layer-group fa-beat'></i> Menggabungkan " + currentBatch.length + " kepingan menjadi PDF Power...", "info");
+            setStatus("<i class='fa-solid fa-layer-group fa-beat'></i> Menggabungkan & Upload ke Drive...", "info");
 
             try {
                 const { jsPDF } = window.jspdf;
@@ -599,33 +614,27 @@
                     pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
                 }
 
-                setStatus("<i class='fa-solid fa-cloud-arrow-up fa-bounce'></i> Memuat naik ke Google Drive...", "info");
                 const pdfBase64 = pdf.output('datauristring');
-
                 let res = await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    body: JSON.stringify({
-                        action: "upload", pdfData: pdfBase64,
-                        fileName: `${activeStudent} - ${cName}`, studentName: activeStudent,
-                        certName: cName, guruEmail: currentUserEmail
-                    })
+                    body: JSON.stringify({ action: "upload", pdfData: pdfBase64, fileName: `${activeStudent} - ${cName}`, studentName: activeStudent, certName: cName, guruEmail: currentUserEmail })
                 });
                 
                 let result = await res.json();
                 if (result.status === "success") {
-                    sessionCerts.push({ student: activeStudent, certName: cName });
-                    showAppAlert("Selesai Upload!", "Sijil PDF telah berjaya dikumpulkan dan dihantar ke dalam Google Drive sekolah.", "success");
-                    closeScanner(); renderCerts(); 
-                } else {
-                    showAppAlert("Gagal Muat Naik", result.message, "error");
-                }
+                    // Masukkan ke Dashboard sebagai 'drive'
+                    sessionCerts.push({ student: activeStudent, certName: cName, images: [...currentBatch], type: 'drive' });
+                    
+                    currentBatch = []; // Kosongkan supaya amaran tak naik
+                    showAppAlert("Berjaya Muat Naik!", "Sijil telah dihantar ke dalam Google Drive. Ia juga dipaparkan di Dashboard untuk didownload lokal.", "success");
+                    
+                    stopCamera();
+                    switchScreen('dashboardScreen');
+                    renderCerts(); 
+                } else showAppAlert("Gagal Muat Naik", result.message, "error");
 
-            } catch (err) { 
-                setStatus("Ralat menggabungkan PDF.", "error"); 
-                showAppAlert("Ralat Sistem", "Ralat dikesan semasa menggabungkan fail PDF.", "error", err.toString());
-            } finally { 
-                document.getElementById('btnPdfBasic').disabled = false; 
-            }
+            } catch (err) { showAppAlert("Ralat Sistem", "Ralat dikesan semasa proses ke pelayan.", "error", err.toString());
+            } finally { document.getElementById('btnPdfBasic').disabled = false; }
         }
     </script>
 </body>
