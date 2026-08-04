@@ -441,17 +441,48 @@ function kemaskiniMaklumatPelajar(data) {
 function buangPelajar(studentName) {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sheet = getOrCreateSheet(ss, SHEET_PELAJAR);
+  var nama = (studentName || "").toString().trim();
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return { status: "error", message: "Tiada rekod." };
-  var names = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-  for (var i = 0; i < names.length; i++) {
-    if (names[i][0] && names[i][0].toString().trim() === studentName.trim()) {
+
+  var rows = sheet.getRange(2, 1, lastRow - 1, 6).getValues();
+  var jumpa = false;
+  for (var i = rows.length - 1; i >= 0; i--) {
+    if (rows[i][0] && rows[i][0].toString().trim() === nama) {
+      // padam gambar profil di Drive (jika fail, bukan base64 lama)
+      var gid = rows[i][5] ? rows[i][5].toString() : "";
+      if (gid && gid.indexOf("data:") !== 0) {
+        try { DriveApp.getFileById(gid).setTrashed(true); } catch (e) {}
+      }
       sheet.deleteRow(i + 2);
-      return { status: "success", message: "Rekod pelajar dibuang." };
+      jumpa = true;
     }
   }
-  return { status: "error", message: "Pelajar tidak dijumpai." };
+  if (!jumpa) return { status: "error", message: "Pelajar tidak dijumpai." };
+
+  // Padam semua sijil pelajar ini (rekod sheet + fail PDF di Drive)
+  var sijilDipadam = 0;
+  var sheetSijil = getOrCreateSheet(ss, SHEET_SIJIL);
+  var lastSijil = sheetSijil.getLastRow();
+  if (lastSijil > 1) {
+    var certs = sheetSijil.getRange(2, 1, lastSijil - 1, 5).getValues();
+    for (var k = certs.length - 1; k >= 0; k--) {
+      var rowNama = certs[k][1] ? certs[k][1].toString().trim() : "";
+      if (rowNama !== nama) continue;
+      padamFailDrive(certs[k][4], null);
+      try { sheetSijil.deleteRow(k + 2); } catch (e) {}
+      sijilDipadam++;
+    }
+  }
+
+  CacheService.getScriptCache().remove("certs_" + nama);
+  return {
+    status: "success",
+    message: "Rekod pelajar dibuang" + (sijilDipadam ? " bersama " + sijilDipadam + " sijil." : "."),
+    certsDeleted: sijilDipadam
+  };
 }
+
 
 /**
  * JALANKAN SEKALI SAHAJA (manual dari editor Apps Script)

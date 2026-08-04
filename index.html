@@ -624,6 +624,8 @@
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <h2 id="activeStudentTitle">Nama Pelajar</h2>
                                     <button class="btn-ghost" onclick="openEditStudent()" style="padding: 4px 8px; font-size: 12px; width:auto;"><i class="fa-solid fa-pen"></i> Edit Profil</button>
+                                    <button class="btn-ghost" onclick="deleteActiveStudent()" style="padding: 4px 8px; font-size: 12px; width:auto; color:var(--danger); border-color:var(--danger);"><i class="fa-solid fa-trash"></i> Padam Pelajar</button>
+
                                 </div>
                                 <p id="activeStudentInfo">Kelas: - | IC: -</p>
                                 <p id="activeStudentCat" style="font-weight:bold; color:var(--primary);"></p>
@@ -680,7 +682,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxLiS0ZH3tzxZbRpvOs5OScNTB3TuW5TVR1cP0GfyYys-4FlkmvHVQ69ebf4mY6cZ5I/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6ctqKJB2XLa9eRFdXXQVzR6deoK4auu-hS6W1Yqah61q6twG7EIKfOYhjmPWsgZ6o/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -1239,6 +1241,34 @@ ${hairPath}
                 } else showAppAlert("Gagal", data.message, "error");
             } catch (err) { hideLoading(); showAppAlert("Ralat", "Pelayan sibuk. Cuba lagi.", "error"); }
         }
+
+        /* Padam pelajar + semua sijilnya (rekod & fail PDF di Drive) */
+        async function deleteActiveStudent() {
+            if (!activeStudent) return;
+            const nama = activeStudent.name;
+            const ok = await appConfirm(
+                "Padam Pelajar?",
+                `Semua rekod dan SEMUA SIJIL milik ${nama} akan dipadam terus dari pangkalan data dan Google Drive. Tindakan ini tidak boleh dibatalkan.`,
+                "Ya, Padam", true);
+            if (!ok) return;
+
+            showLoading("Memadam pelajar & sijil...");
+            try {
+                const data = await api({ action: "deleteStudent", studentName: nama });
+                hideLoading();
+                if (data.status === "success") {
+                    studentsList = studentsList.filter(s => s.name !== nama);
+                    sessionCerts = sessionCerts.filter(c => c.student !== nama);
+                    activeStudent = null;
+                    renderStudentList();
+                    document.getElementById('studentDetails').style.display = 'none';
+                    document.getElementById('emptyState').style.display = 'block';
+                    showAppAlert("Berjaya", data.message, "success");
+                } else showAppAlert("Gagal", data.message, "error");
+            } catch (err) { hideLoading(); showAppAlert("Ralat", "Pelayan sibuk. Cuba lagi.", "error"); }
+        }
+
+
 
         /* ==========================================
          * 5. SIJIL CLOUD + THUMBNAIL SETIAP PAGE
