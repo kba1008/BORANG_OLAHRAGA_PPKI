@@ -54,16 +54,12 @@
         .student-profile-info p { margin:2px 0 0 0; font-size: 12px; color: var(--text-light); }
         
         .cert-list { display: flex; flex-direction: column; gap: 20px; }
-        .cert-card { background: var(--bg-color); padding: 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 15px; transition: border 0.3s; }
-        .cert-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #d1d5db; padding-bottom: 10px; flex-wrap: wrap; gap: 10px;}
+        .cert-card { background: var(--surface); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 15px; transition: border 0.3s; }
+        .cert-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; flex-wrap: wrap; gap: 10px;}
         .cert-header h4 { font-size: 16px; margin-bottom: 5px; color: var(--primary); }
-        .cert-status { font-size:12px; color:var(--text-light); }
-        .cert-status.drive { color: var(--primary); font-weight: 500; }
-        .cert-status.unsynced { color: var(--warning); font-weight: bold; animation: pulseText 2s infinite; }
-        @keyframes pulseText { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         
-        .cert-thumbnails { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 15px; align-items: stretch; }
-        .thumb-item { position: relative; min-width: 140px; max-width: 140px; border: 2px solid var(--border); border-radius: 8px; overflow: hidden; background: #fff; box-shadow: var(--shadow); flex-shrink: 0; cursor: grab; transition: transform 0.2s; }
+        .cert-thumbnails { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; align-items: stretch; }
+        .thumb-item { position: relative; min-width: 150px; max-width: 150px; border: 2px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #fff; box-shadow: var(--shadow); flex-shrink: 0; cursor: grab; transition: all 0.2s; display:flex; flex-direction:column;}
         .thumb-item:active { cursor: grabbing; }
         .thumb-item.dragging { opacity: 0.5; transform: scale(0.95); border: 2px dashed var(--primary); }
         .thumb-item.drag-over { border-left: 4px solid var(--primary); transform: translateX(5px); }
@@ -71,13 +67,11 @@
         .thumb-item img:hover { filter: brightness(0.8); }
         .img-overlay-text { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 1px 1px 3px black; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
         .thumb-item:hover .img-overlay-text { opacity: 1; }
+        
         .thumb-actions { display: flex; flex-direction: column; }
         .thumb-actions button { border-radius: 0; padding: 10px 0; font-size: 12px; }
-        .thumb-add-btn { min-width: 140px; max-width: 140px; border: 2px dashed var(--primary); border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; color: var(--primary); font-weight: bold; background: rgba(79, 70, 229, 0.05); }
-        
-        .db-cert-card { background: #fff; border: 1px solid #d1d5db; padding: 12px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .db-cert-card a { text-decoration: none; color: var(--primary); font-weight: bold; }
-        
+        .thumb-add-btn { min-width: 150px; max-width: 150px; border: 2px dashed var(--primary); border-radius: var(--radius); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; color: var(--primary); font-weight: bold; background: rgba(79, 70, 229, 0.05); }
+
         #scannerScreen { text-align: center; }
         #scannerScreen .card { max-width: 800px; margin: auto; }
         video, canvas { width: 100%; max-height: 45vh; border-radius: 8px; background: #000; object-fit: contain; margin-bottom: 15px; }
@@ -90,8 +84,7 @@
         @keyframes popIn { to { transform: scale(1); } }
         .hidden { display: none !important; }
 
-        /* EDITOR POWER CSS */
-        #editorModalBox { max-width: 900px; width: 98%; height: 95vh; padding: 15px; }
+        #editorModalBox { max-width: 950px; width: 98%; height: 96vh; padding: 15px; }
         .editor-toolbar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--border); }
         .editor-toolbar button { flex: 0 0 auto; width: auto; padding: 8px 15px; font-size: 13px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border); }
         .editor-toolbar button.active-tool { background: var(--primary); color: white; border-color: var(--primary); }
@@ -100,6 +93,16 @@
         .editor-footer { display: flex; justify-content: space-between; margin-top: 15px; gap: 10px; }
         
         .tool-options { display: none; background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px dashed var(--primary); font-size: 13px; text-align: left;}
+        
+        /* CSS BARU UNTUK THUMBNAIL CLOUD */
+        .cloud-certs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .cloud-cert-card { background: #fff; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; cursor: pointer;}
+        .cloud-cert-card:hover { transform: translateY(-3px); border-color: var(--primary); }
+        .cloud-cert-card img { width: 100%; height: 180px; object-fit: cover; border-bottom: 1px solid var(--border); background: #f3f4f6;}
+        .cloud-cert-info { padding: 10px; flex: 1; display:flex; flex-direction:column; justify-content:space-between;}
+        .cloud-cert-name { font-weight: 600; font-size: 13px; color: var(--text-main); margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;}
+        .cloud-cert-date { font-size: 11px; color: var(--text-light); }
+        
     </style>
 </head>
 <body>
@@ -137,13 +140,12 @@
         </div>
     </div>
 
-    <!-- EDITOR POWER MODAL (Ganti Quick Edit Lama) -->
     <div id="powerEditorModal" class="modal-overlay">
         <div class="modal-box" id="editorModalBox">
             <h3 style="margin-bottom: 10px; text-align: left; font-size: 18px;"><i class="fa-solid fa-pen-ruler"></i> Editor Power</h3>
             
             <div class="editor-toolbar">
-                <button id="toolErase" onclick="setTool('erase')"><i class="fa-solid fa-eraser"></i> Padam Teks (Whiteout)</button>
+                <button id="toolErase" onclick="setTool('erase')"><i class="fa-solid fa-eraser"></i> Padam (Whiteout)</button>
                 <button id="toolText" onclick="setTool('text')"><i class="fa-solid fa-font"></i> Tulis Teks</button>
                 <button id="toolCrop" onclick="setTool('crop')"><i class="fa-solid fa-crop-simple"></i> Crop</button>
                 <button onclick="applyAiFilter()"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Filter</button>
@@ -151,30 +153,25 @@
             </div>
 
             <div id="textOptions" class="tool-options">
-                <label>Saiz Teks: </label>
-                <input type="number" id="txtSize" value="30" style="width: 60px; padding: 5px; display: inline;"> px | 
-                <label>Warna: </label>
-                <input type="color" id="txtColor" value="#000000" style="width: 40px; padding: 0; display: inline; border: none; background: transparent;">
-                <br><i>Klik di atas gambar untuk menaip teks.</i>
+                <label>Saiz: </label><input type="number" id="txtSize" value="30" style="width: 60px; padding: 5px; display: inline;"> px | 
+                <label>Warna: </label><input type="color" id="txtColor" value="#000000" style="width: 40px; padding: 0; display: inline; border: none;">
+                <br><i>Klik di atas gambar untuk taip teks.</i>
             </div>
             
             <div id="cropOptions" class="tool-options">
-                <i>Tarik (Drag) kotak merah di atas gambar, kemudian klik butang ini:</i>
-                <button class="btn-warning" onclick="executeCrop()" style="width: auto; padding: 5px 15px; margin-left: 10px;">Potong (Crop) Sekarang</button>
+                <i>Tarik kotak merah, kemudian klik:</i>
+                <button class="btn-warning" onclick="executeCrop()" style="width: auto; padding: 5px 15px; margin-left: 10px;">Crop Sekarang</button>
             </div>
 
-            <div class="editor-canvas-container" id="canvasContainer">
-                <canvas id="editorCanvas"></canvas>
-            </div>
+            <div class="editor-canvas-container" id="canvasContainer"><canvas id="editorCanvas"></canvas></div>
 
             <div class="editor-footer">
                 <button class="btn-danger" onclick="closeEditor()"><i class="fa-solid fa-xmark"></i> Batal</button>
-                <button class="btn-success" onclick="saveEditor()"><i class="fa-solid fa-check"></i> Selesai & Simpan</button>
+                <button class="btn-success" onclick="saveEditor()"><i class="fa-solid fa-check"></i> Simpan</button>
             </div>
         </div>
     </div>
 
-    <!-- SKRIN 1: LOG MASUK -->
     <div id="loginScreen" class="screen">
         <div class="card">
             <i class="fa-solid fa-expand" style="font-size: 40px; color: var(--primary); margin-bottom: 10px;"></i>
@@ -187,534 +184,6 @@
         </div>
     </div>
 
-    <!-- SKRIN 2: DASHBOARD GURU -->
     <div id="dashboardScreen" class="screen">
         <div class="top-bar">
-            <h2><i class="fa-solid fa-graduation-cap"></i> Portal Guru</h2>
-            <div style="display: flex; gap: 15px; align-items: center;">
-                <span id="userEmailDisplay" style="font-size: 14px; font-weight: 500;"></span>
-                <button class="btn-ghost" onclick="logout()" style="width: auto; padding: 8px 15px;"><i class="fa-solid fa-power-off"></i></button>
-            </div>
-        </div>
-        <div class="dashboard-container">
-            <div class="sidebar">
-                <h3><i class="fa-solid fa-users"></i> Urus Pelajar</h3>
-                <button class="btn-primary" onclick="document.getElementById('addStudentModal').style.display='flex'" style="width:100%; margin-top:10px;">
-                    <i class="fa-solid fa-user-plus"></i> Pelajar Baru
-                </button>
-                <ul class="student-list" id="studentListUI"></ul>
-            </div>
-            <div class="main-panel">
-                <div id="emptyState" class="empty-state"><i class="fa-solid fa-user-graduate"></i><h3>Pilih pelajar di sebelah kiri</h3></div>
-                <div id="studentDetails" style="display: none;">
-                    <div class="student-header">
-                        <div class="student-profile-info">
-                            <img id="activeStudentPic" src="https://via.placeholder.com/150">
-                            <div><h2 id="activeStudentTitle">Nama</h2><p id="activeStudentInfo">Kelas: -</p></div>
-                        </div>
-                        <button class="btn-success" onclick="openScanner()" style="width:auto;"><i class="fa-solid fa-plus"></i> Cipta Sijil Baru</button>
-                    </div>
-                    <h3 style="font-size: 15px; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-cloud"></i> Sijil Terdahulu</h3>
-                    <div id="dbCertsContainer" style="margin-bottom: 25px; padding:15px; background: #eef2ff; border-radius: 8px; border: 1px dashed var(--primary);"></div>
-                    <h3 style="font-size: 15px; color: var(--text-main); margin-bottom: 10px;"><i class="fa-solid fa-pen-ruler"></i> Ruangan Editor (Deraf & Susunan)</h3>
-                    <div class="cert-list" id="certGridUI"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SKRIN 3: SCANNER -->
-    <div id="scannerScreen" class="screen">
-        <div class="card">
-            <div class="scanner-header" style="margin-bottom: 15px;">
-                <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Tambah Sijil Baru</h2>
-                <p style="color: var(--text-light);">Pelajar: <strong id="scannerStudentLabel"></strong></p>
-            </div>
-            <div id="status">⏳ Menyemak AI...</div>
-            <input type="text" id="certName" style="margin-bottom: 15px;" placeholder="Nama Fail (Cth: Sijil_Catur)">
-            <video id="video" autoplay playsinline></video>
-            <canvas id="canvas"></canvas>
-            <input type="file" id="fileUploadInput" accept="image/*,application/pdf" style="display: none;">
-            <div class="btn-group">
-                <button id="btnCaptureCam" class="btn-primary"><i class="fa-solid fa-camera"></i> 1. Snap (Kamera)</button>
-                <button id="btnUploadFile" class="btn-primary" onclick="document.getElementById('fileUploadInput').click();"><i class="fa-solid fa-folder-open"></i> 1. Pilih Fail / PDF</button>
-            </div>
-            <div class="btn-group" style="border-top: 1px solid var(--border); padding-top: 15px; margin-top: 5px;">
-                <button id="btnSaveLocal" class="btn-warning" onclick="saveToDashboardLocal()"><i class="fa-solid fa-sd-card"></i> 2. Simpan Ke Editor Dashboard</button>
-                <button class="btn-danger" onclick="closeScanner()"><i class="fa-solid fa-xmark"></i> Batal</button>
-            </div>
-        </div>
-    </div>
-
-    <input type="file" id="inlineAddFileInput" accept="image/*,application/pdf" style="display: none;">
-
-    <script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvReady();"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';</script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-    <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoBM8mpG5ZV6tV4heFQ5GgA_085iOkGJwUprlecdeYfEVSQoZb1vdXiCQD5zzvOdv1/exec"; 
-        
-        let currentUserEmail = ""; let studentsList = []; let activeStudent = null;
-        let sessionCerts = []; let currentBatch = []; 
-        let opencvReady = false;
-        
-        let dragSourceCertIndex = -1, dragSourcePageIndex = -1, activeEditCertIndex = -1, activeEditPageIndex = -1, targetInlineCertIndex = -1;
-
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-
-        function showLoading(msg = "Mohon tunggu sebentar ya...") { document.getElementById('loadingText').innerText = msg; document.getElementById('globalLoading').style.display = 'flex'; }
-        function hideLoading() { document.getElementById('globalLoading').style.display = 'none'; }
-        function showAppAlert(title, message, type = "info") {
-            const overlay = document.getElementById('customAlert'), icon = document.getElementById('alertIcon'), btn = document.getElementById('alertBtn');
-            icon.className = 'fa-solid'; btn.style.backgroundColor = "var(--primary)";
-            if (type === "error") { icon.classList.add('fa-circle-xmark'); icon.style.color="var(--danger)"; btn.style.backgroundColor = "var(--danger)"; }
-            else if (type === "success") { icon.classList.add('fa-circle-check'); icon.style.color="var(--secondary)"; btn.style.backgroundColor = "var(--secondary)"; }
-            else if (type === "warning") { icon.classList.add('fa-triangle-exclamation'); icon.style.color="var(--warning)"; btn.style.backgroundColor = "var(--warning)"; }
-            else { icon.classList.add('fa-circle-info'); icon.style.color="var(--primary)"; }
-            document.getElementById('alertTitle').innerText = title; document.getElementById('alertMessage').innerText = message;
-            overlay.style.display = 'flex';
-        }
-        function closeAppAlert() { document.getElementById('customAlert').style.display = 'none'; }
-        function switchScreen(screenId) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(screenId).classList.add('active-screen'); }
-        function setStatus(msg, type="info") {
-            let el = document.getElementById('status'); el.innerHTML = msg;
-            if(type === "info") { el.style.color = "var(--primary)"; el.style.background = "rgba(79,70,229,0.1)"; }
-            if(type === "success") { el.style.color = "var(--secondary)"; el.style.background = "rgba(16,185,129,0.1)"; }
-        }
-
-        // AUTH & DB FETCH
-        document.addEventListener("DOMContentLoaded", () => {
-            const savedUser = localStorage.getItem("sijilProUser");
-            if (savedUser) { currentUserEmail = savedUser; document.getElementById('userEmailDisplay').innerText = savedUser; fetchStudents(); switchScreen('dashboardScreen'); } 
-            else switchScreen('loginScreen');
-        });
-
-        async function login() {
-            let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value;
-            if(!email || !pass) return showAppAlert("Maklumat", "Masukkan email & laluan.", "warning");
-            showLoading();
-            try {
-                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "login", email, password: pass }) });
-                let data = await res.json(); hideLoading();
-                if(data.status === "success") { currentUserEmail = email; localStorage.setItem("sijilProUser", email); document.getElementById('userEmailDisplay').innerText = email; fetchStudents(); switchScreen('dashboardScreen'); } 
-                else showAppAlert("Maaf", data.message, "error");
-            } catch (err) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error"); }
-        }
-        function logout() { localStorage.removeItem("sijilProUser"); sessionCerts=[]; switchScreen('loginScreen'); }
-
-        async function fetchStudents() {
-            try { let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "getStudents" }) }); let data = await res.json(); if (data.status === "success") { studentsList = data.data; renderStudentList(); } } catch (err) {}
-        }
-        
-        async function compressImage(file) {
-            return new Promise((resolve) => {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    let img = new Image(); img.onload = function() {
-                        let tempCanvas = document.createElement('canvas'); let MAX = 200; let w = img.width, h = img.height;
-                        if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } else { if (h > MAX) { w *= MAX / h; h = MAX; } }
-                        tempCanvas.width = w; tempCanvas.height = h; tempCanvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        resolve(tempCanvas.toDataURL('image/jpeg', 0.7));
-                    }
-                    img.src = e.target.result;
-                }
-                reader.readAsDataURL(file);
-            });
-        }
-
-        async function submitStudent() {
-            let name = document.getElementById('regName').value.trim(); if(!name) return;
-            showLoading("Merekod..."); let picBase64 = ""; let fileInput = document.getElementById('regGambar').files[0];
-            if(fileInput) picBase64 = await compressImage(fileInput);
-            let payload = { action: "addStudent", studentName: name, kelas: document.getElementById('regKelas').value, ic: document.getElementById('regIc').value, jantina: document.getElementById('regJantina').value, kategori: document.getElementById('regKategori').value, gambarBase64: picBase64, guruEmail: currentUserEmail };
-            try {
-                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); let data = await res.json(); hideLoading();
-                if(data.status === "success") { document.getElementById('addStudentModal').style.display='none'; showAppAlert("Berjaya", data.message, "success"); await fetchStudents(); selectStudent(name); } else showAppAlert("Gagal", data.message, "error");
-            } catch (err) { hideLoading(); }
-        }
-
-        function renderStudentList() {
-            const ul = document.getElementById('studentListUI'); ul.innerHTML = "";
-            studentsList.forEach(student => {
-                let li = document.createElement('li'); li.className = `student-item ${(activeStudent && student.name === activeStudent.name) ? 'active' : ''}`;
-                li.innerHTML = `<img src="${student.gambar || 'https://via.placeholder.com/40'}"> <span>${student.name}</span>`; li.onclick = () => selectStudent(student.name); ul.appendChild(li);
-            });
-        }
-        function selectStudent(nameStr) {
-            activeStudent = studentsList.find(s => s.name === nameStr); renderStudentList(); 
-            document.getElementById('emptyState').style.display='none'; document.getElementById('studentDetails').style.display='block';
-            document.getElementById('activeStudentTitle').innerText = activeStudent.name; document.getElementById('activeStudentInfo').innerText = `Kelas: ${activeStudent.kelas||"-"} | IC: ${activeStudent.ic||"-"}`; document.getElementById('activeStudentPic').src = activeStudent.gambar || "https://via.placeholder.com/150";
-            renderCerts(); fetchCertsFromDB(activeStudent.name);
-        }
-
-        async function fetchCertsFromDB(studentName) {
-            const container = document.getElementById('dbCertsContainer'); container.innerHTML = "<p style='color:var(--text-light);'><i class='fa-solid fa-spinner fa-spin'></i> Sedang menyemak...</p>";
-            try {
-                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "getCerts", studentName: studentName }) }); let data = await res.json();
-                if(data.status === "success") {
-                    if(data.data.length === 0) container.innerHTML = "<p style='color:grey; font-size:13px;'>Tiada sijil.</p>";
-                    else { container.innerHTML = ""; data.data.forEach(c => { container.innerHTML += `<div class="db-cert-card"><div><div style="font-weight:bold; color:var(--text-main);"><i class="fa-solid fa-file-pdf"></i> ${c.certName}</div><div style="font-size:12px; color:var(--text-light);">Tarik: ${new Date(c.date).toLocaleString()}</div></div><a href="${c.url}" target="_blank" class="btn-primary" style="padding:8px 15px; border-radius:5px;">Download</a></div>`; }); }
-                }
-            } catch(e) { container.innerHTML = "<p style='color:red;'>Gagal.</p>"; }
-        }
-
-        // ==========================================
-        // UI DASHBOARD & DRAG DROP
-        // ==========================================
-        function renderCerts() {
-            const listUI = document.getElementById('certGridUI'); listUI.innerHTML = ""; if(!activeStudent) return;
-            let myCerts = sessionCerts.filter(c => c.student === activeStudent.name);
-            if(myCerts.length === 0) { listUI.innerHTML = `<p style="font-size:14px; color:grey;">Belum ada deraf.</p>`; return; }
-
-            myCerts.forEach((cert, certIndex) => {
-                if (cert.student !== activeStudent.name || cert.images.length === 0) return;
-                let thumbsHTML = "";
-                cert.images.forEach((imgData, imgIndex) => {
-                    thumbsHTML += `
-                        <div class="thumb-item" draggable="true" ondragstart="dragStart(event, ${certIndex}, ${imgIndex})" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event, ${certIndex}, ${imgIndex})">
-                            <img src="${imgData}" onclick="openPowerEditor(${certIndex}, ${imgIndex})">
-                            <span class="img-overlay-text">✏️ Klik Edit</span>
-                            <div class="thumb-actions"><button class="btn-danger" onclick="deleteLocalThumbnail(${certIndex}, ${imgIndex})" style="background: var(--danger);">Buang</button></div>
-                        </div>`;
-                });
-                thumbsHTML += `<div class="thumb-add-btn" onclick="triggerInlineAdd(${certIndex})"><i class="fa-solid fa-file-circle-plus"></i> Tambah Page</div>`;
-                let statusLabel = cert.needsSync ? `<span class="cert-status unsynced"><i class="fa-solid fa-triangle-exclamation"></i> Ada perubahan susunan/edit!</span>` : `<span class="cert-status drive">Tersimpan di Drive</span>`;
-                let syncBtnHtml = cert.needsSync ? `<button class="btn-warning" onclick="syncUpdateToCloud(${certIndex})" style="width:auto; padding: 10px; animation: pulseText 2s infinite;">⚠️ Kemaskini Cloud (PDF)</button>` : `<button class="btn-primary" onclick="downloadLocalPDF(${certIndex})" style="width:auto; padding: 10px;">Download Local PDF</button>`;
-                listUI.innerHTML += `<div class="cert-card" style="${cert.needsSync ? 'border-color: var(--warning); border-width: 2px;' : ''}"><div class="cert-header"><div><h4>${cert.certName}</h4>${statusLabel}</div><div style="display:flex; gap:10px;">${syncBtnHtml}</div></div><div class="cert-thumbnails" ondragover="dragOver(event)" ondrop="dropAtEnd(event, ${certIndex})">${thumbsHTML}</div></div>`;
-            });
-        }
-
-        function dragStart(e, cIdx, pIdx) { dragSourceCertIndex = cIdx; dragSourcePageIndex = pIdx; e.dataTransfer.effectAllowed = 'move'; e.target.classList.add('dragging'); }
-        function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.add('drag-over'); }
-        function dragLeave(e) { if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over'); }
-        function drop(e, tCIdx, tPIdx) { e.preventDefault(); e.stopPropagation(); if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over'); if (dragSourceCertIndex !== tCIdx) return; if (dragSourcePageIndex === tPIdx) return; let cert = sessionCerts[tCIdx]; let item = cert.images.splice(dragSourcePageIndex, 1)[0]; cert.images.splice(tPIdx, 0, item); cert.needsSync = true; renderCerts(); }
-        function dropAtEnd(e, tCIdx) { e.preventDefault(); if (dragSourceCertIndex !== tCIdx || dragSourcePageIndex === sessionCerts[tCIdx].images.length -1) return; let cert = sessionCerts[tCIdx]; let item = cert.images.splice(dragSourcePageIndex, 1)[0]; cert.images.push(item); cert.needsSync = true; renderCerts(); }
-
-        document.getElementById('inlineAddFileInput').addEventListener('change', async (e) => {
-            if(targetInlineCertIndex === -1) return; const file = e.target.files[0]; if(!file) return; let cert = sessionCerts[targetInlineCertIndex];
-            showLoading("Memproses fail...");
-            if(file.type === "application/pdf") {
-                const fileReader = new FileReader(); fileReader.onload = async function() {
-                    try { const typedarray = new Uint8Array(this.result); const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                        for(let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const viewport = page.getViewport({scale: 1.5}); canvas.width = viewport.width; canvas.height = viewport.height; await page.render({canvasContext: ctx, viewport: viewport}).promise; cert.images.push(canvas.toDataURL('image/jpeg', 0.9)); }
-                        cert.needsSync = true; renderCerts(); hideLoading();
-                    } catch(err) { hideLoading(); showAppAlert("Maaf", "Gagal baca PDF.", "error"); }
-                }; fileReader.readAsArrayBuffer(file);
-            } else {
-                const img = new Image(); img.onload = function() { canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); cert.images.push(canvas.toDataURL('image/jpeg', 0.9)); cert.needsSync = true; renderCerts(); hideLoading(); }
-                img.src = URL.createObjectURL(file);
-            } e.target.value = "";
-        });
-        function triggerInlineAdd(certIdx) { targetInlineCertIndex = certIdx; document.getElementById('inlineAddFileInput').click(); }
-        function deleteLocalThumbnail(certIdx, pageIdx) { if(confirm("Adakah anda pasti?")) { sessionCerts[certIdx].images.splice(pageIdx, 1); sessionCerts[certIdx].needsSync = true; renderCerts(); } }
-
-
-        // ==========================================
-        // 🚀 EDITOR POWER (CANVAS CUSTOM)
-        // ==========================================
-        const editorCanvas = document.getElementById('editorCanvas');
-        const edCtx = editorCanvas.getContext('2d', { willReadFrequently: true });
-        let editorImg = new Image();
-        let edTool = ''; 
-        let isDrawing = false;
-        let cropStartX, cropStartY, cropEndX, cropEndY;
-        let editHistory = [];
-        let tempImgDataForCrop = null;
-
-        function openPowerEditor(cIdx, pIdx) {
-            activeEditCertIndex = cIdx; activeEditPageIndex = pIdx;
-            
-            // Tunjuk Modal
-            document.getElementById('powerEditorModal').style.display = 'flex';
-            
-            // Set Gambar Asal
-            editorImg.onload = () => {
-                editorCanvas.width = editorImg.naturalWidth; 
-                editorCanvas.height = editorImg.naturalHeight;
-                edCtx.drawImage(editorImg, 0, 0);
-                saveHistory(); // Simpan state awal
-                setTool(''); // Clear tool
-            };
-            editorImg.src = sessionCerts[cIdx].images[pIdx];
-        }
-
-        function closeEditor() { document.getElementById('powerEditorModal').style.display = 'none'; }
-        
-        function saveEditor() {
-            let newImgData = editorCanvas.toDataURL('image/jpeg', 0.9);
-            sessionCerts[activeEditCertIndex].images[activeEditPageIndex] = newImgData;
-            sessionCerts[activeEditCertIndex].needsSync = true;
-            renderCerts();
-            closeEditor();
-            showAppAlert("Berjaya", "Suntingan disimpan pada deraf. Jangan lupa tekan Kemaskini Cloud.", "success");
-        }
-
-        function saveHistory() { editHistory.push(editorCanvas.toDataURL('image/jpeg', 1.0)); }
-        function undoEditor() {
-            if (editHistory.length > 1) {
-                editHistory.pop(); // Buang yang terkini
-                let prevImg = new Image();
-                prevImg.onload = () => {
-                    editorCanvas.width = prevImg.width; editorCanvas.height = prevImg.height;
-                    edCtx.drawImage(prevImg, 0, 0);
-                }
-                prevImg.src = editHistory[editHistory.length - 1];
-            } else {
-                showAppAlert("Info", "Tiada langkah ke belakang.", "info");
-            }
-        }
-
-        function setTool(toolName) {
-            edTool = toolName;
-            document.querySelectorAll('.editor-toolbar button').forEach(b => b.classList.remove('active-tool'));
-            if(toolName) document.getElementById('tool' + toolName.charAt(0).toUpperCase() + toolName.slice(1))?.classList.add('active-tool');
-            
-            document.getElementById('textOptions').style.display = toolName === 'text' ? 'block' : 'none';
-            document.getElementById('cropOptions').style.display = toolName === 'crop' ? 'block' : 'none';
-            
-            // Cursor
-            editorCanvas.style.cursor = toolName === 'text' ? 'text' : toolName === 'erase' ? 'cell' : toolName === 'crop' ? 'crosshair' : 'default';
-        }
-
-        // --- EDITOR EVENTS (Mouse & Touch) ---
-        function getEdPos(evt) {
-            let rect = editorCanvas.getBoundingClientRect();
-            let scaleX = editorCanvas.width / rect.width;
-            let scaleY = editorCanvas.height / rect.height;
-            let clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
-            let clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
-            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
-        }
-
-        editorCanvas.addEventListener('mousedown', startAction);
-        editorCanvas.addEventListener('touchstart', startAction, {passive: false});
-        editorCanvas.addEventListener('mousemove', moveAction);
-        editorCanvas.addEventListener('touchmove', moveAction, {passive: false});
-        editorCanvas.addEventListener('mouseup', endAction);
-        editorCanvas.addEventListener('touchend', endAction);
-
-        function startAction(e) {
-            if(!edTool) return;
-            e.preventDefault();
-            isDrawing = true;
-            let pos = getEdPos(e);
-
-            if (edTool === 'erase') {
-                edCtx.beginPath(); edCtx.moveTo(pos.x, pos.y);
-                edCtx.strokeStyle = "white"; edCtx.lineWidth = 30; edCtx.lineCap = "round";
-            } 
-            else if (edTool === 'crop') {
-                cropStartX = pos.x; cropStartY = pos.y;
-                tempImgDataForCrop = edCtx.getImageData(0, 0, editorCanvas.width, editorCanvas.height);
-            }
-            else if (edTool === 'text') {
-                isDrawing = false;
-                let txt = prompt("Masukkan Teks Baru:");
-                if(txt) {
-                    let size = document.getElementById('txtSize').value || 30;
-                    let color = document.getElementById('txtColor').value || "#000000";
-                    edCtx.font = `${size}px Arial`;
-                    edCtx.fillStyle = color;
-                    edCtx.fillText(txt, pos.x, pos.y);
-                    saveHistory();
-                }
-            }
-        }
-
-        function moveAction(e) {
-            if(!isDrawing || !edTool) return;
-            e.preventDefault();
-            let pos = getEdPos(e);
-
-            if (edTool === 'erase') {
-                edCtx.lineTo(pos.x, pos.y); edCtx.stroke();
-            } 
-            else if (edTool === 'crop') {
-                // Restore old image, then draw red dash box over it
-                edCtx.putImageData(tempImgDataForCrop, 0, 0);
-                cropEndX = pos.x; cropEndY = pos.y;
-                
-                edCtx.strokeStyle = "red";
-                edCtx.lineWidth = 3;
-                edCtx.setLineDash([10, 10]);
-                edCtx.strokeRect(cropStartX, cropStartY, cropEndX - cropStartX, cropEndY - cropStartY);
-                edCtx.setLineDash([]); // Reset
-                
-                // Draw dark overlay outside crop area (Optional for visuals, skipped for speed)
-            }
-        }
-
-        function endAction(e) {
-            if(!isDrawing) return;
-            isDrawing = false;
-            
-            if (edTool === 'erase') saveHistory();
-            if (edTool === 'crop') {
-                // Keep the dashed box until user clicks "Crop Sekarang" button
-            }
-        }
-
-        function executeCrop() {
-            if (edTool !== 'crop' || !tempImgDataForCrop) return;
-            
-            let w = Math.abs(cropEndX - cropStartX);
-            let h = Math.abs(cropEndY - cropStartY);
-            let x = Math.min(cropStartX, cropEndX);
-            let y = Math.min(cropStartY, cropEndY);
-            
-            if (w < 20 || h < 20) return showAppAlert("Info", "Kawasan crop terlalu kecil.", "warning");
-
-            // Extract that area from the clean tempImgData (without red lines)
-            let tempCanv = document.createElement('canvas');
-            tempCanv.width = editorCanvas.width; tempCanv.height = editorCanvas.height;
-            tempCanv.getContext('2d').putImageData(tempImgDataForCrop, 0, 0);
-            
-            // Resize main canvas and draw only the cropped portion
-            editorCanvas.width = w; editorCanvas.height = h;
-            edCtx.drawImage(tempCanv, x, y, w, h, 0, 0, w, h);
-            
-            setTool(''); // Reset
-            saveHistory();
-        }
-
-        function applyAiFilter() {
-            if(!opencvReady) return showAppAlert("Mohon Maaf", "AI belum sedia.", "warning");
-            showLoading("Memproses AI Filter...");
-            setTimeout(() => {
-                let mat = cv.imread(editorCanvas); 
-                cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY, 0); 
-                cv.adaptiveThreshold(mat, mat, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15);
-                cv.imshow(editorCanvas, mat); mat.delete();
-                saveHistory();
-                hideLoading();
-            }, 100);
-        }
-
-        // ==========================================
-        // KEMAS KINI KE CLOUD (UPDATE PDF)
-        // ==========================================
-        async function syncUpdateToCloud(certIndex) {
-            let cert = sessionCerts[certIndex];
-            if(cert.images.length === 0) return;
-            showLoading("Sedang menyusun dan muat naik ke Google Drive...");
-            let btnList = document.querySelectorAll('.cert-card')[certIndex].querySelectorAll('button'); btnList.forEach(b => b.disabled = true);
-            
-            try {
-                const { jsPDF } = window.jspdf; const pdf = new jsPDF(); pdf.deletePage(1);
-                for(let i = 0; i < cert.images.length; i++) {
-                    let imgData = cert.images[i]; let img = new Image(); img.src = imgData; await new Promise(r => img.onload = r);
-                    let orientation = img.width > img.height ? 'l' : 'p'; pdf.addPage([img.width, img.height], orientation); pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
-                }
-                const pdfBase64 = pdf.output('datauristring');
-                let res = await fetch(WEB_APP_URL, {
-                    method: 'POST', body: JSON.stringify({ action: "updateFile", pdfData: pdfBase64, fileName: `${activeStudent.name} - ${cert.certName}`, studentName: activeStudent.name, certName: cert.certName, guruEmail: currentUserEmail })
-                });
-                let result = await res.json(); hideLoading();
-                if (result.status === "success") { cert.needsSync = false; showAppAlert("Berjaya", "PDF dikemas kini.", "success"); renderCerts(); fetchCertsFromDB(activeStudent.name); } 
-                else showAppAlert("Maaf", result.message, "error");
-            } catch (err) { hideLoading(); showAppAlert("Ralat", "Pelayan tergendala.", "error"); } 
-            finally { btnList.forEach(b => b.disabled = false); }
-        }
-
-        async function downloadLocalPDF(certIndex) {
-            let cert = sessionCerts[certIndex];
-            try {
-                const { jsPDF } = window.jspdf; const pdf = new jsPDF(); pdf.deletePage(1);
-                for(let i = 0; i < cert.images.length; i++) {
-                    let imgData = cert.images[i]; let img = new Image(); img.src = imgData; await new Promise(r => img.onload = r);
-                    let orientation = img.width > img.height ? 'l' : 'p'; pdf.addPage([img.width, img.height], orientation); pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
-                }
-                pdf.save(`${cert.certName}.pdf`);
-            } catch (err) {}
-        }
-
-        // ==========================================
-        // SISTEM SCANNER BATCH 
-        // ==========================================
-        function onOpenCvReady() { opencvReady = true; setStatus("<i class='fa-solid fa-check'></i> AI Bersedia!", "success"); }
-        function openScanner() {
-            if(!activeStudent) return showAppAlert("Perhatian", "Sila pilih nama pelajar.", "info");
-            document.getElementById('scannerStudentLabel').innerText = activeStudent.name;
-            let dateStr = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14); document.getElementById('certName').value = `Sijil_${dateStr}`;
-            currentBatch = []; switchScreen('scannerScreen'); startCamera();
-        }
-        function closeScanner() { stopCamera(); switchScreen('dashboardScreen'); }
-        function startCamera() { navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(stream => video.srcObject = stream).catch(e => setStatus("Kamera tiada.", "warning")); video.style.display = 'block'; canvas.style.display = 'none'; }
-        function stopCamera() { if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop()); }
-
-        document.getElementById('btnCaptureCam').addEventListener('click', () => {
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight; ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            setStatus("<i class='fa-solid fa-gear fa-spin'></i> Memproses gambar...", "info");
-            setTimeout(() => {
-                let processedImg = (!opencvReady) ? canvas.toDataURL('image/jpeg', 0.9) : detectAndWarpDocument(canvas);
-                currentBatch.push(processedImg); setStatus("<i class='fa-solid fa-check'></i> Gambar diterima. Boleh tekan Simpan.", "success");
-            }, 100);
-        });
-
-        document.getElementById('fileUploadInput').addEventListener('change', async (e) => {
-            const file = e.target.files[0]; if(!file) return; showLoading("Memproses fail...");
-            if(file.type === "application/pdf") {
-                const fileReader = new FileReader(); fileReader.onload = async function() {
-                    try {
-                        const typedarray = new Uint8Array(this.result); const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                        for(let i = 1; i <= pdf.numPages; i++) {
-                            const page = await pdf.getPage(i); const viewport = page.getViewport({scale: 1.5}); 
-                            canvas.width = viewport.width; canvas.height = viewport.height;
-                            await page.render({canvasContext: ctx, viewport: viewport}).promise; currentBatch.push(canvas.toDataURL('image/jpeg', 0.9));
-                        } hideLoading(); setStatus("<i class='fa-solid fa-check-double'></i> Selesai!", "success");
-                    } catch(err) { hideLoading(); showAppAlert("Maaf", "Gagal proses PDF.", "error"); }
-                }; fileReader.readAsArrayBuffer(file);
-            } else {
-                const img = new Image(); img.onload = function() {
-                    canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0);
-                    let processedImg = (!opencvReady) ? canvas.toDataURL('image/jpeg', 0.9) : detectAndWarpDocument(canvas);
-                    currentBatch.push(processedImg); hideLoading(); setStatus("<i class='fa-solid fa-check'></i> Gambar diterima!", "success");
-                }
-                img.src = URL.createObjectURL(file);
-            } e.target.value = ""; 
-        });
-
-        function detectAndWarpDocument(srcCanvas) {
-            try {
-                let src = cv.imread(srcCanvas); let dst = new cv.Mat();
-                cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0); cv.GaussianBlur(dst, dst, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT); cv.Canny(dst, dst, 75, 200);
-                let contours = new cv.MatVector(), hierarchy = new cv.Mat(); cv.findContours(dst, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
-                let maxArea = 0, maxContour = null;
-                for (let i = 0; i < contours.size(); ++i) {
-                    let cnt = contours.get(i), area = cv.contourArea(cnt), approx = new cv.Mat(); cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
-                    if (approx.rows === 4 && area > maxArea && area > 50000) { maxArea = area; if (maxContour) maxContour.delete(); maxContour = approx.clone(); }
-                    approx.delete();
-                }
-                if (maxContour) {
-                    let pts = []; for (let j = 0; j < 4; j++) pts.push({ x: maxContour.data32S[j*2], y: maxContour.data32S[j*2+1] });
-                    pts.sort((a, b) => a.y - b.y); let top = pts.slice(0, 2).sort((a, b) => a.x - b.x), bottom = pts.slice(2, 4).sort((a, b) => a.x - b.x);
-                    let orderedPts = [top[0], top[1], bottom[1], bottom[0]];
-                    let maxWidth = Math.max(Math.hypot(orderedPts[2].x - orderedPts[3].x, orderedPts[2].y - orderedPts[3].y), Math.hypot(orderedPts[1].x - orderedPts[0].x, orderedPts[1].y - orderedPts[0].y));
-                    let maxHeight = Math.max(Math.hypot(orderedPts[1].x - orderedPts[2].x, orderedPts[1].y - orderedPts[2].y), Math.hypot(orderedPts[0].x - orderedPts[3].x, orderedPts[0].y - orderedPts[3].y));
-                    let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [orderedPts[0].x, orderedPts[0].y, orderedPts[1].x, orderedPts[1].y, orderedPts[2].x, orderedPts[2].y, orderedPts[3].x, orderedPts[3].y]);
-                    let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, maxWidth, 0, maxWidth, maxHeight, 0, maxHeight]);
-                    let M = cv.getPerspectiveTransform(srcTri, dstTri); let warped = new cv.Mat();
-                    cv.warpPerspective(src, warped, M, new cv.Size(maxWidth, maxHeight), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
-                    cv.imshow(srcCanvas, warped); srcTri.delete(); dstTri.delete(); M.delete(); warped.delete();
-                } 
-                src.delete(); dst.delete(); contours.delete(); hierarchy.delete(); if (maxContour) maxContour.delete();
-                return srcCanvas.toDataURL('image/jpeg', 0.9);
-            } catch (err) { return srcCanvas.toDataURL('image/jpeg', 0.9); }
-        }
-
-        function saveToDashboardLocal() {
-            if(currentBatch.length === 0) return showAppAlert("Maaf", "Sila tambah gambar terlebih dahulu.", "warning");
-            let cName = document.getElementById('certName').value.trim();
-            if(!cName) return showAppAlert("Peringatan", "Sila masukkan nama untuk sijil ini.", "warning");
-            sessionCerts.push({ student: activeStudent.name, certName: cName, images: [...currentBatch], needsSync: true });
-            currentBatch = []; closeScanner(); renderCerts();
-        }
-    </script>
-</body>
-</html>
+            <h2><i class="fa-solid fa-graduation-cap"></i> Portal Guru
