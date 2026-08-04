@@ -1,5 +1,5 @@
 // ==============================================================
-// TETAPAN GOOGLE API (SILA MASUKKAN ID ANDA DI SINI)
+// TETAPAN GOOGLE API 
 // ==============================================================
 const SPREADSHEET_ID = "1rcfHlyjMoEVJw1cv6RZvo8vXT2vuURTHAVqxT6McjQw";
 const FOLDER_ID = "1Nz0S__dRbA4vP4Ca0xBRhpdPNUj4KVOf";
@@ -7,7 +7,6 @@ const FOLDER_ID = "1Nz0S__dRbA4vP4Ca0xBRhpdPNUj4KVOf";
 const SHEET_PENGGUNA = "Pengguna";
 const SHEET_SIJIL = "SijilPelajar";
 
-// Fungsi utama yang menerima arahan dari Web/PWA
 function doPost(e) {
   var output = ContentService.createTextOutput();
   output.setMimeType(ContentService.MimeType.JSON);
@@ -31,9 +30,53 @@ function doPost(e) {
   }
 }
 
-// FUNGSI 1: DAFTAR PENGGUNA
+// ==============================================================
+// FUNGSI BARU: AUTO-CREATE & SUSUN HEADER GOOGLE SHEET
+// ==============================================================
+function getOrCreateSheet(ss, sheetName) {
+  var sheet = ss.getSheetByName(sheetName);
+  
+  // Jika tab/sheet tidak wujud, ia akan buat baru
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    var headers = [];
+    
+    // Tetapkan nama kolum (header) berdasarkan nama sheet
+    if (sheetName === SHEET_PENGGUNA) {
+      headers = ["Email", "Kata Laluan", "Peranan", "Status"];
+    } else if (sheetName === SHEET_SIJIL) {
+      headers = ["Tarikh & Masa", "Nama Pelajar", "Nama Sijil", "Email Guru", "Pautan Fail Drive (PDF)"];
+    }
+    
+    if (headers.length > 0) {
+      // Masukkan baris header
+      sheet.appendRow(headers);
+      
+      // Cantikkan jadual (Tulisan Tebal, Warna Latar, Teks Putih)
+      var headerRange = sheet.getRange(1, 1, 1, headers.length);
+      headerRange.setFontWeight("bold");
+      headerRange.setBackground("#4f46e5"); // Warna biru indigo (Sama dengan UI App)
+      headerRange.setFontColor("white");
+      
+      // Bekukan (freeze) baris atas supaya tak bergerak bila skrol
+      sheet.setFrozenRows(1);
+      
+      // Auto-adjust kelebaran setiap kolum supaya kemas
+      for (var col = 1; col <= headers.length; col++) {
+        sheet.autoResizeColumn(col);
+      }
+    }
+  }
+  return sheet;
+}
+
+// ==============================================================
+// FUNGSI PENGKANGKALAN DATA (DATABASE)
+// ==============================================================
 function daftarPengguna(email, password) {
-  var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_PENGGUNA);
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_PENGGUNA);
+  
   var role = (email === "admin") ? "Admin" : "User";
   var status = (email === "admin") ? "Approved" : "Pending";
   
@@ -41,11 +84,11 @@ function daftarPengguna(email, password) {
   return { status: "success", message: "Pendaftaran berjaya. Sila tunggu kelulusan Admin." };
 }
 
-// FUNGSI 2: LOG MASUK
 function semakLogin(email, password) {
   if (email === "admin" && password === "101010") return { status: "success", role: "Admin" };
   
-  var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_PENGGUNA);
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_PENGGUNA);
   var records = sheet.getDataRange().getValues();
   
   for (var i = 1; i < records.length; i++) {
@@ -57,19 +100,20 @@ function semakLogin(email, password) {
   return { status: "error", message: "Email atau Kata laluan salah." };
 }
 
-// FUNGSI 3: MUAT NAIK PDF KE DRIVE & REKOD KE SHEETS
 function muatNaikSijil(data) {
-  // Tukar Base64 kembali menjadi fail PDF
+  // Terima dan convert PDF Base64 kepada Blob
   var pdfBase64 = data.pdfData.split(',')[1]; 
   var blob = Utilities.newBlob(Utilities.base64Decode(pdfBase64), 'application/pdf', data.fileName + ".pdf");
   
-  // Simpan ke Google Drive
+  // Hantar ke Google Drive
   var folder = DriveApp.getFolderById(FOLDER_ID);
   var file = folder.createFile(blob);
   var fileUrl = file.getUrl();
   
-  // Rekod ke Google Sheet
-  var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_SIJIL);
+  // Rekod ke Google Sheets
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_SIJIL);
+  
   var tarikh = Utilities.formatDate(new Date(), "Asia/Kuala_Lumpur", "dd-MM-yyyy HH:mm");
   
   sheet.appendRow([tarikh, data.studentName, data.certName, data.guruEmail, fileUrl]);
