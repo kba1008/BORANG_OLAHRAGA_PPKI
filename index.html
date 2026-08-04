@@ -72,6 +72,20 @@
         .student-item:hover { background: #f9fafb; }
         .student-item img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background: #e5e7eb; border: 1px solid #d1d5db; flex-shrink:0;}
         .student-item.active { background: rgba(79, 70, 229, 0.1); border-color: var(--primary); font-weight: 600; color: var(--primary); }
+        /* SEMAKAN BORANG */
+        .sname-lengkap { color: #2563eb !important; }
+        .sname-belum { color: #dc2626 !important; }
+        .semak-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+        .semak-dot.lengkap { background:#2563eb; }
+        .semak-dot.belum { background:#dc2626; }
+        .semak-bar { display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:12px 14px; border-radius:10px; margin-bottom:14px; border:1px solid var(--border); background:#f9fafb; }
+        .semak-badge { font-size:12px; font-weight:700; padding:5px 12px; border-radius:50px; letter-spacing:.3px; }
+        .semak-badge.lengkap { background:rgba(37,99,235,.12); color:#2563eb; }
+        .semak-badge.belum { background:rgba(220,38,38,.12); color:#dc2626; }
+        .semak-badge.none { background:#e5e7eb; color:#6b7280; }
+        .semak-note { width:100%; font-size:12.5px; color:#b91c1c; background:rgba(220,38,38,.07); border-left:3px solid #dc2626; padding:8px 10px; border-radius:6px; white-space:pre-wrap; }
+        .semak-meta { font-size:11px; color:var(--text-light); }
+        .btn-semak { width:auto; padding:7px 14px; font-size:12.5px; }
 
         .student-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap:15px;}
         .student-profile-info { display: flex; gap: 15px; align-items: center; }
@@ -394,6 +408,23 @@
     </div>
 
     <!-- PENGURUSAN PENGGUNA (MASTER ADMIN) -->
+    <style>
+        .ua-card{border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-bottom:10px;background:#fff;text-align:left;}
+        .ua-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+        .ua-name{font-weight:700;font-size:15px;line-height:1.3;word-break:break-word;}
+        .ua-email{font-size:12px;color:var(--text-light);word-break:break-all;margin-top:2px;}
+        .ua-badge{flex-shrink:0;font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap;}
+        .ua-rows{margin-top:10px;display:grid;grid-template-columns:78px 1fr;gap:4px 8px;font-size:12.5px;}
+        .ua-lbl{color:var(--text-light);}
+        .ua-val{color:var(--text-dark,#111827);word-break:break-word;}
+        .ua-pass{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+        .ua-pass code{font-family:monospace;font-size:12.5px;background:#f3f4f6;border-radius:6px;padding:2px 7px;word-break:break-all;}
+        .ua-mini{width:auto !important;flex:0 0 auto;border:1px solid #e5e7eb;background:#fff;border-radius:6px;padding:2px 7px;font-size:11px;cursor:pointer;color:var(--text-light);}
+        .ua-mini:hover{background:#f3f4f6;}
+        .ua-acts{display:flex;gap:8px;margin-top:12px;border-top:1px dashed #e5e7eb;padding-top:10px;}
+        .ua-acts button{width:auto;flex:1;padding:8px 10px;font-size:12.5px;}
+        .ua-acts .btn-danger{flex:0 0 auto;}
+    </style>
     <div id="userAdminModal" class="modal-overlay">
         <div class="modal-box" style="max-width:640px;">
             <h3 style="margin-bottom:5px;"><i class="fa-solid fa-user-shield"></i> Pengurusan Pengguna</h3>
@@ -679,6 +710,16 @@
                         <button class="btn-success" onclick="openScanner()" style="width:auto;"><i class="fa-solid fa-plus"></i> Cipta Sijil Baru</button>
                     </div>
 
+                    <div class="semak-bar" id="semakBar">
+                        <span style="font-size:13px; font-weight:600;"><i class="fa-solid fa-clipboard-check" style="color:var(--primary);"></i> Semakan Borang:</span>
+                        <span id="semakBadge" class="semak-badge none">BELUM DISEMAK</span>
+                        <span id="semakMeta" class="semak-meta"></span>
+                        <span style="flex:1;"></span>
+                        <button class="btn-success btn-semak" onclick="tandaSemakan('lengkap')"><i class="fa-solid fa-circle-check"></i> Lengkap</button>
+                        <button class="btn-danger btn-semak" onclick="tandaSemakan('belum')"><i class="fa-solid fa-circle-exclamation"></i> Tak Lengkap</button>
+                        <div id="semakNote" class="semak-note" style="display:none;"></div>
+                    </div>
+
                     <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
                         <button id="btnHistoryToggle" class="btn-ghost" onclick="toggleHistory()" style="width:auto; padding:8px 14px; background:rgba(79,70,229,0.08); color:var(--primary);" title="Sejarah sijil terdahulu"><i class="fa-solid fa-clock-rotate-left"></i> Sejarah</button>
                     </div>
@@ -728,7 +769,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxCrPlk2teqrm05ubJie-OI241OyRKA-5m4-TGgZiT004pmVjWJHlr5UgjdWNv_O968/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6ctqKJB2XLa9eRFdXXQVzR6deoK4auu-hS6W1Yqah61q6twG7EIKfOYhjmPWsgZ6o/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -1140,24 +1181,63 @@ ${hairPath}
                 const users = d.data || [];
                 if (!users.length) { box.innerHTML = '<p style="color:var(--text-light); font-size:13px;">Tiada pengguna.</p>'; return; }
                 users.sort((a, b) => (a.status === "Pending" ? -1 : 1) - (b.status === "Pending" ? -1 : 1));
-                box.innerHTML = users.map(u => {
+                const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+                box.innerHTML = users.map((u, i) => {
                     const warna = u.status === "Approved" ? "#16a34a" : (u.status === "Rejected" ? "#dc2626" : "#d97706");
+                    const bgBadge = u.status === "Approved" ? "#dcfce7" : (u.status === "Rejected" ? "#fee2e2" : "#fef3c7");
                     const isMaster = u.email.toLowerCase() === "admin";
-                    const butang = isMaster ? '<span style="font-size:11px; color:var(--text-light);">Master Admin</span>' :
-                        (u.status === "Approved"
-                            ? '<button class="btn-ghost" style="width:auto;padding:6px 10px;font-size:12px;" onclick="setUserStatus(\'' + u.email + '\',\'Rejected\')"><i class="fa-solid fa-ban"></i> Tolak</button>'
-                            : '<button class="btn-success" style="width:auto;padding:6px 10px;font-size:12px;" onclick="setUserStatus(\'' + u.email + '\',\'Approved\')"><i class="fa-solid fa-check"></i> Luluskan</button>') +
-                        '<button class="btn-danger" style="width:auto;padding:6px 10px;font-size:12px;margin-left:6px;" onclick="removeUser(\'' + u.email + '\')"><i class="fa-solid fa-trash"></i></button>';
-                    return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:8px;">' +
-                        '<div style="min-width:0;"><div style="font-weight:600;font-size:14px;word-break:break-all;">' + (u.namaPenuh || u.email) + '</div>' +
-                        '<div style="font-size:12px;color:var(--text-light);word-break:break-all;">' + u.email + '</div>' +
-                        (u.sekolah || u.jawatan || u.telefon ? '<div style="font-size:12px;color:var(--text-light);">' + [u.jawatan, u.sekolah, u.telefon].filter(Boolean).join(' &middot; ') + '</div>' : '') +
-                        '<div style="font-size:12px;color:' + warna + ';font-weight:600;">' + u.status + ' &middot; ' + u.role + '</div></div>' +
-                        '<div style="display:flex;flex-shrink:0;">' + butang + '</div></div>';
+                    const em = esc(u.email).replace(/'/g, "&#39;");
+                    const pid = 'uaPass' + i;
+                    const baris = [
+                        ["Jawatan", u.jawatan],
+                        ["Sekolah", u.sekolah],
+                        ["Telefon", u.telefon],
+                        ["Peranan", u.role],
+                        ["Daftar", u.tarikh ? String(u.tarikh).substring(0, 10) : ""]
+                    ].filter(r => r[1]).map(r => '<div class="ua-lbl">' + r[0] + '</div><div class="ua-val">' + esc(r[1]) + '</div>').join('');
+                    const pass = u.password
+                        ? '<div class="ua-lbl">Kata&nbsp;laluan</div><div class="ua-val ua-pass">' +
+                          '<code id="' + pid + '" data-pass="' + esc(u.password) + '">' + '&bull;'.repeat(Math.min(10, String(u.password).length)) + '</code>' +
+                          '<button type="button" class="ua-mini" onclick="toggleUserPass(\'' + pid + '\', this)"><i class="fa-solid fa-eye"></i> Papar</button>' +
+                          '<button type="button" class="ua-mini" onclick="copyUserPass(\'' + pid + '\')"><i class="fa-regular fa-copy"></i> Salin</button>' +
+                          '</div>'
+                        : '';
+                    const butang = isMaster
+                        ? '<span style="font-size:11.5px;color:var(--text-light);">Akaun Master Admin \u2014 tidak boleh diubah.</span>'
+                        : '<div class="ua-acts">' +
+                          (u.status === "Approved"
+                            ? '<button class="btn-ghost" onclick="setUserStatus(\'' + em + '\',\'Rejected\')"><i class="fa-solid fa-ban"></i> Tolak</button>'
+                            : '<button class="btn-success" onclick="setUserStatus(\'' + em + '\',\'Approved\')"><i class="fa-solid fa-check"></i> Luluskan</button>') +
+                          '<button class="btn-danger" onclick="removeUser(\'' + em + '\')"><i class="fa-solid fa-trash"></i></button>' +
+                          '</div>';
+                    return '<div class="ua-card">' +
+                        '<div class="ua-top"><div style="min-width:0;">' +
+                        '<div class="ua-name">' + esc(u.namaPenuh || u.email) + '</div>' +
+                        '<div class="ua-email">' + esc(u.email) + '</div></div>' +
+                        '<span class="ua-badge" style="color:' + warna + ';background:' + bgBadge + ';">' + esc(u.status) + '</span></div>' +
+                        '<div class="ua-rows">' + baris + pass + '</div>' +
+                        butang + '</div>';
                 }).join('');
             } catch (e) {
                 box.innerHTML = '<p style="color:#dc2626; font-size:13px;">Gagal menghubungi pelayan.</p>';
             }
+        }
+
+        function toggleUserPass(id, btn) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const real = el.getAttribute('data-pass') || "";
+            const shown = el.getAttribute('data-shown') === "1";
+            if (shown) { el.textContent = '\u2022'.repeat(Math.min(10, real.length)); el.setAttribute('data-shown', "0"); btn.innerHTML = '<i class="fa-solid fa-eye"></i> Papar'; }
+            else { el.textContent = real; el.setAttribute('data-shown', "1"); btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Sorok'; }
+        }
+
+        function copyUserPass(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const real = el.getAttribute('data-pass') || "";
+            if (navigator.clipboard) navigator.clipboard.writeText(real);
+            showAppAlert("Disalin", "Kata laluan telah disalin.", "success");
         }
 
         async function setUserStatus(email, newStatus) {
@@ -1291,9 +1371,14 @@ ${hairPath}
                 img.src = studentPhoto(student, 80);
 
                 const box = document.createElement('div');
-                const nameHtml = `<span style="display:block; font-weight:600; text-transform:uppercase; letter-spacing:.2px;">${student.name || ''}</span>`;
+                const st = semakStatus(student);
+                const cls = st === 'lengkap' ? 'sname-lengkap' : (st === 'belum' ? 'sname-belum' : '');
+                const dot = st ? `<span class="semak-dot ${st}"></span>` : "";
+                const nameHtml = `<span class="${cls}" style="display:block; font-weight:600; text-transform:uppercase; letter-spacing:.2px;">${dot}${student.name || ''}</span>`;
                 const hint = searchMatchHint(student);
-                box.innerHTML = nameHtml + (hint ? `<span style="font-size:10px; color:var(--text-light);">${hint}</span>` : "");
+                const noteLine = (st === 'belum' && student.catatan)
+                    ? `<span style="font-size:10px; color:#dc2626; display:block;"><i class="fa-solid fa-note-sticky"></i> ${student.catatan}</span>` : "";
+                box.innerHTML = nameHtml + noteLine + (hint ? `<span style="font-size:10px; color:var(--text-light);">${hint}</span>` : "");
 
                 li.appendChild(img); li.appendChild(box);
                 li.onclick = () => selectStudent(student.name);
@@ -1325,6 +1410,63 @@ ${hairPath}
             const pic = document.getElementById('activeStudentPic');
             attachAvatarFallback(pic, activeStudent);
             pic.src = studentPhoto(activeStudent, 300);
+            paintSemakan();
+        }
+
+        /* ==========================================
+         * 3b. SEMAKAN BORANG (LENGKAP / TAK LENGKAP)
+         * ========================================== */
+        function semakStatus(student) {
+            const v = String((student && student.semakan) || "").toLowerCase().trim();
+            return (v === 'lengkap' || v === 'belum') ? v : "";
+        }
+
+        function paintSemakan() {
+            if (!activeStudent) return;
+            const st = semakStatus(activeStudent);
+            const badge = document.getElementById('semakBadge');
+            const note = document.getElementById('semakNote');
+            const meta = document.getElementById('semakMeta');
+            const title = document.getElementById('activeStudentTitle');
+            if (!badge) return;
+            badge.className = 'semak-badge ' + (st || 'none');
+            badge.innerText = st === 'lengkap' ? 'LENGKAP' : (st === 'belum' ? 'BELUM LENGKAP' : 'BELUM DISEMAK');
+            if (title) title.style.color = st === 'lengkap' ? '#2563eb' : (st === 'belum' ? '#dc2626' : '');
+            meta.innerText = st && activeStudent.semakOleh
+                ? `Disemak oleh ${activeStudent.semakOleh}${activeStudent.semakTarikh ? ' • ' + activeStudent.semakTarikh : ''}` : "";
+            if (st === 'belum' && activeStudent.catatan) {
+                note.style.display = 'block';
+                note.innerHTML = `<strong><i class="fa-solid fa-note-sticky"></i> Catatan:</strong> ${activeStudent.catatan}`;
+            } else { note.style.display = 'none'; note.innerHTML = ""; }
+        }
+
+        async function tandaSemakan(status) {
+            if (!activeStudent) return;
+            let catatan = "";
+            if (status === 'belum') {
+                catatan = await appPrompt(
+                    "Catatan Semakan",
+                    "Nyatakan borang / dokumen yang belum lengkap untuk " + activeStudent.name,
+                    activeStudent.catatan || "", "fa-note-sticky", "Simpan");
+                if (catatan === null) return;
+                catatan = catatan.trim();
+                if (!catatan) { showAppAlert("Catatan", "Sila tulis catatan apa yang belum lengkap.", "warning"); return; }
+            }
+            showLoading("Menyimpan semakan...");
+            try {
+                const d = await api({
+                    action: "setSemakan", studentName: activeStudent.name, semakan: status, catatan,
+                    guruNama: currentUserName || currentUserEmail, guruEmail: currentUserEmail
+                });
+                hideLoading();
+                if (d.status !== "success") { showAppAlert("Ralat", d.message || "Gagal menyimpan semakan.", "error"); return; }
+                const patch = { semakan: d.semakan, catatan: d.catatan, semakOleh: d.semakOleh, semakTarikh: d.semakTarikh };
+                Object.assign(activeStudent, patch);
+                const idx = studentsList.findIndex(s => s.name === activeStudent.name);
+                if (idx > -1) Object.assign(studentsList[idx], patch);
+                renderStudentList(); paintSemakan();
+                showAppAlert("Berjaya", d.message, "success");
+            } catch (e) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error"); }
         }
 
         /* ==========================================
@@ -3561,7 +3703,9 @@ ${hairPath}
                 .forEach(s2 => {
                     const o = document.createElement('option');
                     o.value = s2.name;
-                    o.innerText = String(s2.name || "").toUpperCase();
+                    const st2 = semakStatus(s2);
+                    o.innerText = (st2 === 'lengkap' ? "🔵 " : st2 === 'belum' ? "🔴 " : "⚪ ") + String(s2.name || "").toUpperCase();
+                    o.style.color = st2 === 'lengkap' ? "#2563eb" : st2 === 'belum' ? "#dc2626" : "";
                     if (s2.name === current) o.selected = true;
                     sel.appendChild(o);
                 });

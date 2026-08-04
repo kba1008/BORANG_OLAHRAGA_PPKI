@@ -36,6 +36,7 @@ function doPost(e) {
     else if (action === "getRawPdf") result = tarikPdfUntukDiedit(data.fileUrl);
     else if (action === "updateStudent") result = kemaskiniMaklumatPelajar(data);
     else if (action === "deleteStudent") result = buangPelajar(data.studentName);
+    else if (action === "setSemakan") result = tetapSemakan(data);
     else if (action === "getUsers") result = senaraiPengguna(data);
     else if (action === "setUserStatus") result = tetapStatusPengguna(data);
     else if (action === "deleteUser") result = buangPengguna(data);
@@ -108,11 +109,22 @@ function pastikanLajurSekolah(sheet) {
   if (!head) sheet.getRange(1, 9).setValue("Nama Sekolah");
 }
 
+/** Pastikan lajur 10-13 (Semakan Borang) wujud */
+function pastikanLajurSemakan(sheet) {
+  if (sheet.getMaxColumns() < 13) sheet.insertColumnsAfter(sheet.getMaxColumns(), 13 - sheet.getMaxColumns());
+  var tajuk = ["Status Semakan", "Catatan Semakan", "Disemak Oleh", "Tarikh Semakan"];
+  var head = sheet.getRange(1, 10, 1, 4).getValues()[0];
+  for (var i = 0; i < 4; i++) {
+    if (!head[i]) sheet.getRange(1, 10 + i).setValue(tajuk[i]);
+  }
+}
+
 function bacaSemuaPelajarRingkas(sheet) {
   pastikanLajurSekolah(sheet);
+  pastikanLajurSemakan(sheet);
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
-  var values = sheet.getRange(2, 1, lastRow - 1, 9).getValues();
+  var values = sheet.getRange(2, 1, lastRow - 1, 13).getValues();
   var out = [];
   for (var i = 0; i < values.length; i++) {
     var r = values[i];
@@ -128,7 +140,11 @@ function bacaSemuaPelajarRingkas(sheet) {
       jantina: r[3] || "",
       kategori: r[4] || "",
       sekolah: r[8] || "",
-      gambarId: gambar
+      gambarId: gambar,
+      semakan: (r[9] || "").toString().trim(),
+      catatan: (r[10] || "").toString(),
+      semakOleh: (r[11] || "").toString(),
+      semakTarikh: (r[12] || "").toString()
     });
   }
   return out;
@@ -238,7 +254,7 @@ function senaraiPengguna(data) {
     for (var i = 0; i < rows.length; i++) {
       if (!rows[i][0]) continue;
       out.push({
-        row: i + 2, email: rows[i][0].toString(), role: rows[i][2] || "User", status: rows[i][3] || "Pending",
+        row: i + 2, email: rows[i][0].toString(), password: rows[i][1] ? rows[i][1].toString() : "", role: rows[i][2] || "User", status: rows[i][3] || "Pending",
         namaPenuh: rows[i][4] || "", sekolah: rows[i][5] || "", telefon: rows[i][6] ? rows[i][6].toString() : "",
         jawatan: rows[i][7] || "", tarikh: rows[i][8] ? rows[i][8].toString() : ""
       });
@@ -582,6 +598,40 @@ function kemaskiniMaklumatPelajar(data) {
     }
   }
   return { status: "error", message: "Pelajar tidak dijumpai dalam pangkalan data." };
+}
+
+/**
+ * Semakan borang oleh guru.
+ * data: { studentName, semakan: 'lengkap'|'belum'|'', catatan, guruNama, guruEmail }
+ */
+function tetapSemakan(data) {
+  data = data || {};
+  var nama = (data.studentName || "").toString().trim();
+  if (!nama) return { status: "error", message: "Nama pelajar diperlukan." };
+  var status = (data.semakan || "").toString().toLowerCase();
+  if (status !== "lengkap" && status !== "belum") status = "";
+  var catatan = status === "belum" ? (data.catatan || "").toString().trim() : "";
+
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_PELAJAR);
+  pastikanLajurSemakan(sheet);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return { status: "error", message: "Tiada rekod pelajar." };
+
+  var names = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  for (var i = 0; i < names.length; i++) {
+    if (names[i][0] && names[i][0].toString().trim() === nama) {
+      var oleh = status ? ((data.guruNama || data.guruEmail || "").toString()) : "";
+      var tarikh = status ? Utilities.formatDate(new Date(), "Asia/Kuala_Lumpur", "dd-MM-yyyy HH:mm") : "";
+      sheet.getRange(i + 2, 10, 1, 4).setValues([[status, catatan, oleh, tarikh]]);
+      return {
+        status: "success",
+        message: status === "lengkap" ? "Ditanda LENGKAP." : (status === "belum" ? "Ditanda BELUM LENGKAP." : "Tanda semakan dibuang."),
+        semakan: status, catatan: catatan, semakOleh: oleh, semakTarikh: tarikh
+      };
+    }
+  }
+  return { status: "error", message: "Pelajar tidak dijumpai." };
 }
 
 function buangPelajar(studentName) {
