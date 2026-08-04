@@ -10,95 +10,569 @@
     
     <style>
         :root {
-            --primary: #4f46e5; --secondary: #10b981; --warning: #f59e0b; --danger: #ef4444;
-            --bg-color: #f3f4f6; --surface: #ffffff; --text-main: #1f2937; --text-light: #6b7280;
-            --border: #e5e7eb; --radius: 12px; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --primary: #4f46e5; 
+            --primary-hover: #4338ca; 
+            --secondary: #10b981; 
+            --secondary-hover: #059669;
+            --warning: #f59e0b; 
+            --warning-hover: #d97706; 
+            --danger: #ef4444; 
+            --danger-hover: #dc2626;
+            --bg-color: #f3f4f6; 
+            --surface: #ffffff; 
+            --text-main: #1f2937; 
+            --text-light: #6b7280;
+            --border: #e5e7eb; 
+            --radius: 12px; 
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; overscroll-behavior: none; }
-        
-        .screen { display: none; width: 100%; max-width: 1200px; padding: 20px; animation: fadeIn 0.3s ease; }
-        .active-screen { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 25px; }
-        input, select { width: 100%; padding: 12px 16px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; outline: none; background: #fff;}
-        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-        
-        button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 12px 20px; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: white; width: 100%; }
-        button:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-        button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
-        
-        .btn-primary { background: var(--primary); } .btn-success { background: var(--secondary); }
-        .btn-warning { background: var(--warning); color: #fff; } .btn-danger { background: var(--danger); }
-        .btn-ghost { background: transparent; color: var(--primary); box-shadow: none; } .btn-ghost:hover { background: rgba(79, 70, 229, 0.05); }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Inter', sans-serif; 
+        }
 
-        #loginScreen .card { max-width: 400px; margin: 10vh auto; text-align: center; }
-        .dashboard-container { display: grid; grid-template-columns: 350px 1fr; gap: 20px; align-items: start; }
-        @media (max-width: 768px) { .dashboard-container { grid-template-columns: 1fr; } }
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            display: flex; 
+            justify-content: center; 
+            min-height: 100vh; 
+            overscroll-behavior: none; 
+        }
         
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px 25px; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); }
-        .sidebar, .main-panel { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+        .screen { 
+            display: none; 
+            width: 100%; 
+            max-width: 1200px; 
+            padding: 20px; 
+            animation: fadeIn 0.3s ease; 
+        }
         
-        .student-list { list-style: none; max-height: 60vh; overflow-y: auto; margin-top: 15px; }
-        .student-item { padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; display: flex; align-items: center; gap: 12px; }
-        .student-item img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background: #e5e7eb; border: 1px solid #d1d5db;}
-        .student-item.active { background: rgba(79, 70, 229, 0.1); border-color: var(--primary); font-weight: 600; color: var(--primary); }
-        
-        .student-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap:15px;}
-        .student-profile-info { display: flex; gap: 15px; align-items: center; }
-        .student-profile-info img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
-        .student-profile-info h2 { margin:0; font-size: 20px;}
-        .student-profile-info p { margin:2px 0 0 0; font-size: 12px; color: var(--text-light); }
-        
-        .cert-list { display: flex; flex-direction: column; gap: 20px; }
-        .cert-card { background: var(--surface); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 15px; transition: border 0.3s; }
-        .cert-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; flex-wrap: wrap; gap: 10px;}
-        .cert-header h4 { font-size: 16px; margin-bottom: 5px; color: var(--primary); }
-        
-        .cert-thumbnails { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; align-items: stretch; }
-        .thumb-item { position: relative; min-width: 150px; max-width: 150px; border: 2px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #fff; box-shadow: var(--shadow); flex-shrink: 0; cursor: grab; transition: all 0.2s; display:flex; flex-direction:column;}
-        .thumb-item:active { cursor: grabbing; }
-        .thumb-item.dragging { opacity: 0.5; transform: scale(0.95); border: 2px dashed var(--primary); }
-        .thumb-item.drag-over { border-left: 4px solid var(--primary); transform: translateX(5px); }
-        .thumb-item img { width: 100%; height: 180px; object-fit: cover; display: block; border-bottom: 1px solid var(--border); cursor: pointer; }
-        .thumb-item img:hover { filter: brightness(0.8); }
-        .img-overlay-text { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 1px 1px 3px black; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
-        .thumb-item:hover .img-overlay-text { opacity: 1; }
-        .thumb-actions { display: flex; flex-direction: column; }
-        .thumb-actions button { border-radius: 0; padding: 10px 0; font-size: 12px; }
-        .thumb-add-btn { min-width: 150px; max-width: 150px; border: 2px dashed var(--primary); border-radius: var(--radius); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; color: var(--primary); font-weight: bold; background: rgba(79, 70, 229, 0.05); }
+        .active-screen { 
+            display: block; 
+        }
 
-        /* CLOUD THUMBNAILS UI */
-        .cloud-certs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .cloud-cert-card { background: #fff; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; cursor: pointer;}
-        .cloud-cert-card:hover { transform: translateY(-3px); border-color: var(--primary); }
-        .cloud-cert-card img { width: 100%; height: 180px; object-fit: cover; border-bottom: 1px solid var(--border); background: #f3f4f6;}
-        .cloud-cert-info { padding: 10px; flex: 1; display:flex; flex-direction:column; justify-content:space-between;}
-        .cloud-cert-name { font-weight: 600; font-size: 13px; color: var(--text-main); margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;}
-        .cloud-cert-date { font-size: 11px; color: var(--text-light); }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
 
+        .card { 
+            background: var(--surface); 
+            border-radius: var(--radius); 
+            box-shadow: var(--shadow); 
+            padding: 25px; 
+        }
+
+        input, select { 
+            width: 100%; 
+            padding: 12px 16px; 
+            margin: 8px 0; 
+            border: 1px solid var(--border); 
+            border-radius: 8px; 
+            font-size: 15px; 
+            outline: none; 
+            transition: border 0.3s; 
+            background: #fff;
+        }
+
+        input:focus, select:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); 
+        }
+        
+        button { 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 8px; 
+            border: none; 
+            padding: 12px 20px; 
+            font-size: 14px; 
+            font-weight: 600; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            color: white; 
+            width: 100%; 
+        }
+
+        button:hover { 
+            transform: translateY(-2px); 
+            box-shadow: var(--shadow); 
+        }
+
+        button:disabled { 
+            opacity: 0.6; 
+            cursor: not-allowed; 
+            transform: none; 
+            box-shadow: none; 
+        }
+        
+        .btn-primary { background: var(--primary); } 
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-success { background: var(--secondary); } 
+        .btn-success:hover { background: var(--secondary-hover); }
+        .btn-warning { background: var(--warning); color: #fff; } 
+        .btn-warning:hover { background: var(--warning-hover); }
+        .btn-danger { background: var(--danger); } 
+        .btn-danger:hover { background: var(--danger-hover); }
+        .btn-ghost { background: transparent; color: var(--primary); box-shadow: none; } 
+        .btn-ghost:hover { background: rgba(79, 70, 229, 0.05); }
+
+        #loginScreen .card { 
+            max-width: 400px; 
+            margin: 10vh auto; 
+            text-align: center; 
+        }
+
+        .dashboard-container { 
+            display: grid; 
+            grid-template-columns: 350px 1fr; 
+            gap: 20px; 
+            align-items: start; 
+        }
+
+        @media (max-width: 768px) { 
+            .dashboard-container { grid-template-columns: 1fr; } 
+        }
+        
+        .top-bar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            padding: 15px 25px; 
+            background: var(--surface); 
+            border-radius: var(--radius); 
+            box-shadow: var(--shadow); 
+        }
+
+        .sidebar, .main-panel { 
+            background: var(--surface); 
+            border-radius: var(--radius); 
+            padding: 20px; 
+            box-shadow: var(--shadow); 
+        }
+        
+        .student-list { 
+            list-style: none; 
+            max-height: 60vh; 
+            overflow-y: auto; 
+            margin-top: 15px; 
+        }
+
+        .student-item { 
+            padding: 10px 15px; 
+            border-radius: 8px; 
+            margin-bottom: 8px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            border: 1px solid transparent; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+        }
+
+        .student-item img { 
+            width: 35px; 
+            height: 35px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            background: #e5e7eb; 
+            border: 1px solid #d1d5db;
+        }
+
+        .student-item.active { 
+            background: rgba(79, 70, 229, 0.1); 
+            border-color: var(--primary); 
+            font-weight: 600; 
+            color: var(--primary); 
+        }
+        
+        .student-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start; 
+            margin-bottom: 25px; 
+            padding-bottom: 15px; 
+            border-bottom: 1px solid var(--border); 
+            flex-wrap: wrap; 
+            gap: 15px;
+        }
+
+        .student-profile-info { 
+            display: flex; 
+            gap: 15px; 
+            align-items: center; 
+        }
+
+        .student-profile-info img { 
+            width: 60px; 
+            height: 60px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            border: 2px solid var(--primary); 
+        }
+
+        .student-profile-info h2 { 
+            margin: 0; 
+            font-size: 20px;
+        }
+
+        .student-profile-info p { 
+            margin: 2px 0 0 0; 
+            font-size: 12px; 
+            color: var(--text-light); 
+        }
+        
+        /* Dashboard - Galeri Sijil */
+        .cert-list { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+        }
+
+        .cert-card { 
+            background: var(--surface); 
+            padding: 20px; 
+            border-radius: var(--radius); 
+            border: 1px solid var(--border); 
+            box-shadow: var(--shadow); 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            transition: border 0.3s; 
+        }
+
+        .cert-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid var(--border); 
+            padding-bottom: 15px; 
+            flex-wrap: wrap; 
+            gap: 10px;
+        }
+
+        .cert-header h4 { 
+            font-size: 16px; 
+            margin-bottom: 5px; 
+            color: var(--primary); 
+        }
+
+        .cert-status { 
+            font-size: 12px; 
+            color: var(--text-light); 
+        }
+
+        .cert-status.drive { 
+            color: var(--primary); 
+            font-weight: 500; 
+        }
+
+        .cert-status.unsynced { 
+            color: var(--warning); 
+            font-weight: bold; 
+            animation: pulseText 2s infinite; 
+        }
+
+        @keyframes pulseText { 
+            0% { opacity: 1; } 
+            50% { opacity: 0.5; } 
+            100% { opacity: 1; } 
+        }
+        
+        .cert-thumbnails { 
+            display: flex; 
+            gap: 15px; 
+            overflow-x: auto; 
+            padding-bottom: 15px; 
+            align-items: stretch; 
+        }
+
+        /* Drag & Drop Items */
+        .thumb-item { 
+            position: relative; 
+            min-width: 150px; 
+            max-width: 150px; 
+            border: 2px solid var(--border); 
+            border-radius: var(--radius); 
+            overflow: hidden; 
+            background: #fff; 
+            box-shadow: var(--shadow); 
+            flex-shrink: 0; 
+            cursor: grab; 
+            transition: all 0.2s; 
+            display: flex; 
+            flex-direction: column;
+        }
+
+        .thumb-item:active { 
+            cursor: grabbing; 
+        }
+
+        .thumb-item.dragging { 
+            opacity: 0.5; 
+            transform: scale(0.95); 
+            border: 2px dashed var(--primary); 
+        }
+
+        .thumb-item.drag-over { 
+            border-left: 4px solid var(--primary); 
+            transform: translateX(5px); 
+        }
+
+        .thumb-item img { 
+            width: 100%; 
+            height: 180px; 
+            object-fit: cover; 
+            display: block; 
+            border-bottom: 1px solid var(--border); 
+            cursor: pointer; 
+        }
+
+        .thumb-item img:hover { 
+            filter: brightness(0.8); 
+        }
+
+        .img-overlay-text { 
+            position: absolute; 
+            top: 40%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            color: white; 
+            font-weight: bold; 
+            text-shadow: 1px 1px 3px black; 
+            pointer-events: none; 
+            opacity: 0; 
+            transition: opacity 0.2s; 
+        }
+
+        .thumb-item:hover .img-overlay-text { 
+            opacity: 1; 
+        }
+        
+        .thumb-actions { 
+            display: flex; 
+            flex-direction: column; 
+        }
+
+        .thumb-actions button { 
+            border-radius: 0; 
+            padding: 10px 0; 
+            font-size: 12px; 
+        }
+
+        .thumb-add-btn { 
+            min-width: 150px; 
+            max-width: 150px; 
+            border: 2px dashed var(--primary); 
+            border-radius: var(--radius); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            cursor: pointer; 
+            color: var(--primary); 
+            font-weight: bold; 
+            background: rgba(79, 70, 229, 0.05); 
+        }
+
+        /* CLOUD THUMBNAILS UI (Baharu) */
+        .cloud-certs-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+            gap: 15px; 
+            margin-bottom: 25px; 
+        }
+
+        .cloud-cert-card { 
+            background: #fff; 
+            border-radius: var(--radius); 
+            border: 1px solid var(--border); 
+            box-shadow: var(--shadow); 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            transition: transform 0.2s; 
+            cursor: pointer;
+        }
+
+        .cloud-cert-card:hover { 
+            transform: translateY(-3px); 
+            border-color: var(--primary); 
+        }
+
+        .cloud-cert-card img { 
+            width: 100%; 
+            height: 180px; 
+            object-fit: cover; 
+            border-bottom: 1px solid var(--border); 
+            background: #f3f4f6;
+        }
+
+        .cloud-cert-info { 
+            padding: 10px; 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between;
+        }
+
+        .cloud-cert-name { 
+            font-weight: 600; 
+            font-size: 13px; 
+            color: var(--text-main); 
+            margin-bottom: 4px; 
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+        }
+
+        .cloud-cert-date { 
+            font-size: 11px; 
+            color: var(--text-light); 
+        }
+
+        /* Scanner Screen */
         #scannerScreen { text-align: center; }
         #scannerScreen .card { max-width: 800px; margin: auto; }
-        video, canvas { width: 100%; max-height: 45vh; border-radius: 8px; background: #000; object-fit: contain; margin-bottom: 15px; }
-        canvas { display: none; }
-        .btn-group { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;}
-        .btn-group button { width: auto; min-width: 140px; }
+        
+        video, canvas { 
+            width: 100%; 
+            max-height: 45vh; 
+            border-radius: 8px; 
+            background: #000; 
+            object-fit: contain; 
+            margin-bottom: 15px; 
+        }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center; animation: fadeIn 0.2s ease; }
-        .modal-box { background: var(--surface); padding: 25px; border-radius: 20px; width: 95%; max-width: 500px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.9); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; max-height: 95vh; display: flex; flex-direction: column; }
+        canvas { display: none; }
+        
+        .btn-group { 
+            display: flex; 
+            justify-content: center; 
+            flex-wrap: wrap; 
+            gap: 10px; 
+            margin-bottom: 15px;
+        }
+
+        .btn-group button { 
+            width: auto; 
+            min-width: 140px; 
+        }
+
+        /* Modals & Alerts */
+        .modal-overlay { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.6); 
+            backdrop-filter: blur(4px); 
+            z-index: 9999; 
+            justify-content: center; 
+            align-items: center; 
+            animation: fadeIn 0.2s ease; 
+        }
+
+        .modal-box { 
+            background: var(--surface); 
+            padding: 25px; 
+            border-radius: 20px; 
+            width: 95%; 
+            max-width: 500px; 
+            text-align: center; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
+            transform: scale(0.9); 
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+            max-height: 95vh; 
+            display: flex; 
+            flex-direction: column; 
+        }
+
         @keyframes popIn { to { transform: scale(1); } }
         .hidden { display: none !important; }
 
         /* EDITOR POWER UI */
-        #editorModalBox { max-width: 950px; width: 98%; height: 96vh; padding: 15px; }
-        .editor-toolbar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--border); }
-        .editor-toolbar button { flex: 0 0 auto; width: auto; padding: 8px 15px; font-size: 13px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border); }
-        .editor-toolbar button.active-tool { background: var(--primary); color: white; border-color: var(--primary); }
-        .editor-canvas-container { flex: 1; overflow: auto; background: #e5e7eb; border-radius: 8px; border: 1px solid #ccc; position: relative; touch-action: none; display:flex; justify-content: center; align-items: center;}
-        #editorCanvas { max-width: 100%; object-fit: contain; cursor: crosshair; touch-action: none; background: #fff;}
-        .editor-footer { display: flex; justify-content: space-between; margin-top: 15px; gap: 10px; }
-        .tool-options { display: none; background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px dashed var(--primary); font-size: 13px; text-align: left;}
+        #editorModalBox { 
+            max-width: 950px; 
+            width: 98%; 
+            height: 96vh; 
+            padding: 15px; 
+        }
+
+        .editor-toolbar { 
+            display: flex; 
+            gap: 8px; 
+            overflow-x: auto; 
+            padding-bottom: 10px; 
+            margin-bottom: 10px; 
+            border-bottom: 1px solid var(--border); 
+        }
+
+        .editor-toolbar button { 
+            flex: 0 0 auto; 
+            width: auto; 
+            padding: 8px 15px; 
+            font-size: 13px; 
+            background: var(--bg-color); 
+            color: var(--text-main); 
+            border: 1px solid var(--border); 
+        }
+
+        .editor-toolbar button.active-tool { 
+            background: var(--primary); 
+            color: white; 
+            border-color: var(--primary); 
+        }
+
+        .editor-canvas-container { 
+            flex: 1; 
+            overflow: auto; 
+            background: #e5e7eb; 
+            border-radius: 8px; 
+            border: 1px solid #ccc; 
+            position: relative; 
+            touch-action: none; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+        }
+
+        #editorCanvas { 
+            max-width: 100%; 
+            object-fit: contain; 
+            cursor: crosshair; 
+            touch-action: none; 
+            background: #fff;
+        }
+
+        .editor-footer { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-top: 15px; 
+            gap: 10px; 
+        }
+        
+        .tool-options { 
+            display: none; 
+            background: #fff; 
+            padding: 10px; 
+            border-radius: 8px; 
+            margin-bottom: 10px; 
+            border: 1px dashed var(--primary); 
+            font-size: 13px; 
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -123,15 +597,24 @@
     <div id="addStudentModal" class="modal-overlay">
         <div class="modal-box" style="max-height: 90vh;">
             <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-user-plus"></i> Pendaftaran Pelajar</h3>
+            
             <input type="text" id="regName" placeholder="Nama Penuh (Wajib Diisi)">
             <input type="text" id="regKelas" placeholder="Kelas (Tidak Wajib)">
             <input type="text" id="regIc" placeholder="No. Kad Pengenalan (Tidak Wajib)">
-            <select id="regJantina"><option value="">Pilih Jantina...</option><option value="Lelaki">Lelaki</option><option value="Perempuan">Perempuan</option></select>
+            
+            <select id="regJantina">
+                <option value="">Pilih Jantina...</option>
+                <option value="Lelaki">Lelaki</option>
+                <option value="Perempuan">Perempuan</option>
+            </select>
+            
             <input type="text" id="regKategori" placeholder="Kategori cth: Asnaf/B40 (Tidak Wajib)">
+            
             <div style="text-align:left; margin-top:10px;">
                 <label style="font-size:12px; font-weight:bold; color:var(--text-light);">Gambar Profil (Tidak Wajib):</label>
                 <input type="file" id="regGambar" accept="image/*" style="border:none; padding-left:0;">
             </div>
+            
             <div class="btn-group" style="margin-top:15px;">
                 <button class="btn-primary" onclick="submitStudent()"><i class="fa-solid fa-save"></i> Simpan Rekod</button>
                 <button class="btn-ghost" onclick="document.getElementById('addStudentModal').style.display='none'">Batal</button>
@@ -153,8 +636,10 @@
             </div>
 
             <div id="textOptions" class="tool-options">
-                <label>Saiz: </label><input type="number" id="txtSize" value="30" style="width: 60px; padding: 5px; display: inline;"> px | 
-                <label>Warna: </label><input type="color" id="txtColor" value="#000000" style="width: 40px; padding: 0; display: inline; border: none;">
+                <label>Saiz: </label>
+                <input type="number" id="txtSize" value="30" style="width: 60px; padding: 5px; display: inline;"> px | 
+                <label>Warna: </label>
+                <input type="color" id="txtColor" value="#000000" style="width: 40px; padding: 0; display: inline; border: none;">
                 <br><i>Klik di atas gambar untuk taip teks.</i>
             </div>
             
@@ -163,7 +648,9 @@
                 <button class="btn-warning" onclick="executeCrop()" style="width: auto; padding: 5px 15px; margin-left: 10px;">Crop Sekarang</button>
             </div>
 
-            <div class="editor-canvas-container" id="canvasContainer"><canvas id="editorCanvas"></canvas></div>
+            <div class="editor-canvas-container" id="canvasContainer">
+                <canvas id="editorCanvas"></canvas>
+            </div>
 
             <div class="editor-footer">
                 <button class="btn-danger" onclick="closeEditor()"><i class="fa-solid fa-xmark"></i> Batal</button>
@@ -178,8 +665,10 @@
             <i class="fa-solid fa-expand" style="font-size: 40px; color: var(--primary); margin-bottom: 10px;"></i>
             <h3>Sistem Sijil Pro</h3>
             <p style="color: var(--text-light); margin-bottom: 20px; font-size: 14px;">Log masuk untuk mengurus rekod</p>
+            
             <input type="email" id="loginEmail" placeholder="Email Guru (Cth: guru@edu.my)">
             <input type="password" id="loginPassword" placeholder="Kata Laluan">
+            
             <button class="btn-primary" onclick="login()" style="margin-top: 15px;">Log Masuk</button>
             <button class="btn-ghost" onclick="register()">Daftar Akaun Baru</button>
         </div>
@@ -194,7 +683,9 @@
                 <button class="btn-ghost" onclick="logout()" style="width: auto; padding: 8px 15px;"><i class="fa-solid fa-power-off"></i></button>
             </div>
         </div>
+
         <div class="dashboard-container">
+            <!-- Sidebar Pelajar -->
             <div class="sidebar">
                 <h3><i class="fa-solid fa-users"></i> Urus Pelajar</h3>
                 <button class="btn-primary" onclick="document.getElementById('addStudentModal').style.display='flex'" style="width:100%; margin-top:10px;">
@@ -202,13 +693,22 @@
                 </button>
                 <ul class="student-list" id="studentListUI"></ul>
             </div>
+
+            <!-- Panel Utama -->
             <div class="main-panel">
-                <div id="emptyState" class="empty-state"><i class="fa-solid fa-user-graduate"></i><h3>Pilih pelajar di sebelah kiri</h3></div>
+                <div id="emptyState" class="empty-state">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <h3>Pilih pelajar di sebelah kiri</h3>
+                </div>
+                
                 <div id="studentDetails" style="display: none;">
                     <div class="student-header">
                         <div class="student-profile-info">
                             <img id="activeStudentPic" src="https://via.placeholder.com/150">
-                            <div><h2 id="activeStudentTitle">Nama</h2><p id="activeStudentInfo">Kelas: -</p></div>
+                            <div>
+                                <h2 id="activeStudentTitle">Nama Pelajar</h2>
+                                <p id="activeStudentInfo">Kelas: -</p>
+                            </div>
                         </div>
                         <button class="btn-success" onclick="openScanner()" style="width:auto;"><i class="fa-solid fa-plus"></i> Cipta Sijil Baru</button>
                     </div>
@@ -230,15 +730,20 @@
                 <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Tambah Sijil Baru</h2>
                 <p style="color: var(--text-light);">Pelajar: <strong id="scannerStudentLabel"></strong></p>
             </div>
+            
             <div id="status">⏳ Menyemak AI...</div>
             <input type="text" id="certName" style="margin-bottom: 15px;" placeholder="Nama Fail (Cth: Sijil_Catur)">
+            
             <video id="video" autoplay playsinline></video>
             <canvas id="canvas"></canvas>
+            
             <input type="file" id="fileUploadInput" accept="image/*,application/pdf" style="display: none;">
+            
             <div class="btn-group">
                 <button id="btnCaptureCam" class="btn-primary"><i class="fa-solid fa-camera"></i> 1. Snap (Kamera)</button>
                 <button id="btnUploadFile" class="btn-primary" onclick="document.getElementById('fileUploadInput').click();"><i class="fa-solid fa-folder-open"></i> 1. Pilih Fail / PDF</button>
             </div>
+            
             <div class="btn-group" style="border-top: 1px solid var(--border); padding-top: 15px; margin-top: 5px;">
                 <button class="btn-warning" onclick="saveToDashboardLocal()"><i class="fa-solid fa-sd-card"></i> 2. Simpan Ke Editor</button>
                 <button class="btn-danger" onclick="closeScanner()"><i class="fa-solid fa-xmark"></i> Batal</button>
@@ -246,76 +751,180 @@
         </div>
     </div>
 
+    <!-- Hidden Input untuk Tambah Page Inline -->
     <input type="file" id="inlineAddFileInput" accept="image/*,application/pdf" style="display: none;">
 
+    <!-- Scripts CDN -->
     <script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvReady();"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+    <!-- KOD JAVASCRIPT UTAMA -->
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxOrI7Q-Rpk8xtBe7Ol6TyiWzmSx2Mg5PUpc-YOuMadiKEPXeBzNpBkk79qk-nDrvtB/exec"; 
         
-        let currentUserEmail = "", studentsList = [], activeStudent = null;
-        let sessionCerts = [], currentBatch = [], opencvReady = false;
+        let currentUserEmail = ""; 
+        let studentsList = []; 
+        let activeStudent = null;
+        let sessionCerts = []; 
+        let currentBatch = []; 
+        let opencvReady = false;
+        
         let dragSourceCertIndex = -1, dragSourcePageIndex = -1, activeEditCertIndex = -1, activeEditPageIndex = -1, targetInlineCertIndex = -1;
 
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+        // Daftar Service Worker (PWA)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
 
-        function showLoading(msg = "Mohon tunggu sebentar ya...") { document.getElementById('loadingText').innerText = msg; document.getElementById('globalLoading').style.display = 'flex'; }
-        function hideLoading() { document.getElementById('globalLoading').style.display = 'none'; }
+        // ==========================================
+        // 1. SISTEM ALERT & LOADING OVERLAY
+        // ==========================================
+        function showLoading(msg = "Mohon tunggu sebentar ya...") { 
+            document.getElementById('loadingText').innerText = msg; 
+            document.getElementById('globalLoading').style.display = 'flex'; 
+        }
+        
+        function hideLoading() { 
+            document.getElementById('globalLoading').style.display = 'none'; 
+        }
+        
         function showAppAlert(title, message, type = "info") {
-            const overlay = document.getElementById('customAlert'), icon = document.getElementById('alertIcon'), btn = document.getElementById('alertBtn');
-            icon.className = 'fa-solid'; btn.style.backgroundColor = "var(--primary)";
-            if (type === "error") { icon.classList.add('fa-circle-xmark'); icon.style.color="var(--danger)"; btn.style.backgroundColor = "var(--danger)"; }
-            else if (type === "success") { icon.classList.add('fa-circle-check'); icon.style.color="var(--secondary)"; btn.style.backgroundColor = "var(--secondary)"; }
-            else if (type === "warning") { icon.classList.add('fa-triangle-exclamation'); icon.style.color="var(--warning)"; btn.style.backgroundColor = "var(--warning)"; }
-            else { icon.classList.add('fa-circle-info'); icon.style.color="var(--primary)"; }
-            document.getElementById('alertTitle').innerText = title; document.getElementById('alertMessage').innerText = message;
+            const overlay = document.getElementById('customAlert');
+            const icon = document.getElementById('alertIcon');
+            const btn = document.getElementById('alertBtn');
+            
+            icon.className = 'fa-solid'; 
+            btn.style.backgroundColor = "var(--primary)";
+            
+            if (type === "error") { 
+                icon.classList.add('fa-circle-xmark'); 
+                icon.style.color="var(--danger)"; 
+                btn.style.backgroundColor = "var(--danger)"; 
+            } else if (type === "success") { 
+                icon.classList.add('fa-circle-check'); 
+                icon.style.color="var(--secondary)"; 
+                btn.style.backgroundColor = "var(--secondary)"; 
+            } else if (type === "warning") { 
+                icon.classList.add('fa-triangle-exclamation'); 
+                icon.style.color="var(--warning)"; 
+                btn.style.backgroundColor = "var(--warning)"; 
+            } else { 
+                icon.classList.add('fa-circle-info'); 
+                icon.style.color="var(--primary)"; 
+            }
+            
+            document.getElementById('alertTitle').innerText = title; 
+            document.getElementById('alertMessage').innerText = message;
             overlay.style.display = 'flex';
         }
-        function closeAppAlert() { document.getElementById('customAlert').style.display = 'none'; }
-        function switchScreen(screenId) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(screenId).classList.add('active-screen'); }
+        
+        function closeAppAlert() { 
+            document.getElementById('customAlert').style.display = 'none'; 
+        }
+        
+        function switchScreen(screenId) { 
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); 
+            document.getElementById(screenId).classList.add('active-screen'); 
+        }
+        
         function setStatus(msg, type="info") {
-            let el = document.getElementById('status'); el.innerHTML = msg;
+            let el = document.getElementById('status'); 
+            el.innerHTML = msg;
             if(type === "info") { el.style.color = "var(--primary)"; el.style.background = "rgba(79,70,229,0.1)"; }
             if(type === "success") { el.style.color = "var(--secondary)"; el.style.background = "rgba(16,185,129,0.1)"; }
         }
 
-        // AUTH & FETCH
+        // ==========================================
+        // 2. SISTEM LOG MASUK (AUTH) & DATA FETCH
+        // ==========================================
         document.addEventListener("DOMContentLoaded", () => {
             const savedUser = localStorage.getItem("sijilProUser");
-            if (savedUser) { currentUserEmail = savedUser; document.getElementById('userEmailDisplay').innerText = savedUser; fetchStudents(); switchScreen('dashboardScreen'); } 
-            else switchScreen('loginScreen');
+            if (savedUser) { 
+                currentUserEmail = savedUser; 
+                document.getElementById('userEmailDisplay').innerText = savedUser; 
+                fetchStudents(); 
+                switchScreen('dashboardScreen'); 
+            } else {
+                switchScreen('loginScreen');
+            }
         });
 
         async function login() {
-            let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value;
+            let email = document.getElementById('loginEmail').value;
+            let pass = document.getElementById('loginPassword').value;
+            
             if(!email || !pass) return showAppAlert("Maklumat", "Sila isi email dan laluan.", "warning");
-            showLoading("Menyemak...");
+            
+            showLoading("Menyemak log masuk...");
             try {
-                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "login", email, password: pass }) });
-                let data = await res.json(); hideLoading();
-                if(data.status === "success") { currentUserEmail = email; localStorage.setItem("sijilProUser", email); document.getElementById('userEmailDisplay').innerText = email; fetchStudents(); switchScreen('dashboardScreen'); } 
-                else showAppAlert("Maaf", data.message, "error");
-            } catch (err) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error"); }
+                let res = await fetch(WEB_APP_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "login", email, password: pass }) 
+                });
+                let data = await res.json(); 
+                hideLoading();
+                
+                if(data.status === "success") { 
+                    currentUserEmail = email; 
+                    localStorage.setItem("sijilProUser", email); 
+                    document.getElementById('userEmailDisplay').innerText = email; 
+                    fetchStudents(); 
+                    switchScreen('dashboardScreen'); 
+                } else {
+                    showAppAlert("Maaf", data.message, "error");
+                }
+            } catch (err) { 
+                hideLoading(); 
+                showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error"); 
+            }
         }
-        function logout() { localStorage.removeItem("sijilProUser"); sessionCerts=[]; switchScreen('loginScreen'); }
+        
+        function logout() { 
+            localStorage.removeItem("sijilProUser"); 
+            sessionCerts = []; 
+            switchScreen('loginScreen'); 
+        }
 
         async function fetchStudents() {
-            try { let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "getStudents" }) }); let data = await res.json(); if (data.status === "success") { studentsList = data.data; renderStudentList(); } } catch (err) {}
+            try { 
+                let res = await fetch(WEB_APP_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "getStudents" }) 
+                }); 
+                let data = await res.json(); 
+                if (data.status === "success") { 
+                    studentsList = data.data; 
+                    renderStudentList(); 
+                } 
+            } catch (err) { console.error(err); }
         }
+        
+        // Kompres gambar profil sebelum upload ke Google Sheet
         async function compressImage(file) {
             return new Promise((resolve) => {
-                let reader = new FileReader(); reader.onload = function(e) {
-                    let img = new Image(); img.onload = function() {
-                        let tempCanvas = document.createElement('canvas'); let MAX = 200; let w = img.width, h = img.height;
-                        if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } else { if (h > MAX) { w *= MAX / h; h = MAX; } }
-                        tempCanvas.width = w; tempCanvas.height = h; tempCanvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                let reader = new FileReader(); 
+                reader.onload = function(e) {
+                    let img = new Image(); 
+                    img.onload = function() {
+                        let tempCanvas = document.createElement('canvas'); 
+                        let MAX = 200; 
+                        let w = img.width, h = img.height;
+                        
+                        if (w > h) { 
+                            if (w > MAX) { h *= MAX / w; w = MAX; } 
+                        } else { 
+                            if (h > MAX) { w *= MAX / h; h = MAX; } 
+                        }
+                        
+                        tempCanvas.width = w; 
+                        tempCanvas.height = h; 
+                        tempCanvas.getContext('2d').drawImage(img, 0, 0, w, h);
                         resolve(tempCanvas.toDataURL('image/jpeg', 0.7));
                     }
                     img.src = e.target.result;
@@ -323,234 +932,669 @@
                 reader.readAsDataURL(file);
             });
         }
+        
         async function submitStudent() {
-            let name = document.getElementById('regName').value.trim(); if(!name) return;
-            showLoading("Merekod..."); let picBase64 = ""; let fileInput = document.getElementById('regGambar').files[0];
+            let name = document.getElementById('regName').value.trim(); 
+            if(!name) return showAppAlert("Perhatian", "Sila masukkan nama pelajar.", "warning");
+            
+            showLoading("Merekod ke pangkalan data..."); 
+            let picBase64 = ""; 
+            let fileInput = document.getElementById('regGambar').files[0];
+            
             if(fileInput) picBase64 = await compressImage(fileInput);
-            let payload = { action: "addStudent", studentName: name, kelas: document.getElementById('regKelas').value, ic: document.getElementById('regIc').value, jantina: document.getElementById('regJantina').value, kategori: document.getElementById('regKategori').value, gambarBase64: picBase64, guruEmail: currentUserEmail };
+            
+            let payload = { 
+                action: "addStudent", 
+                studentName: name, 
+                kelas: document.getElementById('regKelas').value, 
+                ic: document.getElementById('regIc').value, 
+                jantina: document.getElementById('regJantina').value, 
+                kategori: document.getElementById('regKategori').value, 
+                gambarBase64: picBase64, 
+                guruEmail: currentUserEmail 
+            };
+            
             try {
-                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); let data = await res.json(); hideLoading();
-                if(data.status === "success") { document.getElementById('addStudentModal').style.display='none'; showAppAlert("Berjaya", data.message, "success"); await fetchStudents(); selectStudent(name); } 
-                else showAppAlert("Gagal", data.message, "error");
-            } catch (err) { hideLoading(); }
+                let res = await fetch(WEB_APP_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(payload) 
+                }); 
+                let data = await res.json(); 
+                hideLoading();
+                
+                if(data.status === "success") { 
+                    document.getElementById('addStudentModal').style.display='none'; 
+                    showAppAlert("Berjaya", data.message, "success"); 
+                    await fetchStudents(); 
+                    selectStudent(name); 
+                } else {
+                    showAppAlert("Gagal", data.message, "error");
+                }
+            } catch (err) { hideLoading(); console.error(err); }
         }
 
+        // ==========================================
+        // 3. UI DASHBOARD & DATA CLOUD
+        // ==========================================
         function renderStudentList() {
-            const ul = document.getElementById('studentListUI'); ul.innerHTML = "";
+            const ul = document.getElementById('studentListUI'); 
+            ul.innerHTML = "";
             studentsList.forEach(student => {
-                let li = document.createElement('li'); li.className = `student-item ${(activeStudent && student.name === activeStudent.name) ? 'active' : ''}`;
-                li.innerHTML = `<img src="${student.gambar || 'https://via.placeholder.com/40'}"> <span>${student.name}</span>`; li.onclick = () => selectStudent(student.name); ul.appendChild(li);
+                let li = document.createElement('li'); 
+                li.className = `student-item ${(activeStudent && student.name === activeStudent.name) ? 'active' : ''}`;
+                li.innerHTML = `<img src="${student.gambar || 'https://via.placeholder.com/40'}"> <span>${student.name}</span>`; 
+                li.onclick = () => selectStudent(student.name); 
+                ul.appendChild(li);
             });
         }
+        
         function selectStudent(nameStr) {
-            activeStudent = studentsList.find(s => s.name === nameStr); renderStudentList(); 
-            document.getElementById('emptyState').style.display='none'; document.getElementById('studentDetails').style.display='block';
-            document.getElementById('activeStudentTitle').innerText = activeStudent.name; document.getElementById('activeStudentInfo').innerText = `Kelas: ${activeStudent.kelas||"-"} | IC: ${activeStudent.ic||"-"}`; document.getElementById('activeStudentPic').src = activeStudent.gambar || "https://via.placeholder.com/150";
-            renderCerts(); fetchCertsFromDB(activeStudent.name);
+            activeStudent = studentsList.find(s => s.name === nameStr); 
+            renderStudentList(); 
+            
+            document.getElementById('emptyState').style.display='none'; 
+            document.getElementById('studentDetails').style.display='block';
+            
+            document.getElementById('activeStudentTitle').innerText = activeStudent.name; 
+            document.getElementById('activeStudentInfo').innerText = `Kelas: ${activeStudent.kelas||"-"} | IC: ${activeStudent.ic||"-"}`; 
+            document.getElementById('activeStudentPic').src = activeStudent.gambar || "https://via.placeholder.com/150";
+            
+            renderCerts(); 
+            fetchCertsFromDB(activeStudent.name);
         }
 
-        // TUKAR LINK GOOGLE DRIVE KE THUMBNAIL
+        // TUKAR LINK GOOGLE DRIVE KE THUMBNAIL PREVIEW
         function getDriveThumb(url) {
             let match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
             let id = match ? match[1] : null;
-            if(!id) { match = url.match(/id=([a-zA-Z0-9_-]+)/); id = match ? match[1] : null; }
+            if(!id) { 
+                match = url.match(/id=([a-zA-Z0-9_-]+)/); 
+                id = match ? match[1] : null; 
+            }
             return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w400` : 'https://via.placeholder.com/150?text=Sijil+PDF';
         }
 
         async function fetchCertsFromDB(studentName) {
-            const container = document.getElementById('dbCertsContainer'); container.innerHTML = "<p style='color:var(--text-light);'><i class='fa-solid fa-spinner fa-spin'></i> Memuat turun sijil terkini...</p>";
+            const container = document.getElementById('dbCertsContainer'); 
+            container.innerHTML = "<p style='color:var(--text-light);'><i class='fa-solid fa-spinner fa-spin'></i> Memuat turun sijil terkini dari Cloud...</p>";
+            
             try {
-                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "getCerts", studentName: studentName }) }); let data = await res.json();
+                let res = await fetch(WEB_APP_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "getCerts", studentName: studentName }) 
+                }); 
+                let data = await res.json();
+                
                 if(data.status === "success") {
-                    if(data.data.length === 0) container.innerHTML = "<p style='color:grey; font-size:13px;'>Tiada sijil terdahulu.</p>";
-                    else { 
+                    if(data.data.length === 0) {
+                        container.innerHTML = "<p style='color:grey; font-size:13px;'>Tiada sijil terdahulu direkodkan.</p>";
+                    } else { 
                         let html = '<div class="cloud-certs-grid">';
                         data.data.forEach(c => { 
                             let thumbUrl = getDriveThumb(c.url);
                             html += `
                             <div class="cloud-cert-card" onclick="window.open('${c.url}', '_blank')">
-                                <img src="${thumbUrl}" onerror="this.src='https://via.placeholder.com/150?text=PDF'">
+                                <img src="${thumbUrl}" onerror="this.src='https://via.placeholder.com/150?text=Sijil+PDF'">
                                 <div class="cloud-cert-info">
                                     <div class="cloud-cert-name"><i class="fa-solid fa-file-pdf" style="color:var(--danger);"></i> ${c.certName}</div>
                                     <div class="cloud-cert-date">Tarikh: ${new Date(c.date).toLocaleDateString('ms-MY')}</div>
                                 </div>
                             </div>`; 
                         }); 
-                        html += '</div>'; container.innerHTML = html;
+                        html += '</div>'; 
+                        container.innerHTML = html;
                     }
                 }
-            } catch(e) { container.innerHTML = "<p style='color:red;'>Gagal.</p>"; }
+            } catch(e) { 
+                container.innerHTML = "<p style='color:red;'>Gagal menyambung ke pangkalan data.</p>"; 
+            }
         }
 
-        // UI EDITOR
+        // ==========================================
+        // 4. PENGURUSAN RUANGAN EDITOR (LOCAL CERTS)
+        // ==========================================
         function renderCerts() {
-            const listUI = document.getElementById('certGridUI'); listUI.innerHTML = ""; if(!activeStudent) return;
+            const listUI = document.getElementById('certGridUI'); 
+            listUI.innerHTML = ""; 
+            
+            if(!activeStudent) return;
             let myCerts = sessionCerts.filter(c => c.student === activeStudent.name);
-            if(myCerts.length === 0) { listUI.innerHTML = `<p style="font-size:14px; color:grey;">Belum ada deraf.</p>`; return; }
+            
+            if(myCerts.length === 0) { 
+                listUI.innerHTML = `<p style="font-size:14px; color:grey;">Belum ada deraf sijil pada sesi ini.</p>`; 
+                return; 
+            }
 
             myCerts.forEach((cert, certIndex) => {
                 if (cert.student !== activeStudent.name || cert.images.length === 0) return;
+                
                 let thumbsHTML = "";
                 cert.images.forEach((imgData, imgIndex) => {
                     thumbsHTML += `
                         <div class="thumb-item" draggable="true" ondragstart="dragStart(event, ${certIndex}, ${imgIndex})" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event, ${certIndex}, ${imgIndex})">
                             <img src="${imgData}" onclick="openPowerEditor(${certIndex}, ${imgIndex})">
                             <span class="img-overlay-text">✏️ Klik Edit</span>
-                            <div class="thumb-actions"><button class="btn-danger" onclick="deleteLocalThumbnail(${certIndex}, ${imgIndex})" style="background: var(--danger);">Buang</button></div>
+                            <div class="thumb-actions">
+                                <button class="btn-danger" onclick="deleteLocalThumbnail(${certIndex}, ${imgIndex})" style="background: var(--danger);">Buang</button>
+                            </div>
                         </div>`;
                 });
+                
                 thumbsHTML += `<div class="thumb-add-btn" onclick="triggerInlineAdd(${certIndex})"><i class="fa-solid fa-file-circle-plus"></i> Tambah Page</div>`;
-                let statusLabel = cert.needsSync ? `<span class="cert-status unsynced"><i class="fa-solid fa-triangle-exclamation"></i> Ada perubahan susunan/edit!</span>` : `<span class="cert-status drive">Tersimpan di Drive</span>`;
-                let syncBtnHtml = cert.needsSync ? `<button class="btn-warning" onclick="syncUpdateToCloud(${certIndex})" style="width:auto; padding: 10px; animation: pulseText 2s infinite;">⚠️ Kemaskini Cloud</button>` : `<button class="btn-primary" onclick="downloadLocalPDF(${certIndex})" style="width:auto; padding: 10px;">Download PDF</button>`;
-                listUI.innerHTML += `<div class="cert-card" style="${cert.needsSync ? 'border-color: var(--warning); border-width: 2px;' : ''}"><div class="cert-header"><div><h4>${cert.certName}</h4>${statusLabel}</div><div style="display:flex; gap:10px;">${syncBtnHtml}</div></div><div class="cert-thumbnails" ondragover="dragOver(event)" ondrop="dropAtEnd(event, ${certIndex})">${thumbsHTML}</div></div>`;
+                
+                let statusLabel = cert.needsSync ? `<span class="cert-status unsynced"><i class="fa-solid fa-triangle-exclamation"></i> Deraf belum dihantar ke Cloud!</span>` : `<span class="cert-status drive"><i class="fa-solid fa-cloud-check"></i> Tersimpan selari di Drive</span>`;
+                let syncBtnHtml = cert.needsSync ? `<button class="btn-warning" onclick="syncUpdateToCloud(${certIndex})" style="width:auto; padding: 10px; animation: pulseText 2s infinite;">⚠️ Kemaskini Cloud (PDF)</button>` : `<button class="btn-primary" onclick="downloadLocalPDF(${certIndex})" style="width:auto; padding: 10px;">Download Local PDF</button>`;
+                
+                listUI.innerHTML += `
+                <div class="cert-card" style="${cert.needsSync ? 'border-color: var(--warning); border-width: 2px;' : ''}">
+                    <div class="cert-header">
+                        <div>
+                            <h4>${cert.certName}</h4>
+                            ${statusLabel}
+                        </div>
+                        <div style="display:flex; gap:10px;">${syncBtnHtml}</div>
+                    </div>
+                    <div class="cert-thumbnails" ondragover="dragOver(event)" ondrop="dropAtEnd(event, ${certIndex})">
+                        ${thumbsHTML}
+                    </div>
+                </div>`;
             });
         }
 
+        // Drag & Drop Editor Gallery
         function dragStart(e, cIdx, pIdx) { dragSourceCertIndex = cIdx; dragSourcePageIndex = pIdx; e.dataTransfer.effectAllowed = 'move'; e.target.classList.add('dragging'); }
         function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.add('drag-over'); }
         function dragLeave(e) { if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over'); }
-        function drop(e, tCIdx, tPIdx) { e.preventDefault(); e.stopPropagation(); if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over'); if (dragSourceCertIndex !== tCIdx) return; if (dragSourcePageIndex === tPIdx) return; let cert = sessionCerts[tCIdx]; let item = cert.images.splice(dragSourcePageIndex, 1)[0]; cert.images.splice(tPIdx, 0, item); cert.needsSync = true; renderCerts(); }
-        function dropAtEnd(e, tCIdx) { e.preventDefault(); if (dragSourceCertIndex !== tCIdx || dragSourcePageIndex === sessionCerts[tCIdx].images.length -1) return; let cert = sessionCerts[tCIdx]; let item = cert.images.splice(dragSourcePageIndex, 1)[0]; cert.images.push(item); cert.needsSync = true; renderCerts(); }
+        function drop(e, tCIdx, tPIdx) { 
+            e.preventDefault(); e.stopPropagation(); 
+            if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over'); 
+            if (dragSourceCertIndex !== tCIdx) return; 
+            if (dragSourcePageIndex === tPIdx) return; 
+            
+            let cert = sessionCerts[tCIdx]; 
+            let item = cert.images.splice(dragSourcePageIndex, 1)[0]; 
+            cert.images.splice(tPIdx, 0, item); 
+            cert.needsSync = true; 
+            renderCerts(); 
+        }
+        function dropAtEnd(e, tCIdx) { 
+            e.preventDefault(); 
+            if (dragSourceCertIndex !== tCIdx || dragSourcePageIndex === sessionCerts[tCIdx].images.length -1) return; 
+            
+            let cert = sessionCerts[tCIdx]; 
+            let item = cert.images.splice(dragSourcePageIndex, 1)[0]; 
+            cert.images.push(item); 
+            cert.needsSync = true; 
+            renderCerts(); 
+        }
 
+        // Fungsi Tambah Muka Surat Inline (Tengah-tengah edit)
         document.getElementById('inlineAddFileInput').addEventListener('change', async (e) => {
-            if(targetInlineCertIndex === -1) return; const file = e.target.files[0]; if(!file) return; let cert = sessionCerts[targetInlineCertIndex];
-            showLoading("Memproses fail...");
+            if(targetInlineCertIndex === -1) return; 
+            const file = e.target.files[0]; 
+            if(!file) return; 
+            
+            let cert = sessionCerts[targetInlineCertIndex];
+            showLoading("Memproses fail untuk ditambah...");
+            
             if(file.type === "application/pdf") {
-                const fileReader = new FileReader(); fileReader.onload = async function() {
-                    try { const typedarray = new Uint8Array(this.result); const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                        for(let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const viewport = page.getViewport({scale: 1.5}); canvas.width = viewport.width; canvas.height = viewport.height; await page.render({canvasContext: ctx, viewport: viewport}).promise; cert.images.push(canvas.toDataURL('image/jpeg', 0.9)); }
-                        cert.needsSync = true; renderCerts(); hideLoading();
-                    } catch(err) { hideLoading(); showAppAlert("Maaf", "Gagal baca PDF.", "error"); }
-                }; fileReader.readAsArrayBuffer(file);
+                const fileReader = new FileReader(); 
+                fileReader.onload = async function() {
+                    try { 
+                        const typedarray = new Uint8Array(this.result); 
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        for(let i = 1; i <= pdf.numPages; i++) { 
+                            const page = await pdf.getPage(i); 
+                            const viewport = page.getViewport({scale: 1.5}); 
+                            canvas.width = viewport.width; 
+                            canvas.height = viewport.height; 
+                            await page.render({canvasContext: ctx, viewport: viewport}).promise; 
+                            cert.images.push(canvas.toDataURL('image/jpeg', 0.9)); 
+                        }
+                        cert.needsSync = true; 
+                        renderCerts(); 
+                        hideLoading();
+                    } catch(err) { 
+                        hideLoading(); 
+                        showAppAlert("Maaf", "Gagal membaca PDF.", "error"); 
+                    }
+                }; 
+                fileReader.readAsArrayBuffer(file);
             } else {
-                const img = new Image(); img.onload = function() { canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); cert.images.push(canvas.toDataURL('image/jpeg', 0.9)); cert.needsSync = true; renderCerts(); hideLoading(); }
+                const img = new Image(); 
+                img.onload = function() { 
+                    canvas.width = img.width; 
+                    canvas.height = img.height; 
+                    ctx.drawImage(img, 0, 0); 
+                    cert.images.push(canvas.toDataURL('image/jpeg', 0.9)); 
+                    cert.needsSync = true; 
+                    renderCerts(); 
+                    hideLoading(); 
+                }
                 img.src = URL.createObjectURL(file);
-            } e.target.value = "";
+            } 
+            e.target.value = "";
         });
-        function triggerInlineAdd(certIdx) { targetInlineCertIndex = certIdx; document.getElementById('inlineAddFileInput').click(); }
-        function deleteLocalThumbnail(certIdx, pageIdx) { if(confirm("Adakah anda pasti?")) { sessionCerts[certIdx].images.splice(pageIdx, 1); sessionCerts[certIdx].needsSync = true; renderCerts(); } }
+        
+        function triggerInlineAdd(certIdx) { 
+            targetInlineCertIndex = certIdx; 
+            document.getElementById('inlineAddFileInput').click(); 
+        }
+        
+        function deleteLocalThumbnail(certIdx, pageIdx) { 
+            if(confirm("Adakah anda pasti mahu membuang muka surat ini?")) { 
+                sessionCerts[certIdx].images.splice(pageIdx, 1); 
+                sessionCerts[certIdx].needsSync = true; 
+                renderCerts(); 
+            } 
+        }
 
         // ==========================================
-        // 🚀 EDITOR POWER 
+        // 5. 🚀 EDITOR POWER (CANVAS CUSTOM)
         // ==========================================
         const editorCanvas = document.getElementById('editorCanvas');
         const edCtx = editorCanvas.getContext('2d', { willReadFrequently: true });
+        
         let editorImg = new Image(), edTool = '', isDrawing = false;
         let cropStartX, cropStartY, cropEndX, cropEndY, editHistory = [], tempImgDataForCrop = null;
 
         function openPowerEditor(cIdx, pIdx) {
-            activeEditCertIndex = cIdx; activeEditPageIndex = pIdx;
+            activeEditCertIndex = cIdx; 
+            activeEditPageIndex = pIdx;
+            
             document.getElementById('powerEditorModal').style.display = 'flex';
-            editorImg.onload = () => { editorCanvas.width = editorImg.naturalWidth; editorCanvas.height = editorImg.naturalHeight; edCtx.drawImage(editorImg, 0, 0); saveHistory(); setTool(''); };
+            
+            editorImg.onload = () => { 
+                editorCanvas.width = editorImg.naturalWidth; 
+                editorCanvas.height = editorImg.naturalHeight; 
+                edCtx.drawImage(editorImg, 0, 0); 
+                saveHistory(); 
+                setTool(''); 
+            };
             editorImg.src = sessionCerts[cIdx].images[pIdx];
         }
-        function closeEditor() { document.getElementById('powerEditorModal').style.display = 'none'; }
-        function saveEditor() { let newImgData = editorCanvas.toDataURL('image/jpeg', 0.9); sessionCerts[activeEditCertIndex].images[activeEditPageIndex] = newImgData; sessionCerts[activeEditCertIndex].needsSync = true; renderCerts(); closeEditor(); }
-        function saveHistory() { editHistory.push(editorCanvas.toDataURL('image/jpeg', 1.0)); }
-        function undoEditor() {
-            if (editHistory.length > 1) { editHistory.pop(); let prevImg = new Image(); prevImg.onload = () => { editorCanvas.width = prevImg.width; editorCanvas.height = prevImg.height; edCtx.drawImage(prevImg, 0, 0); }; prevImg.src = editHistory[editHistory.length - 1]; }
-        }
-        function setTool(toolName) {
-            edTool = toolName; document.querySelectorAll('.editor-toolbar button').forEach(b => b.classList.remove('active-tool'));
-            if(toolName) document.getElementById('tool' + toolName.charAt(0).toUpperCase() + toolName.slice(1))?.classList.add('active-tool');
-            document.getElementById('textOptions').style.display = toolName === 'text' ? 'block' : 'none'; document.getElementById('cropOptions').style.display = toolName === 'crop' ? 'block' : 'none';
-            editorCanvas.style.cursor = toolName === 'text' ? 'text' : toolName === 'erase' ? 'cell' : toolName === 'crop' ? 'crosshair' : 'default';
-        }
-        function getEdPos(evt) {
-            let rect = editorCanvas.getBoundingClientRect(), scaleX = editorCanvas.width / rect.width, scaleY = editorCanvas.height / rect.height;
-            let clientX = evt.touches ? evt.touches[0].clientX : evt.clientX, clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
-            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
-        }
-        editorCanvas.addEventListener('mousedown', startAction); editorCanvas.addEventListener('touchstart', startAction, {passive: false});
-        editorCanvas.addEventListener('mousemove', moveAction); editorCanvas.addEventListener('touchmove', moveAction, {passive: false});
-        editorCanvas.addEventListener('mouseup', endAction); editorCanvas.addEventListener('touchend', endAction);
-        
-        function startAction(e) {
-            if(!edTool) return; e.preventDefault(); isDrawing = true; let pos = getEdPos(e);
-            if (edTool === 'erase') { edCtx.beginPath(); edCtx.moveTo(pos.x, pos.y); edCtx.strokeStyle = "white"; edCtx.lineWidth = 30; edCtx.lineCap = "round"; } 
-            else if (edTool === 'crop') { cropStartX = pos.x; cropStartY = pos.y; tempImgDataForCrop = edCtx.getImageData(0, 0, editorCanvas.width, editorCanvas.height); }
-            else if (edTool === 'text') { isDrawing = false; let txt = prompt("Masukkan Teks Baru:"); if(txt) { let size = document.getElementById('txtSize').value || 30; let color = document.getElementById('txtColor').value || "#000000"; edCtx.font = `${size}px Arial`; edCtx.fillStyle = color; edCtx.fillText(txt, pos.x, pos.y); saveHistory(); } }
-        }
-        function moveAction(e) {
-            if(!isDrawing || !edTool) return; e.preventDefault(); let pos = getEdPos(e);
-            if (edTool === 'erase') { edCtx.lineTo(pos.x, pos.y); edCtx.stroke(); } 
-            else if (edTool === 'crop') { edCtx.putImageData(tempImgDataForCrop, 0, 0); cropEndX = pos.x; cropEndY = pos.y; edCtx.strokeStyle = "red"; edCtx.lineWidth = 5; edCtx.setLineDash([15, 15]); edCtx.strokeRect(cropStartX, cropStartY, cropEndX - cropStartX, cropEndY - cropStartY); edCtx.setLineDash([]); }
-        }
-        function endAction(e) { if(!isDrawing) return; isDrawing = false; if (edTool === 'erase') saveHistory(); }
-        function executeCrop() {
-            if (edTool !== 'crop' || !tempImgDataForCrop) return;
-            let w = Math.abs(cropEndX - cropStartX), h = Math.abs(cropEndY - cropStartY), x = Math.min(cropStartX, cropEndX), y = Math.min(cropStartY, cropEndY);
-            if (w < 20 || h < 20) return;
-            let tempCanv = document.createElement('canvas'); tempCanv.width = editorCanvas.width; tempCanv.height = editorCanvas.height; tempCanv.getContext('2d').putImageData(tempImgDataForCrop, 0, 0);
-            editorCanvas.width = w; editorCanvas.height = h; edCtx.drawImage(tempCanv, x, y, w, h, 0, 0, w, h);
-            setTool(''); saveHistory();
-        }
-        function applyAiFilter() {
-            if(!opencvReady) return; showLoading("Memproses AI Filter...");
-            setTimeout(() => { let mat = cv.imread(editorCanvas); cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY, 0); cv.adaptiveThreshold(mat, mat, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15); cv.imshow(editorCanvas, mat); mat.delete(); saveHistory(); hideLoading(); }, 100);
+
+        function closeEditor() { 
+            document.getElementById('powerEditorModal').style.display = 'none'; 
         }
 
-        // KEMAS KINI KE CLOUD (UPDATE)
+        function saveEditor() { 
+            let newImgData = editorCanvas.toDataURL('image/jpeg', 0.9); 
+            sessionCerts[activeEditCertIndex].images[activeEditPageIndex] = newImgData; 
+            sessionCerts[activeEditCertIndex].needsSync = true; 
+            renderCerts(); 
+            closeEditor(); 
+        }
+
+        function saveHistory() { 
+            editHistory.push(editorCanvas.toDataURL('image/jpeg', 1.0)); 
+        }
+
+        function undoEditor() {
+            if (editHistory.length > 1) { 
+                editHistory.pop(); 
+                let prevImg = new Image(); 
+                prevImg.onload = () => { 
+                    editorCanvas.width = prevImg.width; 
+                    editorCanvas.height = prevImg.height; 
+                    edCtx.drawImage(prevImg, 0, 0); 
+                }; 
+                prevImg.src = editHistory[editHistory.length - 1]; 
+            }
+        }
+
+        function setTool(toolName) {
+            edTool = toolName; 
+            document.querySelectorAll('.editor-toolbar button').forEach(b => b.classList.remove('active-tool'));
+            
+            if(toolName) document.getElementById('tool' + toolName.charAt(0).toUpperCase() + toolName.slice(1))?.classList.add('active-tool');
+            
+            document.getElementById('textOptions').style.display = toolName === 'text' ? 'block' : 'none'; 
+            document.getElementById('cropOptions').style.display = toolName === 'crop' ? 'block' : 'none';
+            
+            editorCanvas.style.cursor = toolName === 'text' ? 'text' : toolName === 'erase' ? 'cell' : toolName === 'crop' ? 'crosshair' : 'default';
+        }
+
+        function getEdPos(evt) {
+            let rect = editorCanvas.getBoundingClientRect();
+            let scaleX = editorCanvas.width / rect.width;
+            let scaleY = editorCanvas.height / rect.height;
+            let clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+            let clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+        }
+
+        editorCanvas.addEventListener('mousedown', startAction); 
+        editorCanvas.addEventListener('touchstart', startAction, {passive: false});
+        editorCanvas.addEventListener('mousemove', moveAction); 
+        editorCanvas.addEventListener('touchmove', moveAction, {passive: false});
+        editorCanvas.addEventListener('mouseup', endAction); 
+        editorCanvas.addEventListener('touchend', endAction);
+        
+        function startAction(e) {
+            if(!edTool) return; 
+            e.preventDefault(); 
+            isDrawing = true; 
+            let pos = getEdPos(e);
+            
+            if (edTool === 'erase') { 
+                edCtx.beginPath(); 
+                edCtx.moveTo(pos.x, pos.y); 
+                edCtx.strokeStyle = "white"; 
+                edCtx.lineWidth = 30; 
+                edCtx.lineCap = "round"; 
+            } else if (edTool === 'crop') { 
+                cropStartX = pos.x; 
+                cropStartY = pos.y; 
+                tempImgDataForCrop = edCtx.getImageData(0, 0, editorCanvas.width, editorCanvas.height); 
+            } else if (edTool === 'text') { 
+                isDrawing = false; 
+                let txt = prompt("Masukkan Teks Baru (Cth: NAMA PELAJAR):"); 
+                if(txt) { 
+                    let size = document.getElementById('txtSize').value || 30; 
+                    let color = document.getElementById('txtColor').value || "#000000"; 
+                    edCtx.font = `${size}px Arial`; 
+                    edCtx.fillStyle = color; 
+                    edCtx.fillText(txt, pos.x, pos.y); 
+                    saveHistory(); 
+                } 
+            }
+        }
+
+        function moveAction(e) {
+            if(!isDrawing || !edTool) return; 
+            e.preventDefault(); 
+            let pos = getEdPos(e);
+            
+            if (edTool === 'erase') { 
+                edCtx.lineTo(pos.x, pos.y); 
+                edCtx.stroke(); 
+            } else if (edTool === 'crop') { 
+                edCtx.putImageData(tempImgDataForCrop, 0, 0); 
+                cropEndX = pos.x; 
+                cropEndY = pos.y; 
+                edCtx.strokeStyle = "red"; 
+                edCtx.lineWidth = 5; 
+                edCtx.setLineDash([15, 15]); 
+                edCtx.strokeRect(cropStartX, cropStartY, cropEndX - cropStartX, cropEndY - cropStartY); 
+                edCtx.setLineDash([]); 
+            }
+        }
+
+        function endAction(e) { 
+            if(!isDrawing) return; 
+            isDrawing = false; 
+            if (edTool === 'erase') saveHistory(); 
+        }
+
+        function executeCrop() {
+            if (edTool !== 'crop' || !tempImgDataForCrop) return;
+            let w = Math.abs(cropEndX - cropStartX);
+            let h = Math.abs(cropEndY - cropStartY);
+            let x = Math.min(cropStartX, cropEndX);
+            let y = Math.min(cropStartY, cropEndY);
+            
+            if (w < 20 || h < 20) return;
+            
+            let tempCanv = document.createElement('canvas'); 
+            tempCanv.width = editorCanvas.width; 
+            tempCanv.height = editorCanvas.height; 
+            tempCanv.getContext('2d').putImageData(tempImgDataForCrop, 0, 0);
+            
+            editorCanvas.width = w; 
+            editorCanvas.height = h; 
+            edCtx.drawImage(tempCanv, x, y, w, h, 0, 0, w, h);
+            
+            setTool(''); 
+            saveHistory();
+        }
+
+        function applyAiFilter() {
+            if(!opencvReady) return; 
+            showLoading("Memproses AI Filter...");
+            setTimeout(() => { 
+                let mat = cv.imread(editorCanvas); 
+                cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY, 0); 
+                cv.adaptiveThreshold(mat, mat, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15); 
+                cv.imshow(editorCanvas, mat); 
+                mat.delete(); 
+                saveHistory(); 
+                hideLoading(); 
+            }, 100);
+        }
+
+        // ==========================================
+        // 6. FUNGSI GENERATE PDF & CLOUD SYNC
+        // ==========================================
         async function syncUpdateToCloud(certIndex) {
-            let cert = sessionCerts[certIndex]; if(cert.images.length === 0) return;
-            showLoading("Menyusun dan muat naik ke Google Drive...");
-            let btnList = document.querySelectorAll('.cert-card')[certIndex].querySelectorAll('button'); btnList.forEach(b => b.disabled = true);
+            let cert = sessionCerts[certIndex]; 
+            if(cert.images.length === 0) return;
+            
+            showLoading("Menyusun dan memuat naik sijil ke Google Drive...");
+            let btnList = document.querySelectorAll('.cert-card')[certIndex].querySelectorAll('button'); 
+            btnList.forEach(b => b.disabled = true);
+            
             try {
-                const { jsPDF } = window.jspdf; const pdf = new jsPDF(); pdf.deletePage(1);
+                const { jsPDF } = window.jspdf; 
+                const pdf = new jsPDF(); 
+                pdf.deletePage(1);
+                
                 for(let i = 0; i < cert.images.length; i++) {
-                    let imgData = cert.images[i]; let img = new Image(); img.src = imgData; await new Promise(r => img.onload = r);
-                    let orientation = img.width > img.height ? 'l' : 'p'; pdf.addPage([img.width, img.height], orientation); pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
+                    let imgData = cert.images[i]; 
+                    let img = new Image(); 
+                    img.src = imgData; 
+                    await new Promise(r => img.onload = r);
+                    let orientation = img.width > img.height ? 'l' : 'p'; 
+                    pdf.addPage([img.width, img.height], orientation); 
+                    pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
                 }
                 const pdfBase64 = pdf.output('datauristring');
-                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "updateFile", pdfData: pdfBase64, fileName: `${activeStudent.name} - ${cert.certName}`, studentName: activeStudent.name, certName: cert.certName, guruEmail: currentUserEmail }) });
-                let result = await res.json(); hideLoading();
-                if (result.status === "success") { cert.needsSync = false; showAppAlert("Berjaya", "PDF dikemas kini.", "success"); renderCerts(); fetchCertsFromDB(activeStudent.name); } 
-                else showAppAlert("Maaf", result.message, "error");
-            } catch (err) { hideLoading(); } finally { btnList.forEach(b => b.disabled = false); }
+                
+                let res = await fetch(WEB_APP_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        action: "updateFile", 
+                        pdfData: pdfBase64, 
+                        fileName: `${activeStudent.name} - ${cert.certName}`, 
+                        studentName: activeStudent.name, 
+                        certName: cert.certName, 
+                        guruEmail: currentUserEmail 
+                    }) 
+                });
+                let result = await res.json(); 
+                hideLoading();
+                
+                if (result.status === "success") { 
+                    cert.needsSync = false; 
+                    showAppAlert("Berjaya", "PDF dikemas kini dan diselaraskan ke Cloud.", "success"); 
+                    renderCerts(); 
+                    fetchCertsFromDB(activeStudent.name); 
+                } else {
+                    showAppAlert("Maaf", result.message, "error");
+                }
+            } catch (err) { 
+                hideLoading(); 
+                showAppAlert("Ralat", "Pelayan tergendala.", "error"); 
+            } finally { 
+                btnList.forEach(b => b.disabled = false); 
+            }
         }
 
         async function downloadLocalPDF(certIndex) {
             let cert = sessionCerts[certIndex];
-            try { const { jsPDF } = window.jspdf; const pdf = new jsPDF(); pdf.deletePage(1);
-                for(let i = 0; i < cert.images.length; i++) { let imgData = cert.images[i]; let img = new Image(); img.src = imgData; await new Promise(r => img.onload = r); let orientation = img.width > img.height ? 'l' : 'p'; pdf.addPage([img.width, img.height], orientation); pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height); }
-                pdf.save(`${cert.certName}.pdf`); } catch (err) {}
+            try { 
+                const { jsPDF } = window.jspdf; 
+                const pdf = new jsPDF(); 
+                pdf.deletePage(1);
+                
+                for(let i = 0; i < cert.images.length; i++) { 
+                    let imgData = cert.images[i]; 
+                    let img = new Image(); 
+                    img.src = imgData; 
+                    await new Promise(r => img.onload = r); 
+                    let orientation = img.width > img.height ? 'l' : 'p'; 
+                    pdf.addPage([img.width, img.height], orientation); 
+                    pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height); 
+                }
+                pdf.save(`${cert.certName}.pdf`); 
+            } catch (err) {}
         }
 
-        // SCANNER BATCH 
-        function onOpenCvReady() { opencvReady = true; setStatus("<i class='fa-solid fa-check'></i> AI Bersedia!", "success"); }
-        function openScanner() { if(!activeStudent) return showAppAlert("Perhatian", "Pilih pelajar.", "warning"); document.getElementById('scannerStudentLabel').innerText = activeStudent.name; let dateStr = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14); document.getElementById('certName').value = `Sijil_${dateStr}`; currentBatch = []; switchScreen('scannerScreen'); startCamera(); }
-        function closeScanner() { stopCamera(); switchScreen('dashboardScreen'); }
-        function startCamera() { navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(stream => video.srcObject = stream).catch(e => setStatus("Kamera tiada.", "warning")); video.style.display = 'block'; canvas.style.display = 'none'; }
-        function stopCamera() { if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop()); }
+        // ==========================================
+        // 7. SISTEM SCANNER & UPLOADER UTAMA
+        // ==========================================
+        function onOpenCvReady() { 
+            opencvReady = true; 
+            setStatus("<i class='fa-solid fa-check'></i> AI Bersedia!", "success"); 
+        }
+
+        function openScanner() { 
+            if(!activeStudent) return showAppAlert("Perhatian", "Pilih nama pelajar dari senarai.", "warning"); 
+            document.getElementById('scannerStudentLabel').innerText = activeStudent.name; 
+            let dateStr = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14); 
+            document.getElementById('certName').value = `Sijil_${dateStr}`; 
+            currentBatch = []; 
+            switchScreen('scannerScreen'); 
+            startCamera(); 
+        }
+
+        function closeScanner() { 
+            stopCamera(); 
+            switchScreen('dashboardScreen'); 
+        }
+
+        function startCamera() { 
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => video.srcObject = stream)
+            .catch(e => setStatus("Kamera tiada, sila gunakan muat naik fail.", "warning")); 
+            video.style.display = 'block'; 
+            canvas.style.display = 'none'; 
+        }
+
+        function stopCamera() { 
+            if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop()); 
+        }
 
         document.getElementById('btnCaptureCam').addEventListener('click', () => {
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight; ctx.drawImage(video, 0, 0, canvas.width, canvas.height); setStatus("Memproses...", "info");
-            setTimeout(() => { let processedImg = (!opencvReady) ? canvas.toDataURL('image/jpeg', 0.9) : detectAndWarpDocument(canvas); currentBatch.push(processedImg); setStatus("Gambar ditambah.", "success"); }, 100);
+            canvas.width = video.videoWidth; 
+            canvas.height = video.videoHeight; 
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height); 
+            setStatus("Memproses dengan AI...", "info");
+            
+            setTimeout(() => { 
+                let processedImg = (!opencvReady) ? canvas.toDataURL('image/jpeg', 0.9) : detectAndWarpDocument(canvas); 
+                currentBatch.push(processedImg); 
+                setStatus("Gambar berjaya disnap.", "success"); 
+            }, 100);
         });
 
         document.getElementById('fileUploadInput').addEventListener('change', async (e) => {
-            const file = e.target.files[0]; if(!file) return; showLoading("Memproses fail...");
+            const file = e.target.files[0]; 
+            if(!file) return; 
+            
+            showLoading("Membaca dan mengekstrak fail...");
             if(file.type === "application/pdf") {
-                const fileReader = new FileReader(); fileReader.onload = async function() {
-                    try { const typedarray = new Uint8Array(this.result); const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                        for(let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const viewport = page.getViewport({scale: 1.5}); canvas.width = viewport.width; canvas.height = viewport.height; await page.render({canvasContext: ctx, viewport: viewport}).promise; currentBatch.push(canvas.toDataURL('image/jpeg', 0.9)); }
-                        hideLoading(); setStatus("Selesai!", "success"); } catch(err) { hideLoading(); showAppAlert("Maaf", "Gagal.", "error"); }
-                }; fileReader.readAsArrayBuffer(file);
+                const fileReader = new FileReader(); 
+                fileReader.onload = async function() {
+                    try { 
+                        const typedarray = new Uint8Array(this.result); 
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        for(let i = 1; i <= pdf.numPages; i++) { 
+                            const page = await pdf.getPage(i); 
+                            const viewport = page.getViewport({scale: 1.5}); 
+                            canvas.width = viewport.width; 
+                            canvas.height = viewport.height; 
+                            await page.render({canvasContext: ctx, viewport: viewport}).promise; 
+                            currentBatch.push(canvas.toDataURL('image/jpeg', 0.9)); 
+                        }
+                        hideLoading(); 
+                        setStatus("PDF sedia disimpan!", "success"); 
+                    } catch(err) { 
+                        hideLoading(); 
+                        showAppAlert("Maaf", "Gagal membaca PDF.", "error"); 
+                    }
+                }; 
+                fileReader.readAsArrayBuffer(file);
             } else {
-                const img = new Image(); img.onload = function() { canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); let processedImg = (!opencvReady) ? canvas.toDataURL('image/jpeg', 0.9) : detectAndWarpDocument(canvas); currentBatch.push(processedImg); hideLoading(); setStatus("Diterima!", "success"); }
+                const img = new Image(); 
+                img.onload = function() { 
+                    canvas.width = img.width; 
+                    canvas.height = img.height; 
+                    ctx.drawImage(img, 0, 0); 
+                    let processedImg = (!opencvReady) ? canvas.toDataURL('image/jpeg', 0.9) : detectAndWarpDocument(canvas); 
+                    currentBatch.push(processedImg); 
+                    hideLoading(); 
+                    setStatus("Gambar diterima!", "success"); 
+                }
                 img.src = URL.createObjectURL(file);
-            } e.target.value = ""; 
+            } 
+            e.target.value = ""; 
         });
 
         function detectAndWarpDocument(srcCanvas) {
-            try { let src = cv.imread(srcCanvas); let dst = new cv.Mat(); cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0); cv.GaussianBlur(dst, dst, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT); cv.Canny(dst, dst, 75, 200); let contours = new cv.MatVector(), hierarchy = new cv.Mat(); cv.findContours(dst, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE); let maxArea = 0, maxContour = null; for (let i = 0; i < contours.size(); ++i) { let cnt = contours.get(i), area = cv.contourArea(cnt), approx = new cv.Mat(); cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true); if (approx.rows === 4 && area > maxArea && area > 50000) { maxArea = area; if (maxContour) maxContour.delete(); maxContour = approx.clone(); } approx.delete(); } if (maxContour) { let pts = []; for (let j = 0; j < 4; j++) pts.push({ x: maxContour.data32S[j*2], y: maxContour.data32S[j*2+1] }); pts.sort((a, b) => a.y - b.y); let top = pts.slice(0, 2).sort((a, b) => a.x - b.x), bottom = pts.slice(2, 4).sort((a, b) => a.x - b.x); let orderedPts = [top[0], top[1], bottom[1], bottom[0]]; let maxWidth = Math.max(Math.hypot(orderedPts[2].x - orderedPts[3].x, orderedPts[2].y - orderedPts[3].y), Math.hypot(orderedPts[1].x - orderedPts[0].x, orderedPts[1].y - orderedPts[0].y)); let maxHeight = Math.max(Math.hypot(orderedPts[1].x - orderedPts[2].x, orderedPts[1].y - orderedPts[2].y), Math.hypot(orderedPts[0].x - orderedPts[3].x, orderedPts[0].y - orderedPts[3].y)); let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [orderedPts[0].x, orderedPts[0].y, orderedPts[1].x, orderedPts[1].y, orderedPts[2].x, orderedPts[2].y, orderedPts[3].x, orderedPts[3].y]); let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, maxWidth, 0, maxWidth, maxHeight, 0, maxHeight]); let M = cv.getPerspectiveTransform(srcTri, dstTri); let warped = new cv.Mat(); cv.warpPerspective(src, warped, M, new cv.Size(maxWidth, maxHeight), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar()); cv.imshow(srcCanvas, warped); srcTri.delete(); dstTri.delete(); M.delete(); warped.delete(); } src.delete(); dst.delete(); contours.delete(); hierarchy.delete(); if (maxContour) maxContour.delete(); return srcCanvas.toDataURL('image/jpeg', 0.9); } catch (err) { return srcCanvas.toDataURL('image/jpeg', 0.9); }
+            try { 
+                let src = cv.imread(srcCanvas); 
+                let dst = new cv.Mat(); 
+                cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0); 
+                cv.GaussianBlur(dst, dst, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT); 
+                cv.Canny(dst, dst, 75, 200); 
+                
+                let contours = new cv.MatVector(), hierarchy = new cv.Mat(); 
+                cv.findContours(dst, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE); 
+                
+                let maxArea = 0, maxContour = null; 
+                for (let i = 0; i < contours.size(); ++i) { 
+                    let cnt = contours.get(i), area = cv.contourArea(cnt), approx = new cv.Mat(); 
+                    cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true); 
+                    if (approx.rows === 4 && area > maxArea && area > 50000) { 
+                        maxArea = area; 
+                        if (maxContour) maxContour.delete(); 
+                        maxContour = approx.clone(); 
+                    } 
+                    approx.delete(); 
+                } 
+                
+                if (maxContour) { 
+                    let pts = []; 
+                    for (let j = 0; j < 4; j++) pts.push({ x: maxContour.data32S[j*2], y: maxContour.data32S[j*2+1] }); 
+                    pts.sort((a, b) => a.y - b.y); 
+                    
+                    let top = pts.slice(0, 2).sort((a, b) => a.x - b.x);
+                    let bottom = pts.slice(2, 4).sort((a, b) => a.x - b.x); 
+                    let orderedPts = [top[0], top[1], bottom[1], bottom[0]]; 
+                    
+                    let maxWidth = Math.max(Math.hypot(orderedPts[2].x - orderedPts[3].x, orderedPts[2].y - orderedPts[3].y), Math.hypot(orderedPts[1].x - orderedPts[0].x, orderedPts[1].y - orderedPts[0].y)); 
+                    let maxHeight = Math.max(Math.hypot(orderedPts[1].x - orderedPts[2].x, orderedPts[1].y - orderedPts[2].y), Math.hypot(orderedPts[0].x - orderedPts[3].x, orderedPts[0].y - orderedPts[3].y)); 
+                    
+                    let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [orderedPts[0].x, orderedPts[0].y, orderedPts[1].x, orderedPts[1].y, orderedPts[2].x, orderedPts[2].y, orderedPts[3].x, orderedPts[3].y]); 
+                    let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, maxWidth, 0, maxWidth, maxHeight, 0, maxHeight]); 
+                    
+                    let M = cv.getPerspectiveTransform(srcTri, dstTri); 
+                    let warped = new cv.Mat(); 
+                    cv.warpPerspective(src, warped, M, new cv.Size(maxWidth, maxHeight), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar()); 
+                    cv.imshow(srcCanvas, warped); 
+                    
+                    srcTri.delete(); dstTri.delete(); M.delete(); warped.delete(); 
+                } 
+                
+                src.delete(); dst.delete(); contours.delete(); hierarchy.delete(); 
+                if (maxContour) maxContour.delete(); 
+                
+                return srcCanvas.toDataURL('image/jpeg', 0.9); 
+            } catch (err) { 
+                return srcCanvas.toDataURL('image/jpeg', 0.9); 
+            }
         }
 
         function saveToDashboardLocal() {
-            if(currentBatch.length === 0) return showAppAlert("Maaf", "Sila tambah gambar.", "warning");
-            let cName = document.getElementById('certName').value.trim(); if(!cName) return showAppAlert("Peringatan", "Sila masukkan nama.", "warning");
+            if(currentBatch.length === 0) return showAppAlert("Perhatian", "Sila tambah gambar terlebih dahulu.", "warning");
+            let cName = document.getElementById('certName').value.trim(); 
+            if(!cName) return showAppAlert("Peringatan", "Sila masukkan nama untuk deraf sijil ini.", "warning");
+            
             sessionCerts.push({ student: activeStudent.name, certName: cName, images: [...currentBatch], needsSync: true });
-            currentBatch = []; closeScanner(); renderCerts();
+            currentBatch = []; 
+            closeScanner(); 
+            renderCerts();
         }
     </script>
 </body>
