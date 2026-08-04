@@ -560,10 +560,12 @@
                         <button class="btn-success" onclick="openScanner()" style="width:auto;"><i class="fa-solid fa-plus"></i> Cipta Sijil Baru</button>
                     </div>
 
-                    <h3 style="font-size: 15px; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-cloud"></i> Sijil Terdahulu (Terkini di atas)</h3>
-                    <div id="dbCertsContainer" style="margin-bottom: 25px; padding:15px; background: #eef2ff; border-radius: 8px; border: 1px dashed var(--primary);"></div>
+                    <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+                        <button id="btnHistoryToggle" class="btn-ghost" onclick="toggleHistory()" style="width:auto; padding:8px 14px; background:rgba(79,70,229,0.08); color:var(--primary);" title="Sejarah sijil terdahulu"><i class="fa-solid fa-clock-rotate-left"></i> Sejarah</button>
+                    </div>
+                    <div id="dbCertsContainer" style="display:none; margin-bottom: 25px; padding:15px; background: #eef2ff; border-radius: 8px; border: 1px dashed var(--primary);"></div>
 
-                    <h3 style="font-size: 15px; color: var(--text-main); margin-bottom: 10px;"><i class="fa-solid fa-pen-ruler"></i> Ruangan Editor (Deraf Sesi Ini)</h3>
+                    <h3 style="font-size: 15px; color: var(--text-main); margin-bottom: 10px;"><i class="fa-solid fa-file-pdf"></i> Sijil Terkini</h3>
                     <div class="cert-list" id="certGridUI"></div>
                 </div>
             </div>
@@ -1161,6 +1163,7 @@ ${hairPath}
             return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w400` : "";
         }
 
+        let autoPreviewLatest = true;
         async function fetchCertsFromDB(studentName) {
             const container = document.getElementById('dbCertsContainer');
             container.innerHTML = "<p style='color:var(--text-light);'><i class='fa-solid fa-spinner fa-spin'></i> Menyemak sijil dari pangkalan data...</p>";
@@ -1174,7 +1177,30 @@ ${hairPath}
                 grid.className = 'cloud-certs-grid';
                 data.data.forEach((c, i) => grid.appendChild(buildCloudCertCard(c, i)));
                 container.appendChild(grid);
+
+                // Papar HANYA sijil PDF paling terkini sebagai pratonton (semua page)
+                if (autoPreviewLatest) previewLatestCert(data.data[0]);
             } catch (e) { container.innerHTML = "<p style='color:red;'>Gagal menyambung.</p>"; }
+        }
+
+        /** Butang sejarah: tunjuk/sembunyi senarai sijil terdahulu */
+        function toggleHistory() {
+            const c = document.getElementById('dbCertsContainer');
+            const b = document.getElementById('btnHistoryToggle');
+            const show = c.style.display === 'none';
+            c.style.display = show ? 'block' : 'none';
+            b.innerHTML = show
+                ? '<i class="fa-solid fa-clock-rotate-left"></i> Tutup Sejarah'
+                : '<i class="fa-solid fa-clock-rotate-left"></i> Sejarah';
+            if (show) c.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        /** Muatkan sijil terkini ke ruangan paparan (mod baca sahaja) */
+        async function previewLatestCert(cert) {
+            if (!cert || !activeStudent) return;
+            const already = sessionCerts.some(c => c.student === activeStudent.name && c.sourceUrl === cert.url);
+            if (already) return;
+            await pullFromCloudToEditor(cert.url, cert.certName, { preview: true });
         }
 
         function buildCloudCertCard(cert, i) {
@@ -1211,7 +1237,7 @@ ${hairPath}
             bEdit.className = 'btn-warning';
             bEdit.style.cssText = "flex:1; padding:6px; font-size:12px;";
             bEdit.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit';
-            bEdit.onclick = () => pullFromCloudToEditor(cert.url, cert.certName);
+            bEdit.onclick = () => { const c = document.getElementById('dbCertsContainer'); if (c.style.display !== 'none') toggleHistory(); pullFromCloudToEditor(cert.url, cert.certName); };
 
             btnRow.appendChild(bPages); btnRow.appendChild(bOpen); btnRow.appendChild(bEdit);
             info.appendChild(btnRow);
@@ -1372,8 +1398,9 @@ ${hairPath}
             finally { cert._bg = false; }
         }
 
-        async function pullFromCloudToEditor(url, certName) {
-            showLoading("Membuka fail untuk diedit...");
+        async function pullFromCloudToEditor(url, certName, opts) {
+            const preview = !!(opts && opts.preview);
+            showLoading(preview ? "Memuatkan sijil terkini..." : "Membuka fail untuk diedit...");
             try {
                 const pdf = await getPdfDoc(url);
                 const n = pdf.numPages;
@@ -1390,12 +1417,14 @@ ${hairPath}
                     document.getElementById('loadingText').innerText = `Menyediakan editor... (${i + 1}/${firstBatch})`;
                 }
 
-                const cert = { student: activeStudent.name, certName: certName, images, thumbs, lazy, needsSync: true };
+                const cert = { student: activeStudent.name, certName: certName, images, thumbs, lazy, needsSync: !preview, editMode: !preview, sourceUrl: url };
                 sessionCerts.push(cert);
                 hideLoading();
                 renderCerts();
-                document.getElementById('certGridUI').scrollIntoView({ behavior: 'smooth' });
-                showAppAlert("Sedia Diedit", `${n} page dibuka. Page dimuatkan bila diperlukan sahaja - jadi cepat walaupun 100 page.`, "success");
+                if (!preview) {
+                    document.getElementById('certGridUI').scrollIntoView({ behavior: 'smooth' });
+                    showAppAlert("Sedia Diedit", `${n} page dibuka. Page dimuatkan bila diperlukan sahaja - jadi cepat walaupun 100 page.`, "success");
+                }
                 backgroundThumbs(cert);
             } catch (err) { hideLoading(); showAppAlert("Ralat", "Gagal: " + err.message, "error"); }
         }
@@ -1449,7 +1478,7 @@ ${hairPath}
 
             const myCerts = [];
             sessionCerts.forEach((c, idx) => { if (c.student === activeStudent.name) myCerts.push({ cert: c, idx }); });
-            if (!myCerts.length) { listUI.innerHTML = `<p style="font-size:14px; color:grey;">Belum ada deraf sijil pada sesi ini.</p>`; return; }
+            if (!myCerts.length) { listUI.innerHTML = `<p style="font-size:14px; color:grey;">Tiada sijil untuk dipaparkan.</p>`; return; }
 
             myCerts.forEach(({ cert, idx }) => {
                 const card = document.createElement('div');
@@ -1475,22 +1504,35 @@ ${hairPath}
                     mainBtn.innerHTML = '<i class="fa-solid fa-download"></i> Muat Turun PDF';
                     mainBtn.onclick = () => downloadLocalPDF(idx);
                 }
+                const editing = cert.editMode !== false;
+                if (!editing) {
+                    const bStartEdit = document.createElement('button');
+                    bStartEdit.className = 'btn-warning';
+                    bStartEdit.style.cssText = "width:auto; padding:10px;";
+                    bStartEdit.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit';
+                    bStartEdit.onclick = () => { cert.editMode = true; renderCerts(); };
+                    right.appendChild(bStartEdit);
+                }
                 right.appendChild(mainBtn);
                 header.appendChild(left); header.appendChild(right);
 
                 const strip = document.createElement('div');
                 strip.className = 'cert-thumbnails';
-                strip.ondragover = dragOver;
-                strip.ondrop = (e) => dropAtEnd(e, idx);
+                if (editing) {
+                    strip.ondragover = dragOver;
+                    strip.ondrop = (e) => dropAtEnd(e, idx);
+                }
 
                 cert.images.forEach((imgData, pIdx) => {
                     const item = document.createElement('div');
                     item.className = 'thumb-item';
-                    item.draggable = true;
-                    item.ondragstart = (e) => dragStart(e, idx, pIdx);
-                    item.ondragover = dragOver;
-                    item.ondragleave = dragLeave;
-                    item.ondrop = (e) => drop(e, idx, pIdx);
+                    if (editing) {
+                        item.draggable = true;
+                        item.ondragstart = (e) => dragStart(e, idx, pIdx);
+                        item.ondragover = dragOver;
+                        item.ondragleave = dragLeave;
+                        item.ondrop = (e) => drop(e, idx, pIdx);
+                    }
 
                     const im = document.createElement('img');
                     im.loading = "lazy";
@@ -1499,11 +1541,17 @@ ${hairPath}
                     im.src = ready || PENDING_THUMB;
                     if (!ready) im.classList.add('pending');
                     if (cert.lazy && cert.lazy[pIdx]) im.dataset.thumbKey = cert.lazy[pIdx].key;
-                    im.onclick = () => openScanEditorForPage(idx, pIdx);
+                    im.onclick = () => { if (editing) openScanEditorForPage(idx, pIdx); else if (cert.sourceUrl) window.open(cert.sourceUrl, '_blank'); };
 
                     const badge = document.createElement('span');
                     badge.className = 'page-badge';
                     badge.innerText = `Page ${pIdx + 1}`;
+
+                    if (!editing) {
+                        item.appendChild(im); item.appendChild(badge);
+                        strip.appendChild(item);
+                        return;
+                    }
 
                     const actions = document.createElement('div');
                     actions.className = 'thumb-actions';
@@ -1539,18 +1587,24 @@ ${hairPath}
                     bRight.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
                     bRight.disabled = pIdx === cert.images.length - 1;
                     bRight.onclick = (ev) => { ev.stopPropagation(); movePage(idx, pIdx, pIdx + 1); };
-                    move.appendChild(bLeft); move.appendChild(bRight);
+                    const bPos = document.createElement('button');
+                    bPos.type = 'button'; bPos.title = 'Alih ke mana-mana kedudukan';
+                    bPos.innerHTML = '<i class="fa-solid fa-arrows-up-down-left-right"></i>';
+                    bPos.onclick = (ev) => { ev.stopPropagation(); movePageTo(idx, pIdx); };
+                    move.appendChild(bLeft); move.appendChild(bPos); move.appendChild(bRight);
 
                     item.appendChild(im); item.appendChild(badge); item.appendChild(move); item.appendChild(actions);
                     strip.appendChild(item);
                 });
 
+                if (editing) {
                 const add = document.createElement('div');
                 add.className = 'thumb-add-btn';
                 add.innerHTML = '<i class="fa-solid fa-file-circle-plus fa-2x"></i><span>Tambah Page</span>';
                 add.innerHTML = '<i class="fa-solid fa-file-circle-plus fa-2x"></i><span>Tambah Page</span><span style="font-size:10px; font-weight:500;">Kamera / Fail</span>';
                 add.onclick = () => openSourceChoice({ type: 'cert', idx });
                 strip.appendChild(add);
+                }
 
                 card.appendChild(header); card.appendChild(strip);
                 listUI.appendChild(card);
@@ -1564,6 +1618,21 @@ ${hairPath}
             certMove(cert, from, to);
             cert.needsSync = true; renderCerts();
         }
+        /** Alih page ke mana-mana kedudukan pilihan pengguna */
+        async function movePageTo(certIdx, from) {
+            const cert = sessionCerts[certIdx];
+            if (!cert) return;
+            const total = cert.images.length;
+            const val = await appPrompt(
+                `Alih Page ${from + 1}`,
+                `Masukkan kedudukan baru (1 hingga ${total}). Page boleh diletak di mana-mana.`,
+                String(from + 1), "fa-arrows-up-down-left-right", "Alih");
+            if (val === null) return;
+            const to = parseInt(String(val).trim(), 10) - 1;
+            if (isNaN(to) || to < 0 || to >= total) { showAppAlert("Maaf", `Kedudukan mesti antara 1 hingga ${total}.`, "error"); return; }
+            movePage(certIdx, from, to);
+        }
+
         function dragStart(e, cIdx, pIdx) { dragSourceCertIndex = cIdx; dragSourcePageIndex = pIdx; e.dataTransfer.effectAllowed = 'move'; e.currentTarget.classList.add('dragging'); }
         function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.add('drag-over'); }
         function dragLeave(e) { if (e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over'); }
