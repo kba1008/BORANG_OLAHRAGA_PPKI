@@ -61,7 +61,6 @@
         .cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
         .cert-card { background: var(--bg-color); padding: 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px; }
 
-        /* Scanner Screen & Batch Editor */
         #scannerScreen { text-align: center; }
         #scannerScreen .card { max-width: 800px; margin: auto; }
         video, canvas { width: 100%; max-height: 45vh; border-radius: 8px; background: #000; object-fit: contain; margin-bottom: 15px; }
@@ -70,7 +69,6 @@
         .btn-group button { width: auto; min-width: 140px; }
         #status { font-weight: 600; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: inline-block; width: 100%; }
         
-        /* CSS Untuk Galeri Kepingan PDF/Gambar (Batch Viewer) */
         .batch-container { text-align: left; background: var(--bg-color); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border); }
         .batch-gallery { display: flex; gap: 12px; overflow-x: auto; padding: 10px 0; min-height: 150px; align-items: center; }
         .batch-item { position: relative; min-width: 120px; max-width: 120px; border: 2px solid var(--border); border-radius: 8px; overflow: hidden; background: #fff; box-shadow: var(--shadow); flex-shrink: 0; }
@@ -80,9 +78,56 @@
         .batch-actions button:hover { background: var(--primary); }
         .batch-actions button.btn-trash:hover { background: var(--danger); }
         .empty-batch { color: var(--text-light); text-align: center; width: 100%; font-size: 14px; }
+
+        /* ==========================================
+           CSS UNTUK CUSTOM POPUP ALERT (GEMPAK)
+           ========================================== */
+        .modal-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 9999; 
+            justify-content: center; align-items: center; animation: fadeIn 0.2s ease; 
+        }
+        .modal-box { 
+            background: var(--surface); padding: 30px; border-radius: 20px; width: 90%; 
+            max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
+            transform: scale(0.9); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+        }
+        @keyframes popIn { to { transform: scale(1); } }
+        
+        .modal-icon { font-size: 55px; margin-bottom: 15px; }
+        .icon-error { color: var(--danger); }
+        .icon-success { color: var(--secondary); }
+        .icon-info { color: var(--primary); }
+        
+        .modal-title { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--text-main); }
+        .modal-message { font-size: 15px; color: var(--text-light); margin-bottom: 20px; line-height: 1.5; }
+        
+        /* Ruangan Khusus Error Log Admin */
+        .error-log { 
+            background: #fee2e2; color: #991b1b; font-family: monospace; font-size: 12px; 
+            padding: 12px; border-radius: 8px; text-align: left; overflow-x: auto; 
+            margin-bottom: 20px; display: none; border: 1px solid #fca5a5;
+            max-height: 100px; overflow-y: auto;
+        }
     </style>
 </head>
 <body>
+
+    <!-- ==========================================
+         SISTEM CUSTOM POPUP ALERT (GANTI ALERT DEFAULT)
+         ========================================== -->
+    <div id="customAlert" class="modal-overlay">
+        <div class="modal-box">
+            <i id="alertIcon" class="modal-icon fa-solid fa-circle-info"></i>
+            <div id="alertTitle" class="modal-title">Tajuk</div>
+            <div id="alertMessage" class="modal-message">Mesej kandungan di sini...</div>
+            
+            <!-- Paparan kod ralat khas jika error -->
+            <div id="alertErrorLog" class="error-log"></div>
+            
+            <button id="alertBtn" class="btn-primary" style="width: 100%; border-radius: 50px; padding: 12px;" onclick="closeAppAlert()">Tutup</button>
+        </div>
+    </div>
 
     <!-- SKRIN 1: LOG MASUK -->
     <div id="loginScreen" class="screen">
@@ -116,7 +161,6 @@
                     <input type="text" id="newStudentName" placeholder="Nama Pelajar Baru...">
                     <button class="btn-primary" onclick="addStudent()" id="btnAddStudent"><i class="fa-solid fa-plus"></i></button>
                 </div>
-                <!-- Senarai ditarik dari Google Sheet -->
                 <ul class="student-list" id="studentListUI"></ul>
             </div>
 
@@ -184,15 +228,57 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxb8jsYTOHn7DwdDJv4yJgEEmYlSUDKiSSqcANWzaKti3-qXkQs9E3QYbh1nploiMb-/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxOrI7Q-Rpk8xtBe7Ol6TyiWzmSx2Mg5PUpc-YOuMadiKEPXeBzNpBkk79qk-nDrvtB/exec"; 
         
         let currentUserEmail = "";
-        let studentsList = []; // Nama dikosongkan. Akan ditarik dari DB.
+        let studentsList = []; 
         let activeStudent = "";
         let sessionCerts = [];
         let currentBatch = []; 
 
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+        // ==========================================
+        // ENJIN CUSTOM POPUP ALERT
+        // ==========================================
+        function showAppAlert(title, message, type = "info", rawError = null) {
+            const overlay = document.getElementById('customAlert');
+            const icon = document.getElementById('alertIcon');
+            const btn = document.getElementById('alertBtn');
+            const logEl = document.getElementById('alertErrorLog');
+            
+            // Reset Kelas
+            icon.className = 'modal-icon fa-solid';
+            
+            // Tetapan Jenis UI (Error / Success / Info)
+            if (type === "error") {
+                icon.classList.add('fa-circle-xmark', 'icon-error');
+                btn.style.backgroundColor = "var(--danger)";
+            } else if (type === "success") {
+                icon.classList.add('fa-circle-check', 'icon-success');
+                btn.style.backgroundColor = "var(--secondary)";
+            } else {
+                icon.classList.add('fa-circle-info', 'icon-info');
+                btn.style.backgroundColor = "var(--primary)";
+            }
+
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerText = message;
+            
+            // Paparkan Log Ralat Khas jika dihantar
+            if (rawError) {
+                logEl.style.display = 'block';
+                logEl.innerText = "Sistem Log: \n" + rawError;
+            } else {
+                logEl.style.display = 'none';
+            }
+
+            overlay.style.display = 'flex';
+        }
+
+        function closeAppAlert() {
+            document.getElementById('customAlert').style.display = 'none';
+        }
 
         function switchScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
@@ -215,29 +301,31 @@
             if (savedUser) {
                 currentUserEmail = savedUser;
                 document.getElementById('userEmailDisplay').innerText = savedUser;
-                fetchStudents(); // Tarik senarai nama
+                fetchStudents();
                 switchScreen('dashboardScreen');
             } else switchScreen('loginScreen');
         });
 
         async function login() {
             let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value;
-            if(!email || !pass) return alert("Sila masukkan maklumat.");
+            if(!email || !pass) return showAppAlert("Maklumat Tidak Lengkap", "Sila masukkan email dan kata laluan.", "error");
             try {
                 let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "login", email, password: pass }) });
                 let data = await res.json();
                 if(data.status === "success") {
                     currentUserEmail = email; localStorage.setItem("sijilProUser", email);
                     document.getElementById('userEmailDisplay').innerText = email;
-                    fetchStudents(); // Tarik senarai nama lepas login
+                    fetchStudents(); 
                     switchScreen('dashboardScreen');
-                } else alert(data.message);
-            } catch (err) { alert("Ralat pelayan."); }
+                } else showAppAlert("Gagal Log Masuk", data.message, "error");
+            } catch (err) { 
+                showAppAlert("Ralat Sambungan", "Gagal menghubungi pangkalan data pelayan.", "error", err.toString()); 
+            }
         }
         
         function logout() {
             localStorage.removeItem("sijilProUser"); stopCamera();
-            studentsList = []; // Clear local data
+            studentsList = []; 
             switchScreen('loginScreen');
         }
 
@@ -250,13 +338,16 @@
             
             try {
                 let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "getStudents" }) });
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
                 let data = await res.json();
+                
                 if (data.status === "success") {
                     studentsList = data.data;
                     renderStudentList();
                 }
             } catch (err) {
-                ul.innerHTML = `<li style="text-align:center; color:red;">Gagal menarik data. Cuba lagi.</li>`;
+                ul.innerHTML = `<li style="text-align:center; color:red;">Gagal menarik data pelajar. Cuba lagi.</li>`;
+                showAppAlert("Ralat Skrip Pelayan", "Pastikan anda telah menekan butang 'New Deployment' di dalam Google Apps Script.", "error", err.toString());
             }
         }
 
@@ -264,31 +355,38 @@
             let input = document.getElementById('newStudentName');
             let name = input.value.trim();
             if(!name) return;
-            if(studentsList.includes(name)) return alert("Nama sudah wujud dalam pangkalan data.");
+            if(studentsList.includes(name)) return showAppAlert("Pelajar Wujud", `Nama "${name}" sudah ada dalam pangkalan data.`, "warning");
             
             let btn = document.getElementById('btnAddStudent');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
             btn.disabled = true;
 
             try {
-                // Simpan ke Google Sheet
                 let res = await fetch(WEB_APP_URL, { 
                     method: 'POST', 
                     body: JSON.stringify({ action: "addStudent", studentName: name, guruEmail: currentUserEmail }) 
                 });
-                let data = await res.json();
+                
+                // Jika URL dipasang dengan skrip lama (belum buat new deployment), JSON akan gagal dibaca.
+                let data;
+                try {
+                    data = await res.json();
+                } catch(parseError) {
+                    throw new Error("Skrip pelayan lama dikesan. Anda mesti klik 'New Deployment' di Google Apps Script.\n\n[Details: " + parseError.message + "]");
+                }
                 
                 if(data.status === "success") {
                     studentsList.push(name);
-                    studentsList.sort(); // Susun A-Z
+                    studentsList.sort();
                     input.value = "";
                     renderStudentList();
-                    selectStudent(name); // Auto pilih pelajar baru
+                    selectStudent(name);
+                    showAppAlert("Berjaya", `Nama "${name}" berjaya ditambah dan disimpan di pangkalan data.`, "success");
                 } else {
-                    alert("Gagal menyimpan nama.");
+                    showAppAlert("Ralat Semasa Menyimpan", data.message, "error");
                 }
             } catch (err) {
-                alert("Ralat pelayan semasa menyimpan.");
+                showAppAlert("Sistem Gagal", "Proses terhenti. Sila rujuk ralat di bawah.", "error", err.toString());
             } finally {
                 btn.innerHTML = '<i class="fa-solid fa-plus"></i>';
                 btn.disabled = false;
@@ -339,7 +437,7 @@
         }
 
         function openScanner() {
-            if(!activeStudent) return alert("Pilih pelajar dahulu.");
+            if(!activeStudent) return showAppAlert("Perhatian", "Pilih nama pelajar terlebih dahulu dari senarai di sebelah kiri.", "info");
             document.getElementById('scannerStudentLabel').innerText = activeStudent;
             
             let dateStr = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14);
@@ -376,7 +474,7 @@
         function deletePage(index) { currentBatch.splice(index, 1); updateBatchUI(); }
 
         document.getElementById('btnCaptureCam').addEventListener('click', () => {
-            if (!opencvReady) return alert("Tunggu AI");
+            if (!opencvReady) return showAppAlert("Sabar", "Sistem AI sedang bersiap sedia. Sila tunggu.", "warning");
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             setStatus("<i class='fa-solid fa-gear fa-spin'></i> AI Memotong gambar...", "info");
@@ -404,7 +502,10 @@
                     }
                     updateBatchUI();
                     setStatus("<i class='fa-solid fa-check-double'></i> Selesai dipecahkan!", "success");
-                } catch(err) { setStatus("Gagal membaca PDF.", "error"); }
+                } catch(err) { 
+                    setStatus("Gagal membaca PDF.", "error"); 
+                    showAppAlert("Ralat PDF", "Gagal mengekstrak fail PDF yang dipilih.", "error", err.toString());
+                }
             } else {
                 setStatus("<i class='fa-solid fa-gear fa-spin'></i> Memproses gambar...", "info");
                 const img = new Image();
@@ -473,9 +574,14 @@
         }
 
         async function generateAndSavePDF() {
-            if(currentBatch.length === 0) return alert("Tiada kepingan sijil dalam galeri.");
+            if(currentBatch.length === 0) return showAppAlert("Sijil Kosong", "Tiada kepingan sijil dalam galeri. Sila scan atau upload dahulu.", "warning");
+            
             let cName = document.getElementById('certName').value.trim();
-            if(!cName) { alert("Sila pastikan ruangan Nama Fail tidak kosong."); document.getElementById('certName').focus(); return; }
+            if(!cName) { 
+                showAppAlert("Nama Diperlukan", "Sila masukkan nama untuk fail PDF ini.", "warning");
+                document.getElementById('certName').focus(); 
+                return; 
+            }
             
             document.getElementById('btnPdfBasic').disabled = true;
             setStatus("<i class='fa-solid fa-layer-group fa-beat'></i> Menggabungkan " + currentBatch.length + " kepingan menjadi PDF Power...", "info");
@@ -508,12 +614,18 @@
                 let result = await res.json();
                 if (result.status === "success") {
                     sessionCerts.push({ student: activeStudent, certName: cName });
-                    alert("Berjaya disimpan dalam Google Drive sekolah!");
+                    showAppAlert("Selesai Upload!", "Sijil PDF telah berjaya dikumpulkan dan dihantar ke dalam Google Drive sekolah.", "success");
                     closeScanner(); renderCerts(); 
-                } else alert("Gagal muat naik: " + result.message);
+                } else {
+                    showAppAlert("Gagal Muat Naik", result.message, "error");
+                }
 
-            } catch (err) { setStatus("Ralat menggabungkan PDF.", "error"); }
-            finally { document.getElementById('btnPdfBasic').disabled = false; }
+            } catch (err) { 
+                setStatus("Ralat menggabungkan PDF.", "error"); 
+                showAppAlert("Ralat Sistem", "Ralat dikesan semasa menggabungkan fail PDF.", "error", err.toString());
+            } finally { 
+                document.getElementById('btnPdfBasic').disabled = false; 
+            }
         }
     </script>
 </body>
