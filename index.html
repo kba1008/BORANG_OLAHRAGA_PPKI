@@ -19,7 +19,15 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         html { overflow-x: hidden; overflow-y: auto; height: auto; -webkit-text-size-adjust: 100%; }
-        body { background-color: var(--bg-color); color: var(--text-main); display: block; min-height: 100vh; height: auto; overflow-x: hidden; overflow-y: visible; max-width: 100%; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+        body { background-color: var(--bg-color); color: var(--text-main); display: block; min-height: 100vh; height: auto; overflow-x: hidden; overflow-y: visible; max-width: 100%; -webkit-overflow-scrolling: touch; touch-action: manipulation; }
+        /* Semua jalur mendatar boleh diskrol kiri-kanan pada telefon */
+        .cert-thumbnails, .page-strip, .editor-toolbar, .table-scroll, .h-scroll {
+            overflow-x: auto; overflow-y: hidden; touch-action: pan-x; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; scrollbar-width: thin;
+        }
+        .cert-thumbnails::-webkit-scrollbar, .page-strip::-webkit-scrollbar, .editor-toolbar::-webkit-scrollbar { height: 6px; }
+        .cert-thumbnails::-webkit-scrollbar-thumb, .page-strip::-webkit-scrollbar-thumb, .editor-toolbar::-webkit-scrollbar-thumb { background: #c7cbd6; border-radius: 20px; }
+        textarea { width: 100%; padding: 12px 14px; margin: 6px 0; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; outline: none; background: #fff; resize: vertical; font-family: 'Inter', sans-serif; }
+        textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.12); }
 
         .screen { display: none; width: 100%; max-width: 1200px; margin: 0 auto; padding: 20px; padding-bottom: calc(40px + env(safe-area-inset-bottom)); animation: fadeIn 0.3s ease; }
         .active-screen { display: block; }
@@ -123,17 +131,59 @@
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 9999; justify-content: center; align-items: center; animation: fadeIn 0.2s ease; padding: 14px; overflow-y: auto; overflow-x: hidden; }
         .modal-box { background: var(--surface); padding: 25px; border-radius: 20px; width: 100%; max-width: 500px; margin: auto; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-height: calc(100dvh - 28px); display: flex; flex-direction: column; overflow-y:auto; }
-        body.modal-open, body.scan-open { overflow: hidden; touch-action: none; }
+        body.modal-open, body.scan-open { overflow: hidden; }
         .hidden { display: none !important; }
 
-        #editorModalBox { max-width: 950px; width: 98%; height: 96vh; padding: 15px; }
-        .editor-toolbar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--border); }
-        .editor-toolbar button { flex: 0 0 auto; width: auto; padding: 8px 15px; font-size: 13px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border); }
-        .editor-toolbar button.active-tool { background: var(--primary); color: white; border-color: var(--primary); }
-        .editor-canvas-container { flex: 1; overflow: auto; background: #e5e7eb; border-radius: 8px; border: 1px solid #ccc; position: relative; touch-action: none; display: flex; justify-content: center; align-items: center; min-height: 300px;}
-        #editorCanvas { display: block !important; max-width: 100%; object-fit: contain; cursor: crosshair; touch-action: none; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
-        .editor-footer { display: flex; justify-content: space-between; margin-top: 15px; gap: 10px; }
-        .tool-options { display: none; background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px dashed var(--primary); font-size: 13px; text-align: left;}
+        #editorModalBox { max-width: 1000px; width: 98%; height: calc(100dvh - 24px); padding: 14px; }
+        .editor-toolbar { display: flex; gap: 8px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--border); }
+        .editor-toolbar button { flex: 0 0 auto; width: auto; padding: 8px 14px; font-size: 13px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border); border-radius: 10px; }
+        .editor-toolbar button.active-tool { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .editor-canvas-container { flex: 1; overflow: auto; background: #e5e7eb; border-radius: 10px; border: 1px solid #ccc; position: relative; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; min-height: 240px; padding: 10px; }
+        .editor-canvas-container.tool-active { touch-action: none; }
+        .canvas-stage { display: inline-block; margin: 0 auto; }
+        #editorCanvas { display: block !important; max-width: none; cursor: crosshair; touch-action: inherit; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.15); }
+        .editor-footer { display: flex; justify-content: space-between; margin-top: 12px; gap: 10px; }
+        .tool-options { display: none; background: #fff; padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border); box-shadow: var(--shadow); font-size: 13px; text-align: left;}
+
+        /* Panel teks gaya editor standard */
+        .txt-panel { display: grid; gap: 10px; }
+        .txt-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+        .txt-row > label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-light); }
+        .txt-panel textarea { margin: 0; min-height: 54px; }
+        .txt-panel select, .txt-panel input[type=number] { width: auto; margin: 0; padding: 8px 10px; font-size: 13px; border-radius: 8px; }
+        .txt-panel input[type=color] { width: 38px; height: 34px; padding: 0; margin: 0; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+        .txt-panel input[type=range] { flex: 1; min-width: 110px; margin: 0; padding: 0; }
+        .icon-btn { width: 38px; height: 34px; padding: 0; font-size: 13px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border); border-radius: 8px; }
+        .icon-btn.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .icon-btn:hover { transform: none; }
+        .txt-hint { font-size: 11.5px; color: var(--text-light); }
+        .zoom-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+        .zoom-bar button { width: 36px; height: 32px; padding: 0; font-size: 13px; background: #fff; color: var(--text-main); border: 1px solid var(--border); border-radius: 8px; }
+        .zoom-bar button.wide { width: auto; padding: 0 12px; }
+        .zoom-bar button:hover { transform: none; }
+        .zoom-level { font-size: 12px; font-weight: 700; color: var(--text-light); min-width: 46px; text-align: center; }
+
+        /* Dialog moden (ganti popup pelayar) */
+        .app-dialog { max-width: 430px; text-align: left; }
+        .dialog-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+        .dialog-ico { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-size: 18px; color: #fff; background: linear-gradient(135deg, var(--primary), #7c6cf5); flex-shrink: 0; }
+        .dialog-ico.danger { background: linear-gradient(135deg, var(--danger), #f87171); }
+        .dialog-title { font-size: 17px; font-weight: 700; line-height: 1.2; }
+        .dialog-sub { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+        .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+        .dialog-actions button { width: auto; min-width: 110px; border-radius: 10px; }
+        @media (max-width: 600px) {
+            #editorModalBox { padding: 10px; }
+            .editor-toolbar button { padding: 8px 12px; font-size: 12px; }
+            .dialog-actions button { flex: 1; min-width: 0; }
+            .tool-options { max-height: 33vh; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px; }
+            .txt-panel { gap: 8px; }
+            .txt-panel textarea { min-height: 46px; font-size: 13px; }
+            .zoom-bar .txt-hint { display: none; }
+            .editor-canvas-container { min-height: 190px; padding: 6px; }
+            .txt-row > label { font-size: 10px; }
+            .txt-panel input[type=range] { min-width: 84px; }
+        }
 
         @keyframes bounceIcon { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
         .funny-loading-icon { font-size: 60px; color: #fff; margin-bottom: 25px; animation: bounceIcon 1s infinite; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
@@ -226,6 +276,41 @@
         </div>
     </div>
 
+    <!-- DIALOG INPUT (ganti prompt pelayar) -->
+    <div id="customPrompt" class="modal-overlay" style="z-index: 10002;">
+        <div class="modal-box app-dialog">
+            <div class="dialog-head">
+                <div class="dialog-ico" id="promptIcoWrap"><i id="promptIco" class="fa-solid fa-font"></i></div>
+                <div>
+                    <div class="dialog-title" id="promptTitle">Tulis Teks</div>
+                    <div class="dialog-sub" id="promptSub">Masukkan teks anda di bawah</div>
+                </div>
+            </div>
+            <textarea id="promptInput" rows="3" placeholder="Taip di sini..."></textarea>
+            <div class="dialog-actions">
+                <button class="btn-ghost" onclick="resolveAppPrompt(false)">Batal</button>
+                <button class="btn-primary" onclick="resolveAppPrompt(true)">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DIALOG PENGESAHAN (ganti confirm pelayar) -->
+    <div id="customConfirm" class="modal-overlay" style="z-index: 10002;">
+        <div class="modal-box app-dialog">
+            <div class="dialog-head">
+                <div class="dialog-ico danger" id="confirmIcoWrap"><i id="confirmIco" class="fa-solid fa-triangle-exclamation"></i></div>
+                <div>
+                    <div class="dialog-title" id="confirmTitle">Sahkan tindakan</div>
+                    <div class="dialog-sub" id="confirmSub">Tindakan ini tidak boleh dibatalkan.</div>
+                </div>
+            </div>
+            <div class="dialog-actions">
+                <button class="btn-ghost" onclick="resolveAppConfirm(false)">Batal</button>
+                <button class="btn-danger" id="confirmOkBtn" onclick="resolveAppConfirm(true)">Teruskan</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL PELAJAR -->
     <div id="studentModal" class="modal-overlay">
         <div class="modal-box">
@@ -259,23 +344,62 @@
         <div class="modal-box" id="editorModalBox">
             <h3 style="margin-bottom: 10px; text-align: left; font-size: 18px;"><i class="fa-solid fa-pen-ruler"></i> Editor Power</h3>
             <div class="editor-toolbar">
-                <button id="toolErase" onclick="setTool('erase')"><i class="fa-solid fa-eraser"></i> Padam (Whiteout)</button>
-                <button id="toolText" onclick="setTool('text')"><i class="fa-solid fa-font"></i> Tulis Teks</button>
+                <button id="toolPan" class="active-tool" onclick="setTool('')"><i class="fa-solid fa-up-down-left-right"></i> Gerak / Skrol</button>
+                <button id="toolText" onclick="setTool('text')"><i class="fa-solid fa-font"></i> Teks</button>
+                <button id="toolErase" onclick="setTool('erase')"><i class="fa-solid fa-eraser"></i> Padam</button>
                 <button id="toolCrop" onclick="setTool('crop')"><i class="fa-solid fa-crop-simple"></i> Crop</button>
                 <button onclick="applyAiFilter()"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Filter</button>
                 <button onclick="undoEditor()"><i class="fa-solid fa-rotate-left"></i> Undo</button>
             </div>
             <div id="textOptions" class="tool-options">
-                <label>Saiz: </label><input type="number" id="txtSize" value="30" style="width: 60px; padding: 5px; display: inline;"> px |
-                <label>Warna: </label><input type="color" id="txtColor" value="#000000" style="width: 40px; padding: 0; display: inline; border: none;">
-                <br><i>Klik di atas gambar untuk taip teks.</i>
+                <div class="txt-panel">
+                    <textarea id="txtContent" rows="2" placeholder="Taip teks di sini..." oninput="updateActiveLayer('text', this.value)"></textarea>
+                    <div class="txt-row">
+                        <select id="txtFont" onchange="updateActiveLayer('font', this.value)">
+                            <option value="Inter, Arial, sans-serif">Inter</option>
+                            <option value="Arial, Helvetica, sans-serif">Arial</option>
+                            <option value="'Times New Roman', serif">Times New Roman</option>
+                            <option value="Georgia, serif">Georgia</option>
+                            <option value="'Courier New', monospace">Courier New</option>
+                            <option value="'Brush Script MT', cursive">Brush Script</option>
+                        </select>
+                        <input type="number" id="txtSize" value="36" min="8" max="400" step="1" style="width:74px;" onchange="updateActiveLayer('size', +this.value)" oninput="updateActiveLayer('size', +this.value)">
+                        <input type="color" id="txtColor" value="#000000" oninput="updateActiveLayer('color', this.value)">
+                        <button class="icon-btn" id="txtBold" title="Tebal" onclick="toggleLayerProp('bold', this)"><b>B</b></button>
+                        <button class="icon-btn" id="txtItalic" title="Condong" onclick="toggleLayerProp('italic', this)"><i>I</i></button>
+                        <button class="icon-btn" id="txtOutline" title="Garis luar putih" onclick="toggleLayerProp('outline', this)"><i class="fa-solid fa-highlighter"></i></button>
+                        <button class="icon-btn" id="alignleft" title="Kiri" onclick="setLayerAlign('left')"><i class="fa-solid fa-align-left"></i></button>
+                        <button class="icon-btn" id="aligncenter" title="Tengah" onclick="setLayerAlign('center')"><i class="fa-solid fa-align-center"></i></button>
+                        <button class="icon-btn" id="alignright" title="Kanan" onclick="setLayerAlign('right')"><i class="fa-solid fa-align-right"></i></button>
+                    </div>
+                    <div class="txt-row">
+                        <label><i class="fa-solid fa-rotate"></i> Putar</label>
+                        <input type="range" id="txtRotate" min="-180" max="180" value="0" oninput="updateActiveLayer('rotation', +this.value)">
+                        <label><i class="fa-solid fa-droplet"></i> Lut</label>
+                        <input type="range" id="txtOpacity" min="10" max="100" value="100" oninput="updateActiveLayer('opacity', +this.value/100)">
+                    </div>
+                    <div class="txt-row">
+                        <button class="icon-btn" title="Salin teks" onclick="duplicateActiveLayer()"><i class="fa-solid fa-copy"></i></button>
+                        <button class="icon-btn" title="Ke depan" onclick="bringActiveLayerFront()"><i class="fa-solid fa-layer-group"></i></button>
+                        <button class="icon-btn" title="Buang teks" onclick="deleteActiveLayer()"><i class="fa-solid fa-trash"></i></button>
+                        <span class="txt-hint"><i class="fa-solid fa-hand-pointer"></i> Ketik gambar untuk tambah teks &middot; seret teks untuk alih kedudukan &middot; ketik dua kali untuk sunting.</span>
+                    </div>
+                </div>
             </div>
             <div id="cropOptions" class="tool-options">
-                <i>Tarik (drag) kotak merah, kemudian klik:</i>
-                <button class="btn-warning" onclick="executeCrop()" style="width: auto; padding: 5px 15px; margin-left: 10px;">Crop Sekarang</button>
+                <i>Tarik (drag) kotak merah pada gambar, kemudian tekan:</i>
+                <button class="btn-warning" onclick="executeCrop()" style="width: auto; padding: 6px 16px; margin-left: 10px;">Crop Sekarang</button>
+            </div>
+            <div class="zoom-bar">
+                <button onclick="zoomEditor(-1)" title="Zum keluar"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                <span class="zoom-level" id="zoomLevel">100%</span>
+                <button onclick="zoomEditor(1)" title="Zum masuk"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                <button class="wide" onclick="fitEditor()" title="Muat skrin"><i class="fa-solid fa-compress"></i> Muat</button>
+                <button class="wide" onclick="setEditorZoom(1)" title="Saiz sebenar">1:1</button>
+                <span class="txt-hint" style="margin-left:auto;">Skrol kiri/kanan &amp; atas/bawah pada gambar dalam mod Gerak.</span>
             </div>
             <div class="editor-canvas-container" id="canvasContainer">
-                <canvas id="editorCanvas"></canvas>
+                <div class="canvas-stage"><canvas id="editorCanvas"></canvas></div>
             </div>
             <div class="editor-footer">
                 <button class="btn-danger" onclick="closeEditor()"><i class="fa-solid fa-xmark"></i> Batal</button>
@@ -650,6 +774,48 @@ ${hairPath}
             overlay.style.display = 'flex';
         }
         function closeAppAlert() { document.getElementById('customAlert').style.display = 'none'; }
+
+        /* Dialog input & pengesahan tersuai (tiada popup pelayar / tiada paparan domain) */
+        let _promptResolver = null, _confirmResolver = null;
+        function appPrompt(title, sub, value = "", icon = "fa-font", okLabel = "Simpan") {
+            return new Promise(resolve => {
+                _promptResolver = resolve;
+                document.getElementById('promptTitle').innerText = title;
+                document.getElementById('promptSub').innerText = sub || "";
+                document.getElementById('promptIco').className = 'fa-solid ' + icon;
+                const inp = document.getElementById('promptInput');
+                inp.value = value || "";
+                document.getElementById('customPrompt').style.display = 'flex';
+                setTimeout(() => { inp.focus(); inp.select(); }, 60);
+            });
+        }
+        function resolveAppPrompt(ok) {
+            const val = document.getElementById('promptInput').value;
+            document.getElementById('customPrompt').style.display = 'none';
+            const r = _promptResolver; _promptResolver = null;
+            if (r) r(ok ? val : null);
+        }
+        function appConfirm(title, sub, okLabel = "Teruskan", danger = true) {
+            return new Promise(resolve => {
+                _confirmResolver = resolve;
+                document.getElementById('confirmTitle').innerText = title;
+                document.getElementById('confirmSub').innerText = sub || "";
+                const btn = document.getElementById('confirmOkBtn');
+                btn.innerText = okLabel;
+                btn.className = danger ? 'btn-danger' : 'btn-primary';
+                document.getElementById('confirmIcoWrap').className = 'dialog-ico' + (danger ? ' danger' : '');
+                document.getElementById('customConfirm').style.display = 'flex';
+            });
+        }
+        function resolveAppConfirm(ok) {
+            document.getElementById('customConfirm').style.display = 'none';
+            const r = _confirmResolver; _confirmResolver = null;
+            if (r) r(!!ok);
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') { if (_promptResolver) resolveAppPrompt(false); else if (_confirmResolver) resolveAppConfirm(false); }
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && _promptResolver) resolveAppPrompt(true);
+        });
         function switchScreen(screenId) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(screenId).classList.add('active-screen'); }
         function setStatus(msg, type = "info") { let el = document.getElementById('status'); el.innerHTML = msg; if (type === "info") { el.style.color = "var(--primary)"; el.style.background = "rgba(79,70,229,0.1)"; } if (type === "success") { el.style.color = "var(--secondary)"; el.style.background = "rgba(16,185,129,0.1)"; } }
 
@@ -1417,8 +1583,9 @@ ${hairPath}
             certMove(cert, dragSourcePageIndex, cert.images.length - 1);
             cert.needsSync = true; renderCerts();
         }
-        function deleteLocalThumbnail(certIdx, pageIdx) {
-            if (!confirm("Buang page ini?")) return;
+        async function deleteLocalThumbnail(certIdx, pageIdx) {
+            const ok = await appConfirm("Buang page ini?", "Page yang dibuang tidak boleh dikembalikan selepas disimpan.", "Buang");
+            if (!ok) return;
             certRemove(sessionCerts[certIdx], pageIdx);
             sessionCerts[certIdx].needsSync = true; renderCerts();
         }
@@ -1473,8 +1640,105 @@ ${hairPath}
          * ========================================== */
         const editorCanvas = document.getElementById('editorCanvas');
         const edCtx = editorCanvas.getContext('2d', { willReadFrequently: true });
-        let editorImg = new Image(), edTool = '', isDrawing = false, cropStartX, cropStartY, cropEndX, cropEndY, editHistory = [], tempImgDataForCrop = null;
+        const baseCanvas = document.createElement('canvas');
+        const baseCtx = baseCanvas.getContext('2d', { willReadFrequently: true });
+        let editorImg = new Image(), edTool = '', isDrawing = false;
+        let cropStartX = 0, cropStartY = 0, cropEndX = 0, cropEndY = 0, editHistory = [], cropSnapshot = null;
+        let textLayers = [], activeLayerId = null, layerSeq = 1;
+        let dragLayer = null, dragOffX = 0, dragOffY = 0, dragMoved = false;
+        let edZoom = 1, lastTapTime = 0;
+        const DEFAULT_LAYER = { font: "Inter, Arial, sans-serif", size: 36, color: "#000000", bold: false, italic: false, outline: false, align: "left", rotation: 0, opacity: 1 };
 
+        /* ---------- Zum & panning ---------- */
+        function setEditorZoom(z) {
+            edZoom = Math.min(6, Math.max(0.1, z));
+            editorCanvas.style.width = (baseCanvas.width * edZoom) + 'px';
+            editorCanvas.style.height = (baseCanvas.height * edZoom) + 'px';
+            const lbl = document.getElementById('zoomLevel');
+            if (lbl) lbl.innerText = Math.round(edZoom * 100) + '%';
+        }
+        function zoomEditor(dir) { setEditorZoom(edZoom * (dir > 0 ? 1.25 : 0.8)); }
+        function fitEditor() {
+            const box = document.getElementById('canvasContainer');
+            if (!box || !baseCanvas.width) return;
+            const w = box.clientWidth - 24, h = box.clientHeight - 24;
+            setEditorZoom(Math.min(w / baseCanvas.width, h / baseCanvas.height) || 1);
+        }
+
+        /* ---------- Lukis ---------- */
+        function layerFontString(l) { return `${l.italic ? 'italic ' : ''}${l.bold ? '700 ' : '400 '}${l.size}px ${l.font}`; }
+        function measureLayer(ctx, l) {
+            ctx.font = layerFontString(l);
+            const lines = String(l.text || "").split("\n");
+            const lh = l.size * 1.25;
+            let w = 0; lines.forEach(t => { w = Math.max(w, ctx.measureText(t).width); });
+            return { lines, lh, w: Math.max(w, l.size * 0.6), h: lh * lines.length };
+        }
+        function layerBoxX(l, w) { return l.align === 'center' ? -w / 2 : l.align === 'right' ? -w : 0; }
+        function drawLayer(ctx, l, selected) {
+            const m = measureLayer(ctx, l);
+            l._w = m.w; l._h = m.h;
+            ctx.save();
+            ctx.translate(l.x, l.y);
+            ctx.rotate((l.rotation || 0) * Math.PI / 180);
+            ctx.globalAlpha = l.opacity == null ? 1 : l.opacity;
+            ctx.font = layerFontString(l);
+            ctx.textAlign = l.align; ctx.textBaseline = 'top';
+            if (l.outline) { ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(2, l.size / 8); ctx.strokeStyle = '#ffffff'; }
+            ctx.fillStyle = l.color;
+            m.lines.forEach((t, idx) => {
+                if (l.outline) ctx.strokeText(t, 0, idx * m.lh);
+                ctx.fillText(t, 0, idx * m.lh);
+            });
+            if (selected) {
+                const bx = layerBoxX(l, m.w);
+                ctx.globalAlpha = 1;
+                ctx.setLineDash([10, 7]);
+                ctx.lineWidth = Math.max(2, l.size / 14);
+                ctx.strokeStyle = '#4f46e5';
+                ctx.strokeRect(bx - 8, -8, m.w + 16, m.h + 16);
+                ctx.setLineDash([]);
+            }
+            ctx.restore();
+        }
+        function renderEditor() {
+            if (editorCanvas.width !== baseCanvas.width || editorCanvas.height !== baseCanvas.height) {
+                editorCanvas.width = baseCanvas.width; editorCanvas.height = baseCanvas.height;
+            }
+            edCtx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
+            edCtx.drawImage(baseCanvas, 0, 0);
+            textLayers.forEach(l => drawLayer(edCtx, l, edTool === 'text' && l.id === activeLayerId));
+            setEditorZoom(edZoom);
+        }
+        function flattenLayers() {
+            if (!textLayers.length) return;
+            textLayers.forEach(l => drawLayer(baseCtx, l, false));
+            textLayers = []; activeLayerId = null;
+            renderEditor();
+        }
+
+        /* ---------- Sejarah (undo) ---------- */
+        function saveHistory() {
+            if (editHistory.length > 14) editHistory.shift();
+            editHistory.push({ img: baseCanvas.toDataURL('image/jpeg', 0.9), layers: JSON.parse(JSON.stringify(textLayers)) });
+        }
+        function restoreState(state) {
+            const im = new Image();
+            im.onload = () => {
+                baseCanvas.width = im.width; baseCanvas.height = im.height;
+                baseCtx.drawImage(im, 0, 0);
+                textLayers = JSON.parse(JSON.stringify(state.layers || []));
+                activeLayerId = null; syncTextPanel(); renderEditor();
+            };
+            im.src = state.img;
+        }
+        function undoEditor() {
+            if (editHistory.length < 2) return;
+            editHistory.pop();
+            restoreState(editHistory[editHistory.length - 1]);
+        }
+
+        /* ---------- Buka / tutup ---------- */
         async function openPowerEditor(cIdx, pIdx) {
             const cert = sessionCerts[cIdx];
             let src = cert.images[pIdx];
@@ -1485,15 +1749,17 @@ ${hairPath}
             if (!src) return showAppAlert("Ralat", "Page ini tidak dapat dibuka.", "error");
             activeEditCertIndex = cIdx; activeEditPageIndex = pIdx;
             document.getElementById('powerEditorModal').style.display = 'flex';
-            editHistory = [];
+            document.body.classList.add('modal-open');
+            editHistory = []; textLayers = []; activeLayerId = null; layerSeq = 1;
             editorImg = new Image();
             editorImg.onload = () => {
-                editorCanvas.width = editorImg.naturalWidth; editorCanvas.height = editorImg.naturalHeight;
-                edCtx.drawImage(editorImg, 0, 0); saveHistory(); setTool('');
+                baseCanvas.width = editorImg.naturalWidth; baseCanvas.height = editorImg.naturalHeight;
+                baseCtx.drawImage(editorImg, 0, 0);
+                setTool('');
+                renderEditor(); fitEditor(); saveHistory();
             };
             editorImg.src = src;
         }
-
         /** Buka Scan Studio (crop 4 bucu + penapis) untuk page sedia ada */
         async function openScanEditorForPage(cIdx, pIdx) {
             const cert = sessionCerts[cIdx];
@@ -1506,18 +1772,14 @@ ${hairPath}
             if (!src) return showAppAlert("Ralat", "Page ini tidak dapat dibuka.", "error");
             startScanPipeline([src], { type: 'replace', idx: cIdx, page: pIdx });
         }
-        function closeEditor() { document.getElementById('powerEditorModal').style.display = 'none'; setTool(''); }
-        function saveHistory() { if (editHistory.length > 12) editHistory.shift(); editHistory.push(editorCanvas.toDataURL('image/jpeg', 0.9)); }
-        function undoEditor() {
-            if (editHistory.length < 2) return;
-            editHistory.pop();
-            const prev = editHistory[editHistory.length - 1];
-            const im = new Image();
-            im.onload = () => { editorCanvas.width = im.width; editorCanvas.height = im.height; edCtx.drawImage(im, 0, 0); };
-            im.src = prev;
+        function closeEditor() {
+            document.getElementById('powerEditorModal').style.display = 'none';
+            document.body.classList.remove('modal-open');
+            setTool('');
         }
         async function saveEditor() {
-            const full = editorCanvas.toDataURL('image/jpeg', 0.85);
+            flattenLayers();
+            const full = baseCanvas.toDataURL('image/jpeg', 0.85);
             const cert = sessionCerts[activeEditCertIndex];
             cert.images[activeEditPageIndex] = full;
             if (!cert.thumbs) cert.thumbs = [];
@@ -1527,60 +1789,201 @@ ${hairPath}
             closeEditor(); renderCerts();
         }
 
+        /* ---------- Alat ---------- */
         function setTool(toolName) {
             edTool = toolName;
             document.querySelectorAll('.editor-toolbar button').forEach(b => b.classList.remove('active-tool'));
-            if (toolName) document.getElementById('tool' + toolName.charAt(0).toUpperCase() + toolName.slice(1))?.classList.add('active-tool');
+            const map = { '': 'toolPan', text: 'toolText', erase: 'toolErase', crop: 'toolCrop' };
+            document.getElementById(map[toolName] || 'toolPan')?.classList.add('active-tool');
             document.getElementById('textOptions').style.display = toolName === 'text' ? 'block' : 'none';
             document.getElementById('cropOptions').style.display = toolName === 'crop' ? 'block' : 'none';
-            editorCanvas.style.cursor = toolName === 'text' ? 'text' : toolName === 'erase' ? 'cell' : toolName === 'crop' ? 'crosshair' : 'default';
+            const box = document.getElementById('canvasContainer');
+            box.classList.toggle('tool-active', !!toolName);
+            editorCanvas.style.cursor = toolName === 'text' ? 'move' : toolName === 'erase' ? 'cell' : toolName === 'crop' ? 'crosshair' : 'grab';
+            if (toolName !== 'text') activeLayerId = null;
+            if (toolName === 'crop' || toolName === 'erase') flattenLayers();
+            if (baseCanvas.width) renderEditor();
+            syncTextPanel();
         }
+
+        /* ---------- Panel teks ---------- */
+        function activeLayer() { return textLayers.find(l => l.id === activeLayerId) || null; }
+        function syncTextPanel() {
+            const l = activeLayer();
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+            const flag = (id, on) => { const el = document.getElementById(id); if (el) el.classList.toggle('on', !!on); };
+            const src = l || DEFAULT_LAYER;
+            set('txtContent', l ? l.text : "");
+            set('txtFont', src.font); set('txtSize', src.size); set('txtColor', src.color);
+            set('txtRotate', src.rotation || 0); set('txtOpacity', Math.round((src.opacity == null ? 1 : src.opacity) * 100));
+            flag('txtBold', src.bold); flag('txtItalic', src.italic); flag('txtOutline', src.outline);
+            ['left', 'center', 'right'].forEach(a => flag('align' + a, src.align === a));
+        }
+        function panelDefaults() {
+            const g = (id, fb) => { const el = document.getElementById(id); return el ? el.value : fb; };
+            return {
+                font: g('txtFont', DEFAULT_LAYER.font),
+                size: +g('txtSize', DEFAULT_LAYER.size) || 36,
+                color: g('txtColor', DEFAULT_LAYER.color),
+                bold: document.getElementById('txtBold')?.classList.contains('on') || false,
+                italic: document.getElementById('txtItalic')?.classList.contains('on') || false,
+                outline: document.getElementById('txtOutline')?.classList.contains('on') || false,
+                align: ['left', 'center', 'right'].find(a => document.getElementById('align' + a)?.classList.contains('on')) || 'left',
+                rotation: +g('txtRotate', 0) || 0,
+                opacity: (+g('txtOpacity', 100) || 100) / 100
+            };
+        }
+        function updateActiveLayer(prop, value) {
+            const l = activeLayer(); if (!l) return;
+            l[prop] = value; renderEditor();
+            clearTimeout(window._layerHistTimer);
+            window._layerHistTimer = setTimeout(saveHistory, 500);
+        }
+        function toggleLayerProp(prop, btn) {
+            const on = !btn.classList.contains('on');
+            btn.classList.toggle('on', on);
+            const l = activeLayer(); if (l) { l[prop] = on; renderEditor(); saveHistory(); }
+        }
+        function setLayerAlign(a) {
+            ['left', 'center', 'right'].forEach(x => document.getElementById('align' + x)?.classList.toggle('on', x === a));
+            const l = activeLayer(); if (l) { l.align = a; renderEditor(); saveHistory(); }
+        }
+        function duplicateActiveLayer() {
+            const l = activeLayer(); if (!l) return;
+            const copy = JSON.parse(JSON.stringify(l));
+            copy.id = layerSeq++; copy.x += Math.max(20, l.size * 0.4); copy.y += Math.max(20, l.size * 0.5);
+            textLayers.push(copy); activeLayerId = copy.id; syncTextPanel(); renderEditor(); saveHistory();
+        }
+        function bringActiveLayerFront() {
+            const i = textLayers.findIndex(l => l.id === activeLayerId); if (i < 0) return;
+            textLayers.push(textLayers.splice(i, 1)[0]); renderEditor(); saveHistory();
+        }
+        function deleteActiveLayer() {
+            const i = textLayers.findIndex(l => l.id === activeLayerId); if (i < 0) return;
+            textLayers.splice(i, 1); activeLayerId = null; syncTextPanel(); renderEditor(); saveHistory();
+        }
+        async function addTextLayerAt(x, y) {
+            const txt = await appPrompt("Tulis Teks", "Teks akan diletak di kedudukan yang anda ketik. Anda boleh seret untuk alih.", "", "fa-font");
+            if (txt == null || !txt.trim()) return;
+            const l = Object.assign({ id: layerSeq++, text: txt, x, y }, panelDefaults());
+            textLayers.push(l); activeLayerId = l.id;
+            syncTextPanel(); renderEditor(); saveHistory();
+        }
+        async function editActiveLayerText() {
+            const l = activeLayer(); if (!l) return;
+            const txt = await appPrompt("Sunting Teks", "Kemas kini kandungan teks ini.", l.text, "fa-pen");
+            if (txt == null) return;
+            if (!txt.trim()) { deleteActiveLayer(); return; }
+            l.text = txt; syncTextPanel(); renderEditor(); saveHistory();
+        }
+
+        /* ---------- Interaksi kanvas ---------- */
         function getEdPos(evt) {
             const rect = editorCanvas.getBoundingClientRect(), scaleX = editorCanvas.width / rect.width, scaleY = editorCanvas.height / rect.height;
-            const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX, clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
-            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+            const t = evt.touches && evt.touches[0] ? evt.touches[0] : (evt.changedTouches && evt.changedTouches[0]) || evt;
+            return { x: (t.clientX - rect.left) * scaleX, y: (t.clientY - rect.top) * scaleY };
         }
-        editorCanvas.addEventListener('mousedown', startAction); editorCanvas.addEventListener('touchstart', startAction, { passive: false });
-        editorCanvas.addEventListener('mousemove', moveAction); editorCanvas.addEventListener('touchmove', moveAction, { passive: false });
-        editorCanvas.addEventListener('mouseup', endAction); editorCanvas.addEventListener('touchend', endAction);
+        function hitLayer(pos) {
+            for (let i = textLayers.length - 1; i >= 0; i--) {
+                const l = textLayers[i];
+                const rad = -(l.rotation || 0) * Math.PI / 180;
+                const dx = pos.x - l.x, dy = pos.y - l.y;
+                const lx = dx * Math.cos(rad) - dy * Math.sin(rad);
+                const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
+                const w = l._w || l.size * 4, h = l._h || l.size * 1.3;
+                const bx = layerBoxX(l, w);
+                if (lx >= bx - 12 && lx <= bx + w + 12 && ly >= -12 && ly <= h + 12) return l;
+            }
+            return null;
+        }
+        editorCanvas.addEventListener('mousedown', startAction);
+        editorCanvas.addEventListener('touchstart', startAction, { passive: false });
+        editorCanvas.addEventListener('mousemove', moveAction);
+        editorCanvas.addEventListener('touchmove', moveAction, { passive: false });
+        editorCanvas.addEventListener('mouseup', endAction);
+        editorCanvas.addEventListener('touchend', endAction);
+        editorCanvas.addEventListener('dblclick', (e) => { if (edTool === 'text' && hitLayer(getEdPos(e))) editActiveLayerText(); });
 
         function startAction(e) {
-            if (!edTool) return; e.preventDefault(); isDrawing = true; const pos = getEdPos(e);
-            if (edTool === 'erase') { edCtx.beginPath(); edCtx.moveTo(pos.x, pos.y); edCtx.strokeStyle = "white"; edCtx.lineWidth = 30; edCtx.lineCap = "round"; }
-            else if (edTool === 'crop') { cropStartX = pos.x; cropStartY = pos.y; tempImgDataForCrop = edCtx.getImageData(0, 0, editorCanvas.width, editorCanvas.height); }
-            else if (edTool === 'text') {
-                isDrawing = false;
-                const txt = prompt("Teks:");
-                if (txt) { const size = document.getElementById('txtSize').value || 30; const color = document.getElementById('txtColor').value || "#000000"; edCtx.font = `${size}px Arial`; edCtx.fillStyle = color; edCtx.fillText(txt, pos.x, pos.y); saveHistory(); }
+            if (!edTool) return; // mod gerak: biar kontena skrol
+            const pos = getEdPos(e);
+            if (edTool === 'text') {
+                e.preventDefault();
+                const hit = hitLayer(pos);
+                if (hit) {
+                    activeLayerId = hit.id; dragLayer = hit; dragMoved = false;
+                    dragOffX = pos.x - hit.x; dragOffY = pos.y - hit.y;
+                    syncTextPanel(); renderEditor();
+                    const now = Date.now();
+                    if (now - lastTapTime < 320) { dragLayer = null; editActiveLayerText(); }
+                    lastTapTime = now;
+                } else {
+                    activeLayerId = null; syncTextPanel(); renderEditor();
+                    addTextLayerAt(pos.x, pos.y);
+                }
+                return;
             }
+            e.preventDefault(); isDrawing = true;
+            if (edTool === 'erase') { edCtx.beginPath(); edCtx.moveTo(pos.x, pos.y); edCtx.strokeStyle = "#ffffff"; edCtx.lineWidth = 30; edCtx.lineCap = "round"; }
+            else if (edTool === 'crop') { cropStartX = pos.x; cropStartY = pos.y; cropSnapshot = baseCtx.getImageData(0, 0, baseCanvas.width, baseCanvas.height); }
         }
         function moveAction(e) {
-            if (!isDrawing || !edTool) return; e.preventDefault(); const pos = getEdPos(e);
-            if (edTool === 'erase') { edCtx.lineTo(pos.x, pos.y); edCtx.stroke(); }
-            else if (edTool === 'crop') { edCtx.putImageData(tempImgDataForCrop, 0, 0); cropEndX = pos.x; cropEndY = pos.y; edCtx.strokeStyle = "red"; edCtx.lineWidth = 5; edCtx.setLineDash([15, 15]); edCtx.strokeRect(cropStartX, cropStartY, cropEndX - cropStartX, cropEndY - cropStartY); edCtx.setLineDash([]); }
+            if (edTool === 'text') {
+                if (!dragLayer) return;
+                e.preventDefault();
+                const pos = getEdPos(e);
+                dragLayer.x = pos.x - dragOffX; dragLayer.y = pos.y - dragOffY; dragMoved = true;
+                renderEditor();
+                return;
+            }
+            if (!isDrawing || !edTool) return;
+            e.preventDefault(); const pos = getEdPos(e);
+            if (edTool === 'erase') {
+                edCtx.lineTo(pos.x, pos.y); edCtx.stroke();
+                baseCtx.strokeStyle = "#ffffff"; baseCtx.lineWidth = 30; baseCtx.lineCap = "round";
+                baseCtx.lineTo(pos.x, pos.y); baseCtx.stroke();
+            } else if (edTool === 'crop') {
+                edCtx.putImageData(cropSnapshot, 0, 0);
+                cropEndX = pos.x; cropEndY = pos.y;
+                edCtx.strokeStyle = "red"; edCtx.lineWidth = 5; edCtx.setLineDash([15, 15]);
+                edCtx.strokeRect(cropStartX, cropStartY, cropEndX - cropStartX, cropEndY - cropStartY);
+                edCtx.setLineDash([]);
+            }
         }
-        function endAction() { if (!isDrawing) return; isDrawing = false; if (edTool === 'erase') saveHistory(); }
+        function endAction() {
+            if (dragLayer) { dragLayer = null; if (dragMoved) saveHistory(); return; }
+            if (!isDrawing) return;
+            isDrawing = false;
+            if (edTool === 'erase') { baseCtx.beginPath(); saveHistory(); }
+        }
         function executeCrop() {
-            if (edTool !== 'crop' || !tempImgDataForCrop) return;
-            const w = Math.abs(cropEndX - cropStartX), h = Math.abs(cropEndY - cropStartY), x = Math.min(cropStartX, cropEndX), y = Math.min(cropStartY, cropEndY);
-            if (w < 20 || h < 20) return;
+            if (edTool !== 'crop' || !cropSnapshot) return;
+            const w = Math.abs(cropEndX - cropStartX), h = Math.abs(cropEndY - cropStartY);
+            const x = Math.min(cropStartX, cropEndX), y = Math.min(cropStartY, cropEndY);
+            if (w < 20 || h < 20) return showAppAlert("Info", "Sila tarik kotak crop yang lebih besar.", "warning");
             const tempCanv = document.createElement('canvas');
-            tempCanv.width = editorCanvas.width; tempCanv.height = editorCanvas.height;
-            tempCanv.getContext('2d').putImageData(tempImgDataForCrop, 0, 0);
-            editorCanvas.width = w; editorCanvas.height = h;
-            edCtx.drawImage(tempCanv, x, y, w, h, 0, 0, w, h);
-            setTool(''); saveHistory();
+            tempCanv.width = baseCanvas.width; tempCanv.height = baseCanvas.height;
+            tempCanv.getContext('2d').putImageData(cropSnapshot, 0, 0);
+            baseCanvas.width = w; baseCanvas.height = h;
+            baseCtx.drawImage(tempCanv, x, y, w, h, 0, 0, w, h);
+            cropSnapshot = null;
+            setTool(''); renderEditor(); fitEditor(); saveHistory();
         }
         function applyAiFilter() {
             if (!opencvReady) return showAppAlert("Info", "Enjin AI belum siap. Cuba sebentar lagi.", "warning");
+            flattenLayers();
             showLoading("Menapis imej...");
             setTimeout(() => {
-                const mat = cv.imread(editorCanvas);
+                const mat = cv.imread(baseCanvas);
                 cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY, 0);
                 cv.adaptiveThreshold(mat, mat, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15);
-                cv.imshow(editorCanvas, mat); mat.delete(); saveHistory(); hideLoading();
+                cv.imshow(baseCanvas, mat); mat.delete();
+                renderEditor(); saveHistory(); hideLoading();
             }, 100);
         }
+        window.addEventListener('resize', () => {
+            if (document.getElementById('powerEditorModal').style.display === 'flex') fitEditor();
+        });
 
         /* ==========================================
          * 8. SYNC CLOUD & PDF
