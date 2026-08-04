@@ -115,7 +115,7 @@
     </div>
 
     <!-- CUSTOM POPUP ALERT -->
-    <div id="customAlert" class="modal-overlay">
+    <div id="customAlert" class="modal-overlay" style="z-index: 10001;">
         <div class="modal-box" style="max-width: 400px;">
             <i id="alertIcon" class="fa-solid fa-circle-info" style="font-size: 50px; margin-bottom: 15px;"></i>
             <div id="alertTitle" style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">Tajuk</div>
@@ -125,28 +125,23 @@
         </div>
     </div>
 
-    <!-- MODAL TAMBAH PELAJAR (BARU) -->
+    <!-- MODAL TAMBAH PELAJAR -->
     <div id="addStudentModal" class="modal-overlay">
         <div class="modal-box">
             <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-user-plus"></i> Pendaftaran Pelajar</h3>
-            
             <input type="text" id="regName" placeholder="Nama Penuh (Wajib Diisi)">
             <input type="text" id="regKelas" placeholder="Kelas (Tidak Wajib)">
             <input type="text" id="regIc" placeholder="No. Kad Pengenalan (Tidak Wajib)">
-            
             <select id="regJantina">
                 <option value="">Pilih Jantina (Tidak Wajib)...</option>
                 <option value="Lelaki">Lelaki</option>
                 <option value="Perempuan">Perempuan</option>
             </select>
-            
             <input type="text" id="regKategori" placeholder="Kategori cth: Asnaf/B40 (Tidak Wajib)">
-            
             <div style="text-align:left; margin-top:10px;">
                 <label style="font-size:12px; font-weight:bold; color:var(--text-light);">Gambar Profil (Tidak Wajib):</label>
                 <input type="file" id="regGambar" accept="image/*" style="border:none; padding-left:0;">
             </div>
-
             <div class="btn-group" style="margin-top:15px;">
                 <button class="btn-primary" id="btnSubmitStudent" onclick="submitStudent()"><i class="fa-solid fa-save"></i> Simpan Rekod</button>
                 <button class="btn-ghost" onclick="document.getElementById('addStudentModal').style.display='none'">Batal</button>
@@ -219,11 +214,9 @@
                         </button>
                     </div>
 
-                    <!-- Ruangan Sijil DB -->
                     <h3 style="font-size: 15px; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-cloud"></i> Pangkalan Data Sijil (Terdahulu)</h3>
                     <div id="dbCertsContainer" style="margin-bottom: 25px; padding:15px; background: #eef2ff; border-radius: 8px; border: 1px dashed var(--primary);"></div>
                     
-                    <!-- Ruangan Sijil Editor -->
                     <h3 style="font-size: 15px; color: var(--text-main); margin-bottom: 10px;"><i class="fa-solid fa-pen-ruler"></i> Ruangan Editor (Deraf & Susunan)</h3>
                     <div class="cert-list" id="certGridUI"></div>
                     
@@ -242,6 +235,7 @@
             
             <div id="status">⏳ Menyemak AI...</div>
             <input type="text" id="certName" style="margin-bottom: 15px;" placeholder="Nama Fail (Cth: Sijil_Catur)">
+            
             <video id="video" autoplay playsinline></video>
             <canvas id="canvas"></canvas>
 
@@ -262,29 +256,36 @@
         </div>
     </div>
 
+    <!-- Hidden Input untuk Tambah Page Inline -->
     <input type="file" id="inlineAddFileInput" accept="image/*,application/pdf" style="display: none;">
 
+    <!-- Scripts -->
     <script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvReady();"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwoBM8mpG5ZV6tV4heFQ5GgA_085iOkGJwUprlecdeYfEVSQoZb1vdXiCQD5zzvOdv1/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxOrI7Q-Rpk8xtBe7Ol6TyiWzmSx2Mg5PUpc-YOuMadiKEPXeBzNpBkk79qk-nDrvtB/exec"; 
         
         let currentUserEmail = "";
-        let studentsList = []; // Object [{name, kelas, ic, ...}]
-        let activeStudent = null; // Object
+        let studentsList = [];
+        let activeStudent = null;
         
         let sessionCerts = []; 
         let currentBatch = []; 
         let opencvReady = false;
         let dragSourceCertIndex = -1, dragSourcePageIndex = -1, activeEditCertIndex = -1, activeEditPageIndex = -1, targetInlineCertIndex = -1;
 
+        // DEKLARASI GLOBAL UNTUK CANVAS & CTX (Diperlukan oleh PDF.js)
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
         // ==========================================
-        // SISTEM ALERT & LOADING OVERLAY 
+        // SISTEM ALERT & LOADING
         // ==========================================
         function showLoading(msg = "Mohon tunggu sebentar ya...") {
             document.getElementById('loadingText').innerText = msg;
@@ -303,7 +304,7 @@
             else { icon.classList.add('fa-circle-info'); icon.style.color="var(--primary)"; }
 
             document.getElementById('alertTitle').innerText = title; document.getElementById('alertMessage').innerText = message;
-            if (rawError) { logEl.style.display = 'block'; logEl.innerText = "Sistem Log: \n" + rawError; } else logEl.style.display = 'none';
+            if (rawError) { logEl.style.display = 'block'; logEl.innerText = "Sistem Log:\n" + rawError; } else logEl.style.display = 'none';
             overlay.style.display = 'flex';
         }
         function closeAppAlert() { document.getElementById('customAlert').style.display = 'none'; }
@@ -343,7 +344,7 @@
         function logout() { localStorage.removeItem("sijilProUser"); sessionCerts=[]; switchScreen('loginScreen'); }
 
         // ==========================================
-        // PENGURUSAN PELAJAR & DATABASE SIJIL
+        // PENGURUSAN PELAJAR
         // ==========================================
         async function fetchStudents() {
             try {
@@ -353,20 +354,18 @@
             } catch (err) { console.log("Gagal sync DB"); }
         }
         
-        // FUNGSI COMPRESS GAMBAR PROFIL KE SAIZ KECIL (BASE64)
         async function compressImage(file) {
             return new Promise((resolve) => {
                 let reader = new FileReader();
                 reader.onload = function(e) {
                     let img = new Image();
                     img.onload = function() {
-                        let canvas = document.createElement('canvas');
-                        let MAX = 200; // Saiz dikecilkan supaya muat dalam sel Google Sheet tanpa sangkut
-                        let w = img.width, h = img.height;
+                        let tempCanvas = document.createElement('canvas');
+                        let MAX = 200; let w = img.width, h = img.height;
                         if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } else { if (h > MAX) { w *= MAX / h; h = MAX; } }
-                        canvas.width = w; canvas.height = h;
-                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Kualiti diturunkan ke 70%
+                        tempCanvas.width = w; tempCanvas.height = h;
+                        tempCanvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        resolve(tempCanvas.toDataURL('image/jpeg', 0.7));
                     }
                     img.src = e.target.result;
                 }
@@ -536,7 +535,7 @@
         }
 
         // ==========================================
-        // FUNGSI INLINE ADD (PENAMBAHBAIKAN BACA PDF)
+        // FUNGSI INLINE ADD (EDITOR PAGE)
         // ==========================================
         document.getElementById('inlineAddFileInput').addEventListener('change', async (e) => {
             if(targetInlineCertIndex === -1) return;
@@ -645,7 +644,7 @@
         }
 
         // ==========================================
-        // SISTEM BATCH UPLOADER ASAL (PENAMBAHBAIKAN BACA PDF)
+        // SISTEM BATCH UPLOADER ASAL 
         // ==========================================
         function onOpenCvReady() { opencvReady = true; setStatus("<i class='fa-solid fa-check'></i> AI Bersedia!", "success"); }
         function openScanner() {
@@ -685,7 +684,7 @@
                             currentBatch.push(canvas.toDataURL('image/jpeg', 0.9));
                         }
                         hideLoading();
-                        showAppAlert("Alhamdulillah Selesai!", "Helaian PDF berjaya dimasukkan ke dalam memori sementara. Sila tekan 'Simpan Ke Editor'.", "success");
+                        showAppAlert("Alhamdulillah Selesai!", "Helaian PDF berjaya dimasukkan ke dalam memori sementara. Sila tekan 'Simpan Ke Editor Dashboard'.", "success");
                         setStatus("<i class='fa-solid fa-check-double'></i> Selesai!", "success");
                     } catch(err) { 
                         hideLoading(); showAppAlert("Maaf", "Gagal memproses fail PDF tersebut.", "error", err.toString()); 
@@ -698,7 +697,7 @@
                     let processedImg = (!opencvReady) ? canvas.toDataURL('image/jpeg', 0.9) : detectAndWarpDocument(canvas);
                     currentBatch.push(processedImg); 
                     hideLoading();
-                    showAppAlert("Selesai!", "Gambar telah dimasukkan ke memori sementara. Sila tekan 'Simpan Ke Editor'.", "success");
+                    showAppAlert("Selesai!", "Gambar telah dimasukkan ke memori sementara. Sila tekan 'Simpan Ke Editor Dashboard'.", "success");
                     setStatus("<i class='fa-solid fa-check'></i> Gambar diterima!", "success");
                 }
                 img.src = URL.createObjectURL(file);
