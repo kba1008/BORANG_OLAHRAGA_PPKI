@@ -6,20 +6,15 @@
     <title>Sistem Pengurusan Sijil AI</title>
     <link rel="manifest" href="manifest.json">
     
-    <!-- Modern Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #4f46e5; --primary-hover: #4338ca;
-            --secondary: #10b981; --secondary-hover: #059669;
-            --warning: #f59e0b; --warning-hover: #d97706;
-            --danger: #ef4444; --danger-hover: #dc2626;
-            --bg-color: #f3f4f6; --surface: #ffffff;
-            --text-main: #1f2937; --text-light: #6b7280;
-            --border: #e5e7eb; --radius: 12px;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --primary: #4f46e5; --primary-hover: #4338ca; --secondary: #10b981; --secondary-hover: #059669;
+            --warning: #f59e0b; --warning-hover: #d97706; --danger: #ef4444; --danger-hover: #dc2626;
+            --bg-color: #f3f4f6; --surface: #ffffff; --text-main: #1f2937; --text-light: #6b7280;
+            --border: #e5e7eb; --radius: 12px; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
@@ -35,13 +30,10 @@
         
         button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 12px 20px; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: white; width: 100%; }
         button:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-        button:active { transform: translateY(0); }
         button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
         
-        .btn-primary { background: var(--primary); } .btn-primary:hover { background: var(--primary-hover); }
-        .btn-success { background: var(--secondary); } .btn-success:hover { background: var(--secondary-hover); }
-        .btn-warning { background: var(--warning); color: #fff; } .btn-warning:hover { background: var(--warning-hover); }
-        .btn-danger { background: var(--danger); } .btn-danger:hover { background: var(--danger-hover); }
+        .btn-primary { background: var(--primary); } .btn-success { background: var(--secondary); }
+        .btn-warning { background: var(--warning); color: #fff; } .btn-danger { background: var(--danger); }
         .btn-ghost { background: transparent; color: var(--primary); box-shadow: none; } .btn-ghost:hover { background: rgba(79, 70, 229, 0.05); }
 
         #loginScreen .card { max-width: 400px; margin: 10vh auto; text-align: center; }
@@ -59,19 +51,35 @@
         
         .student-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
         
-        /* Dashboard - Galeri Sijil */
+        /* Dashboard - Galeri Sijil & Drag Drop UI */
         .cert-list { display: flex; flex-direction: column; gap: 20px; }
-        .cert-card { background: var(--bg-color); padding: 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 15px; }
+        .cert-card { background: var(--bg-color); padding: 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 15px; transition: border 0.3s; }
         .cert-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #d1d5db; padding-bottom: 10px; flex-wrap: wrap; gap: 10px;}
         .cert-header h4 { font-size: 16px; margin-bottom: 5px; color: var(--primary); }
         .cert-status { font-size:12px; color:var(--text-light); }
         .cert-status.drive { color: var(--primary); font-weight: 500; }
+        .cert-status.unsynced { color: var(--warning); font-weight: bold; animation: pulseText 2s infinite; }
+        @keyframes pulseText { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         
-        .cert-thumbnails { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; align-items: flex-start; }
-        .thumb-item { min-width: 130px; max-width: 130px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: #fff; box-shadow: var(--shadow); flex-shrink: 0; }
-        .thumb-item img { width: 100%; height: 170px; object-fit: cover; display: block; border-bottom: 1px solid var(--border); }
+        .cert-thumbnails { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 15px; align-items: stretch; }
+        
+        /* Drag & Drop Styles */
+        .thumb-item { position: relative; min-width: 140px; max-width: 140px; border: 2px solid var(--border); border-radius: 8px; overflow: hidden; background: #fff; box-shadow: var(--shadow); flex-shrink: 0; cursor: grab; transition: transform 0.2s; }
+        .thumb-item:active { cursor: grabbing; }
+        .thumb-item.dragging { opacity: 0.5; transform: scale(0.95); border: 2px dashed var(--primary); }
+        .thumb-item.drag-over { border-left: 4px solid var(--primary); transform: translateX(5px); }
+        
+        .thumb-item img { width: 100%; height: 180px; object-fit: cover; display: block; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .thumb-item img:hover { filter: brightness(0.8); }
+        .img-overlay-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 1px 1px 3px black; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+        .thumb-item:hover .img-overlay-text { opacity: 1; }
+        
         .thumb-actions { display: flex; flex-direction: column; }
-        .thumb-actions button { border-radius: 0; padding: 8px 0; font-size: 12px; }
+        .thumb-actions button { border-radius: 0; padding: 10px 0; font-size: 12px; }
+        
+        .thumb-add-btn { min-width: 140px; max-width: 140px; border: 2px dashed var(--primary); border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; color: var(--primary); font-weight: bold; background: rgba(79, 70, 229, 0.05); transition: background 0.2s; }
+        .thumb-add-btn:hover { background: rgba(79, 70, 229, 0.15); }
+        .thumb-add-btn i { font-size: 30px; margin-bottom: 10px; }
 
         /* Scanner Screen & Batch Editor */
         #scannerScreen { text-align: center; }
@@ -82,37 +90,42 @@
         .btn-group button { width: auto; min-width: 140px; }
         #status { font-weight: 600; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: inline-block; width: 100%; }
         
-        .batch-container { text-align: left; background: var(--bg-color); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border); }
-        .batch-gallery { display: flex; gap: 12px; overflow-x: auto; padding: 10px 0; min-height: 150px; align-items: center; }
-        .batch-item { position: relative; min-width: 120px; max-width: 120px; border: 2px solid var(--border); border-radius: 8px; overflow: hidden; background: #fff; box-shadow: var(--shadow); flex-shrink: 0; }
-        .batch-item img { width: 100%; height: 160px; object-fit: cover; display: block; }
-        .batch-actions { position: absolute; bottom: 0; width: 100%; display: flex; }
-        .batch-actions button { flex: 1; padding: 8px 0; font-size: 12px; border-radius: 0; background: rgba(0,0,0,0.7); color: white; }
-        .batch-actions button:hover { background: var(--primary); }
-        .batch-actions button.btn-trash:hover { background: var(--danger); }
-        .empty-batch { color: var(--text-light); text-align: center; width: 100%; font-size: 14px; }
-
-        /* Custom Popup Alert */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center; animation: fadeIn 0.2s ease; }
-        .modal-box { background: var(--surface); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.9); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        /* Modals */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center; animation: fadeIn 0.2s ease; }
+        .modal-box { background: var(--surface); padding: 25px; border-radius: 20px; width: 95%; max-width: 500px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.9); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; max-height: 90vh; overflow-y: auto; }
         @keyframes popIn { to { transform: scale(1); } }
-        .modal-icon { font-size: 55px; margin-bottom: 15px; }
-        .icon-error { color: var(--danger); } .icon-success { color: var(--secondary); } .icon-info { color: var(--primary); } .icon-warning { color: var(--warning); }
-        .modal-title { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--text-main); }
-        .modal-message { font-size: 15px; color: var(--text-light); margin-bottom: 20px; line-height: 1.5; }
-        .error-log { background: #fee2e2; color: #991b1b; font-family: monospace; font-size: 12px; padding: 12px; border-radius: 8px; text-align: left; overflow-x: auto; margin-bottom: 20px; display: none; border: 1px solid #fca5a5; max-height: 100px; overflow-y: auto; }
+        
+        /* Quick Edit Modal Elements */
+        #quickEditImg { width: 100%; max-height: 50vh; object-fit: contain; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; background: #000; }
+        
+        /* Utility */
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <!-- CUSTOM POPUP ALERT -->
     <div id="customAlert" class="modal-overlay">
+        <div class="modal-box" style="max-width: 400px;">
+            <i id="alertIcon" class="fa-solid fa-circle-info" style="font-size: 50px; margin-bottom: 15px;"></i>
+            <div id="alertTitle" style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">Tajuk</div>
+            <div id="alertMessage" style="font-size: 14px; color: var(--text-light); margin-bottom: 20px;">Mesej...</div>
+            <div id="alertErrorLog" style="background:#fee2e2; color:#991b1b; padding:10px; font-size:11px; margin-bottom:15px; display:none; text-align:left; border-radius:5px; overflow:auto; max-height:100px;"></div>
+            <button id="alertBtn" class="btn-primary" style="width: 100%; border-radius: 50px;" onclick="closeAppAlert()">Tutup</button>
+        </div>
+    </div>
+
+    <!-- QUICK EDIT MODAL (Papar Gambar Besar & Edit) -->
+    <div id="quickEditModal" class="modal-overlay">
         <div class="modal-box">
-            <i id="alertIcon" class="modal-icon fa-solid fa-circle-info"></i>
-            <div id="alertTitle" class="modal-title">Tajuk</div>
-            <div id="alertMessage" class="modal-message">Mesej kandungan di sini...</div>
-            <div id="alertErrorLog" class="error-log"></div>
-            <button id="alertBtn" class="btn-primary" style="width: 100%; border-radius: 50px; padding: 12px;" onclick="closeAppAlert()">Tutup</button>
+            <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-pen-to-square"></i> Edit Sijil</h3>
+            <img id="quickEditImg" src="">
+            <div id="quickEditStatus" style="font-size: 13px; margin-bottom: 15px; font-weight: bold; color: var(--primary);"></div>
+            
+            <div class="btn-group">
+                <button class="btn-primary" onclick="applyFilterToQuickEdit()"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Filter (B&W)</button>
+                <button class="btn-danger" onclick="closeQuickEdit()"><i class="fa-solid fa-check"></i> Selesai Edit</button>
+            </div>
         </div>
     </div>
 
@@ -121,7 +134,7 @@
         <div class="card">
             <i class="fa-solid fa-expand" style="font-size: 40px; color: var(--primary); margin-bottom: 10px;"></i>
             <h3>Sistem Sijil Pro</h3>
-            <p style="color: var(--text-light); margin-bottom: 20px; font-size: 14px;">Log masuk untuk mengurus rekod pelajar</p>
+            <p style="color: var(--text-light); margin-bottom: 20px; font-size: 14px;">Log masuk untuk mengurus rekod</p>
             <input type="email" id="loginEmail" placeholder="Email Guru (Cth: guru@edu.my)">
             <input type="password" id="loginPassword" placeholder="Kata Laluan">
             <button class="btn-primary" onclick="login()" style="margin-top: 15px;">Log Masuk</button>
@@ -160,12 +173,12 @@
                             <h2 id="activeStudentTitle">Nama Pelajar</h2>
                         </div>
                         <button class="btn-success" onclick="openScanner()">
-                            <i class="fa-solid fa-plus"></i> Buka Editor Sijil
+                            <i class="fa-solid fa-plus"></i> Buka Editor Sijil Baru
                         </button>
                     </div>
                     <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-light);">Rekod Sijil (Sesi Ini)</h3>
                     
-                    <!-- Senarai Sijil beserta Thumbnail & Butang Download Lokal akan dipaparkan di sini -->
+                    <!-- Senarai Sijil beserta Thumbnail Drag&Drop -->
                     <div class="cert-list" id="certGridUI"></div>
                     
                 </div>
@@ -173,45 +186,38 @@
         </div>
     </div>
 
-    <!-- SKRIN 3: PENGIMBAS & EDITOR PDF POWER -->
+    <!-- SKRIN 3: PENGIMBAS & EDITOR PDF POWER (Versi Upload Awal) -->
     <div id="scannerScreen" class="screen">
         <div class="card">
             <div class="scanner-header" style="margin-bottom: 15px;">
-                <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Editor Multi-Sijil (PDF Power)</h2>
+                <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Tambah Sijil Baru</h2>
                 <p style="color: var(--text-light);">Pelajar: <strong id="scannerStudentLabel"></strong></p>
             </div>
             
-            <div id="status">⏳ Sedang memuat AI... Sila tunggu.</div>
-            
-            <p style="text-align:left; font-size:13px; color:var(--text-light); margin-bottom:5px;">Nama Fail PDF (Boleh edit kemudian):</p>
-            <input type="text" id="certName" style="margin-bottom: 15px;">
-
+            <div id="status">⏳ Menyemak AI...</div>
+            <input type="text" id="certName" style="margin-bottom: 15px;" placeholder="Nama Fail (Cth: Sijil_Catur)">
             <video id="video" autoplay playsinline></video>
             <canvas id="canvas"></canvas>
 
-            <div class="batch-container">
-                <h4 style="font-size: 14px; margin-bottom: 10px;"><i class="fa-solid fa-layer-group"></i> Kepingan Sijil Untuk Digabungkan:</h4>
-                <div class="batch-gallery" id="batchGallery">
-                    <div class="empty-batch">Belum ada sijil. Snap kamera atau pilih fail di bawah.</div>
-                </div>
+            <!-- Galeri Sementara Scanner (Hidden dalam versi Pro ini sebab Dashboard yang handle) -->
+            <div class="batch-container hidden">
+                <div class="batch-gallery" id="batchGallery"></div>
             </div>
 
-            <input type="file" id="fileUploadInput" accept="image/*,application/pdf" style="display: none;">
-
-            <!-- KUMPULAN BUTANG 1: TAMBAH GAMBAR -->
             <div class="btn-group">
-                <button id="btnCaptureCam" class="btn-primary" disabled><i class="fa-solid fa-camera"></i> 1. Tambah (Kamera)</button>
-                <button id="btnUploadFile" class="btn-primary" onclick="document.getElementById('fileUploadInput').click();" disabled><i class="fa-solid fa-folder-open"></i> 1. Tambah (Fail/PDF)</button>
+                <button id="btnCaptureCam" class="btn-primary"><i class="fa-solid fa-camera"></i> 1. Snap (Kamera)</button>
+                <button id="btnUploadFile" class="btn-primary" onclick="document.getElementById('fileUploadInput').click();"><i class="fa-solid fa-folder-open"></i> 1. Pilih Fail / PDF</button>
             </div>
-            
-            <!-- KUMPULAN BUTANG 2: SIMPAN (Tindakan Wajib) -->
             <div class="btn-group" style="border-top: 1px solid var(--border); padding-top: 15px; margin-top: 5px;">
                 <button id="btnPdfBasic" class="btn-success" onclick="generateAndSavePDF()"><i class="fa-solid fa-cloud-arrow-up"></i> 2. Simpan & Upload Drive</button>
-                <button id="btnSaveLocal" class="btn-warning" onclick="saveToDashboardLocal()"><i class="fa-solid fa-sd-card"></i> 2. Simpan ke Dashboard Saja</button>
-                <button id="btnCancelScan" class="btn-danger" onclick="closeScanner()"><i class="fa-solid fa-xmark"></i> Batal & Tutup</button>
+                <button class="btn-danger" onclick="closeScanner()"><i class="fa-solid fa-xmark"></i> Batal</button>
             </div>
         </div>
     </div>
+
+    <!-- Hidden Inputs -->
+    <input type="file" id="fileUploadInput" accept="image/*,application/pdf" style="display: none;">
+    <input type="file" id="inlineAddFileInput" accept="image/*,application/pdf" style="display: none;">
 
     <!-- Scripts -->
     <script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvReady();"></script>
@@ -220,36 +226,39 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzj9MWcsOqTFtkz6yJbTOIpNZptIIhxt9J3xI27bE23uY0eY4JV6RwedPp_ZbGY8_qw/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxOrI7Q-Rpk8xtBe7Ol6TyiWzmSx2Mg5PUpc-YOuMadiKEPXeBzNpBkk79qk-nDrvtB/exec"; 
         
         let currentUserEmail = "";
         let studentsList = []; 
         let activeStudent = "";
+        
+        // Pangkalan Data Sementara (Lokal State)
         let sessionCerts = []; 
         let currentBatch = []; 
+        
+        // Pembolehubah Global Untuk Edit & Drag
+        let opencvReady = false;
+        let dragSourceCertIndex = -1;
+        let dragSourcePageIndex = -1;
+        let activeEditCertIndex = -1;
+        let activeEditPageIndex = -1;
+        let targetInlineCertIndex = -1;
 
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
         // ==========================================
-        // ENJIN CUSTOM POPUP ALERT
+        // SISTEM ALERT
         // ==========================================
         function showAppAlert(title, message, type = "info", rawError = null) {
-            const overlay = document.getElementById('customAlert');
-            const icon = document.getElementById('alertIcon');
-            const btn = document.getElementById('alertBtn');
-            const logEl = document.getElementById('alertErrorLog');
-            
-            icon.className = 'modal-icon fa-solid';
-            if (type === "error") { icon.classList.add('fa-circle-xmark', 'icon-error'); btn.style.backgroundColor = "var(--danger)"; }
-            else if (type === "success") { icon.classList.add('fa-circle-check', 'icon-success'); btn.style.backgroundColor = "var(--secondary)"; }
-            else if (type === "warning") { icon.classList.add('fa-triangle-exclamation', 'icon-warning'); btn.style.backgroundColor = "var(--warning)"; }
-            else { icon.classList.add('fa-circle-info', 'icon-info'); btn.style.backgroundColor = "var(--primary)"; }
+            const overlay = document.getElementById('customAlert'), icon = document.getElementById('alertIcon'), btn = document.getElementById('alertBtn'), logEl = document.getElementById('alertErrorLog');
+            icon.className = 'fa-solid'; btn.style.backgroundColor = "var(--primary)";
+            if (type === "error") { icon.classList.add('fa-circle-xmark'); icon.style.color="var(--danger)"; btn.style.backgroundColor = "var(--danger)"; }
+            else if (type === "success") { icon.classList.add('fa-circle-check'); icon.style.color="var(--secondary)"; btn.style.backgroundColor = "var(--secondary)"; }
+            else if (type === "warning") { icon.classList.add('fa-triangle-exclamation'); icon.style.color="var(--warning)"; btn.style.backgroundColor = "var(--warning)"; }
+            else { icon.classList.add('fa-circle-info'); icon.style.color="var(--primary)"; }
 
-            document.getElementById('alertTitle').innerText = title;
-            document.getElementById('alertMessage').innerText = message;
-            
-            if (rawError) { logEl.style.display = 'block'; logEl.innerText = "Sistem Log: \n" + rawError; }
-            else { logEl.style.display = 'none'; }
+            document.getElementById('alertTitle').innerText = title; document.getElementById('alertMessage').innerText = message;
+            if (rawError) { logEl.style.display = 'block'; logEl.innerText = "Sistem Log: \n" + rawError; } else logEl.style.display = 'none';
             overlay.style.display = 'flex';
         }
         function closeAppAlert() { document.getElementById('customAlert').style.display = 'none'; }
@@ -258,25 +267,21 @@
             let el = document.getElementById('status'); el.innerHTML = msg;
             if(type === "info") { el.style.color = "var(--primary)"; el.style.background = "rgba(79,70,229,0.1)"; }
             if(type === "success") { el.style.color = "var(--secondary)"; el.style.background = "rgba(16,185,129,0.1)"; }
-            if(type === "error") { el.style.color = "var(--danger)"; el.style.background = "rgba(239,68,68,0.1)"; }
+            if(type === "warning") { el.style.color = "var(--warning)"; el.style.background = "rgba(245,158,11,0.1)"; }
         }
 
         // ==========================================
-        // AUTO-LOGIN & FETCH DATA
+        // AUTO-LOGIN & DATA FETCH
         // ==========================================
         document.addEventListener("DOMContentLoaded", () => {
             const savedUser = localStorage.getItem("sijilProUser");
-            if (savedUser) {
-                currentUserEmail = savedUser;
-                document.getElementById('userEmailDisplay').innerText = savedUser;
-                fetchStudents();
-                switchScreen('dashboardScreen');
-            } else switchScreen('loginScreen');
+            if (savedUser) { currentUserEmail = savedUser; document.getElementById('userEmailDisplay').innerText = savedUser; fetchStudents(); switchScreen('dashboardScreen'); } 
+            else switchScreen('loginScreen');
         });
 
         async function login() {
             let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value;
-            if(!email || !pass) return showAppAlert("Maklumat Tidak Lengkap", "Sila masukkan email dan kata laluan.", "error");
+            if(!email || !pass) return showAppAlert("Maklumat Tidak Lengkap", "Masukkan email & kata laluan.", "error");
             try {
                 let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "login", email, password: pass }) });
                 let data = await res.json();
@@ -285,105 +290,101 @@
                     document.getElementById('userEmailDisplay').innerText = email;
                     fetchStudents(); switchScreen('dashboardScreen');
                 } else showAppAlert("Gagal Log Masuk", data.message, "error");
-            } catch (err) { showAppAlert("Ralat Sambungan", "Gagal menghubungi pangkalan data pelayan.", "error", err.toString()); }
+            } catch (err) { showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error", err.toString()); }
         }
-        function logout() { localStorage.removeItem("sijilProUser"); stopCamera(); studentsList = []; switchScreen('loginScreen'); }
+        function logout() { localStorage.removeItem("sijilProUser"); sessionCerts=[]; switchScreen('loginScreen'); }
 
-        // ==========================================
-        // DB SYNC (PELAJAR)
-        // ==========================================
         async function fetchStudents() {
-            const ul = document.getElementById('studentListUI');
-            ul.innerHTML = `<li style="text-align:center; padding:15px; color:grey;"><i class="fa-solid fa-spinner fa-spin"></i> Menyegerak DB...</li>`;
             try {
                 let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "getStudents" }) });
-                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
                 let data = await res.json();
                 if (data.status === "success") { studentsList = data.data; renderStudentList(); }
-            } catch (err) { ul.innerHTML = `<li style="text-align:center; color:red;">Gagal menarik data. Pastikan anda Deploy script.</li>`; }
+            } catch (err) { console.log("Gagal sync DB"); }
         }
-
         async function addStudent() {
             let input = document.getElementById('newStudentName'), name = input.value.trim();
-            if(!name) return;
-            if(studentsList.includes(name)) return showAppAlert("Pelajar Wujud", `Nama "${name}" sudah ada.`, "warning");
-            let btn = document.getElementById('btnAddStudent'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; btn.disabled = true;
+            if(!name) return; if(studentsList.includes(name)) return showAppAlert("Wujud", "Nama sudah ada.", "warning");
+            document.getElementById('btnAddStudent').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
             try {
                 let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "addStudent", studentName: name, guruEmail: currentUserEmail }) });
                 let data = await res.json();
-                if(data.status === "success") {
-                    studentsList.push(name); studentsList.sort(); input.value = "";
-                    renderStudentList(); selectStudent(name);
-                    showAppAlert("Berjaya", `Nama "${name}" disimpan.`, "success");
-                } else showAppAlert("Ralat Menyimpan", data.message, "error");
-            } catch (err) { showAppAlert("Ralat Gagal", "Proses terhenti.", "error", err.toString()); } 
-            finally { btn.innerHTML = '<i class="fa-solid fa-plus"></i>'; btn.disabled = false; }
+                if(data.status === "success") { studentsList.push(name); studentsList.sort(); input.value = ""; renderStudentList(); selectStudent(name); } 
+            } catch (err) { showAppAlert("Ralat", "Proses terhenti.", "error", err.toString()); } 
+            finally { document.getElementById('btnAddStudent').innerHTML = '<i class="fa-solid fa-plus"></i>'; }
         }
 
         // ==========================================
-        // UI DASHBOARD (Galeri Sijil)
+        // DASHBOARD RENDERER (DENGAN DRAG & DROP UI)
         // ==========================================
         function renderStudentList() {
             const ul = document.getElementById('studentListUI'); ul.innerHTML = "";
-            if(studentsList.length === 0) { ul.innerHTML = `<li style="text-align:center; padding:15px; color:grey; font-size: 14px;">Belum ada pelajar.</li>`; return; }
             studentsList.forEach(name => {
-                let li = document.createElement('li');
-                li.className = `student-item ${name === activeStudent ? 'active' : ''}`;
-                li.innerHTML = `<i class="fa-solid fa-user"></i> ${name}`;
-                li.onclick = () => selectStudent(name);
-                ul.appendChild(li);
+                let li = document.createElement('li'); li.className = `student-item ${name === activeStudent ? 'active' : ''}`;
+                li.innerHTML = `<i class="fa-solid fa-user"></i> ${name}`; li.onclick = () => selectStudent(name); ul.appendChild(li);
             });
         }
+        
         function selectStudent(name) {
             activeStudent = name; renderStudentList(); 
-            document.getElementById('emptyState').style.display='none'; 
-            document.getElementById('studentDetails').style.display='block';
+            document.getElementById('emptyState').style.display='none'; document.getElementById('studentDetails').style.display='block';
             document.getElementById('activeStudentTitle').innerText = name; renderCerts();
         }
 
         function renderCerts() {
-            const listUI = document.getElementById('certGridUI');
-            listUI.innerHTML = "";
-            
+            const listUI = document.getElementById('certGridUI'); listUI.innerHTML = "";
             let myCerts = sessionCerts.filter(c => c.student === activeStudent);
-            if(myCerts.length === 0) {
-                listUI.innerHTML = `<p style="font-size:14px; color:grey;">Belum ada sijil diproses untuk sesi ini.</p>`;
-                return;
-            }
+            if(myCerts.length === 0) { listUI.innerHTML = `<p style="font-size:14px; color:grey;">Belum ada sijil diproses.</p>`; return; }
 
             sessionCerts.forEach((cert, certIndex) => {
                 if (cert.student !== activeStudent || cert.images.length === 0) return;
 
                 let thumbsHTML = "";
                 cert.images.forEach((imgData, imgIndex) => {
+                    // Elemen boleh ditarik (Draggable)
                     thumbsHTML += `
-                        <div class="thumb-item">
-                            <img src="${imgData}" alt="Page ${imgIndex + 1}">
+                        <div class="thumb-item" draggable="true" 
+                             ondragstart="dragStart(event, ${certIndex}, ${imgIndex})" 
+                             ondragover="dragOver(event)" 
+                             ondragleave="dragLeave(event)"
+                             ondrop="drop(event, ${certIndex}, ${imgIndex})">
+                             
+                            <img src="${imgData}" onclick="openQuickEdit(${certIndex}, ${imgIndex})">
+                            <span class="img-overlay-text">✏️ Klik Edit</span>
+                            
                             <div class="thumb-actions">
-                                <button class="btn-success" onclick="downloadLocalPDF(${certIndex}, ${imgIndex})" style="background: var(--secondary);"><i class="fa-solid fa-download"></i> 1 Page</button>
                                 <button class="btn-danger" onclick="deleteLocalThumbnail(${certIndex}, ${imgIndex})" style="background: var(--danger);"><i class="fa-solid fa-trash"></i> Buang</button>
                             </div>
                         </div>
                     `;
                 });
 
-                // Tentukan status simpanan
-                let statusLabel = cert.type === 'drive' 
-                    ? `<span class="cert-status drive"><i class="fa-solid fa-cloud-check"></i> Disimpan di Google Drive & Lokal</span>` 
-                    : `<span class="cert-status"><i class="fa-solid fa-mobile-screen"></i> Disimpan di Peranti Ini Sahaja (Lokal)</span>`;
+                // Butang Tambah Page pada hujung senarai
+                thumbsHTML += `
+                    <div class="thumb-add-btn" onclick="triggerInlineAdd(${certIndex})">
+                        <i class="fa-solid fa-file-circle-plus"></i> Tambah Page
+                    </div>
+                `;
+
+                let statusLabel = cert.needsSync 
+                    ? `<span class="cert-status unsynced"><i class="fa-solid fa-triangle-exclamation"></i> Ada perubahan! Belum dikemas kini ke Cloud.</span>` 
+                    : `<span class="cert-status drive"><i class="fa-solid fa-cloud-check"></i> Tersimpan selari di Drive & Lokal</span>`;
+
+                let syncBtnHtml = cert.needsSync
+                    ? `<button class="btn-warning" onclick="syncUpdateToCloud(${certIndex})" style="width:auto; padding: 10px; animation: pulseText 2s infinite;"><i class="fa-solid fa-cloud-arrow-up"></i> Kemaskini Cloud (PDF)</button>`
+                    : `<button class="btn-primary" onclick="downloadLocalPDF(${certIndex})" style="width:auto; padding: 10px;"><i class="fa-solid fa-download"></i> Download Semua PDF</button>`;
 
                 listUI.innerHTML += `
-                    <div class="cert-card">
+                    <div class="cert-card" style="${cert.needsSync ? 'border-color: var(--warning);' : ''}">
                         <div class="cert-header">
                             <div>
                                 <h4>${cert.certName}</h4>
                                 ${statusLabel}
                             </div>
-                            <button class="btn-primary" onclick="downloadLocalPDF(${certIndex}, 'ALL')" style="width:auto; padding: 10px 20px;">
-                                <i class="fa-solid fa-file-pdf"></i> Download Semua PDF
-                            </button>
+                            <div style="display:flex; gap:10px;">
+                                ${syncBtnHtml}
+                            </div>
                         </div>
-                        <div class="cert-thumbnails">
+                        <div class="cert-thumbnails" ondragover="dragOver(event)" ondrop="dropAtEnd(event, ${certIndex})">
                             ${thumbsHTML}
                         </div>
                     </div>
@@ -392,138 +393,220 @@
         }
 
         // ==========================================
-        // FUNGSI DOWNLOAD PDF LOKAL
+        // FUNGSI DRAG & DROP (SUSUN ATUR GAMBAR)
         // ==========================================
-        async function downloadLocalPDF(certIndex, pageIndex) {
-            try {
-                let cert = sessionCerts[certIndex];
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF();
-                pdf.deletePage(1);
+        function dragStart(e, certIdx, pageIdx) {
+            dragSourceCertIndex = certIdx;
+            dragSourcePageIndex = pageIdx;
+            e.dataTransfer.effectAllowed = 'move';
+            e.target.classList.add('dragging');
+        }
+        function dragOver(e) {
+            e.preventDefault(); 
+            e.dataTransfer.dropEffect = 'move';
+            if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.add('drag-over');
+        }
+        function dragLeave(e) {
+            if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over');
+        }
+        function drop(e, targetCertIdx, targetPageIdx) {
+            e.preventDefault(); e.stopPropagation();
+            if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over');
+            
+            // Halang jika tarik ke album (cert) yang berbeza
+            if (dragSourceCertIndex !== targetCertIdx) return showAppAlert("Dilarang", "Sila susun di dalam kumpulan sijil yang sama sahaja.", "warning");
+            // Halang jika kedudukan sama
+            if (dragSourcePageIndex === targetPageIdx) return;
+            
+            let cert = sessionCerts[targetCertIdx];
+            let itemMoved = cert.images.splice(dragSourcePageIndex, 1)[0];
+            cert.images.splice(targetPageIdx, 0, itemMoved); // Masukkan di kedudukan baru
+            
+            cert.needsSync = true; // Flag untuk Cloud Update
+            renderCerts(); // Render semula UI
+        }
+        function dropAtEnd(e, targetCertIdx) {
+            e.preventDefault();
+            if (dragSourceCertIndex !== targetCertIdx || dragSourcePageIndex === sessionCerts[targetCertIdx].images.length -1) return;
+            let cert = sessionCerts[targetCertIdx];
+            let itemMoved = cert.images.splice(dragSourcePageIndex, 1)[0];
+            cert.images.push(itemMoved);
+            cert.needsSync = true;
+            renderCerts();
+        }
 
-                if (pageIndex === 'ALL') {
-                    if (cert.images.length === 0) return showAppAlert("Sijil Kosong", "Semua gambar telah dibuang.", "warning");
-                    for(let i = 0; i < cert.images.length; i++) {
-                        let imgData = cert.images[i];
-                        let img = new Image(); img.src = imgData;
-                        await new Promise(r => img.onload = r);
-                        let orientation = img.width > img.height ? 'l' : 'p';
-                        pdf.addPage([img.width, img.height], orientation);
-                        pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
+        // ==========================================
+        // FUNGSI INLINE ADD (TAMBAH PAGE BARU DALAM BATCH)
+        // ==========================================
+        document.getElementById('inlineAddFileInput').addEventListener('change', async (e) => {
+            if(targetInlineCertIndex === -1) return;
+            const file = e.target.files[0]; if(!file) return;
+            let cert = sessionCerts[targetInlineCertIndex];
+            
+            if(file.type === "application/pdf") {
+                try {
+                    const arrayBuffer = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                    for(let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i); const viewport = page.getViewport({scale: 1.5}); 
+                        canvas.width = viewport.width; canvas.height = viewport.height;
+                        await page.render({canvasContext: ctx, viewport: viewport}).promise;
+                        cert.images.push(canvas.toDataURL('image/jpeg', 0.9));
                     }
-                    pdf.save(`${cert.certName}_Compiled.pdf`);
-                } else {
-                    let imgData = cert.images[pageIndex];
-                    let img = new Image(); img.src = imgData;
+                    cert.needsSync = true; renderCerts();
+                } catch(err) { showAppAlert("Ralat PDF", "Gagal ektrak PDF.", "error"); }
+            } else {
+                const img = new Image();
+                img.onload = function() {
+                    canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0);
+                    // Boleh tambah AI Crop inline di sini, tapi untuk laju kita terus terima imej penuh
+                    cert.images.push(canvas.toDataURL('image/jpeg', 0.9));
+                    cert.needsSync = true; renderCerts();
+                }
+                img.src = URL.createObjectURL(file);
+            }
+            e.target.value = "";
+        });
+        function triggerInlineAdd(certIdx) { targetInlineCertIndex = certIdx; document.getElementById('inlineAddFileInput').click(); }
+        function deleteLocalThumbnail(certIdx, pageIdx) {
+            if(confirm("Buang muka surat ini?")) { sessionCerts[certIdx].images.splice(pageIdx, 1); sessionCerts[certIdx].needsSync = true; renderCerts(); }
+        }
+
+        // ==========================================
+        // FUNGSI QUICK EDIT (KLIK UNTUK VIEW & FILTER AI)
+        // ==========================================
+        function openQuickEdit(cIdx, pIdx) {
+            activeEditCertIndex = cIdx; activeEditPageIndex = pIdx;
+            let imgData = sessionCerts[cIdx].images[pIdx];
+            document.getElementById('quickEditImg').src = imgData;
+            document.getElementById('quickEditStatus').innerText = `Muka surat ${pIdx + 1} sedia diedit.`;
+            document.getElementById('quickEditModal').style.display = 'flex';
+        }
+        function closeQuickEdit() { document.getElementById('quickEditModal').style.display = 'none'; }
+        
+        function applyFilterToQuickEdit() {
+            if(!opencvReady) return showAppAlert("AI Belum Sedia", "Tunggu sebentar.", "warning");
+            document.getElementById('quickEditStatus').innerText = "⏳ Sedang memproses AI Filter...";
+            
+            setTimeout(() => {
+                let img = document.getElementById('quickEditImg');
+                canvas.width = img.naturalWidth; canvas.height = img.naturalHeight; ctx.drawImage(img, 0, 0);
+                
+                let mat = cv.imread(canvas); cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY, 0); cv.adaptiveThreshold(mat, mat, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15);
+                cv.imshow(canvas, mat); mat.delete();
+                
+                let newImgData = canvas.toDataURL('image/jpeg', 0.9);
+                img.src = newImgData; // Preview live
+                
+                // Simpan ke memori
+                sessionCerts[activeEditCertIndex].images[activeEditPageIndex] = newImgData;
+                sessionCerts[activeEditCertIndex].needsSync = true; // Set flag
+                renderCerts(); // Update dashboard belakang tabir
+                
+                document.getElementById('quickEditStatus').innerText = "✅ Berjaya dibersihkan!";
+            }, 100);
+        }
+
+        // ==========================================
+        // KEMAS KINI KE CLOUD (UPDATE APP SCRIPT)
+        // ==========================================
+        async function syncUpdateToCloud(certIndex) {
+            let cert = sessionCerts[certIndex];
+            if(cert.images.length === 0) return showAppAlert("Sijil Kosong", "Tak boleh hantar sijil kosong ke cloud.", "error");
+            
+            // Tukar butang jadi loading stat (kerana ambil masa sikit)
+            let btnList = document.querySelectorAll('.cert-card')[certIndex].querySelectorAll('button');
+            btnList.forEach(b => b.disabled = true);
+            showAppAlert("Memproses PDF", "Sistem sedang menjana PDF dan menghantar ke Google Drive. Sila tunggu...", "info");
+            
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF(); pdf.deletePage(1);
+
+                for(let i = 0; i < cert.images.length; i++) {
+                    let imgData = cert.images[i]; let img = new Image(); img.src = imgData;
                     await new Promise(r => img.onload = r);
                     let orientation = img.width > img.height ? 'l' : 'p';
                     pdf.addPage([img.width, img.height], orientation);
                     pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
-                    pdf.save(`${cert.certName}_Page_${pageIndex + 1}.pdf`);
                 }
-            } catch (err) {
-                showAppAlert("Ralat PDF", "Gagal menjana fail PDF di peranti anda.", "error", err.toString());
-            }
+
+                const pdfBase64 = pdf.output('datauristring');
+                
+                // PANGGIL TINDAKAN "updateFile" yang baru ditambah di Code.gs
+                let res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "updateFile", pdfData: pdfBase64, fileName: `${activeStudent} - ${cert.certName}`, studentName: activeStudent, certName: cert.certName, guruEmail: currentUserEmail })
+                });
+                
+                let result = await res.json();
+                if (result.status === "success") {
+                    cert.needsSync = false; // Padam flag amaran
+                    closeAppAlert();
+                    showAppAlert("Selesai Sinkronisasi!", "Susunan terkini telah berjaya dikemas kini di Google Drive.", "success");
+                    renderCerts(); 
+                } else showAppAlert("Gagal", result.message, "error");
+
+            } catch (err) { showAppAlert("Ralat Sistem", "Ralat menyambung ke server.", "error", err.toString()); } 
+            finally { btnList.forEach(b => b.disabled = false); }
         }
 
-        function deleteLocalThumbnail(certIndex, pageIndex) {
-            if(confirm("Adakah anda pasti mahu membuang muka surat ini?")) {
-                sessionCerts[certIndex].images.splice(pageIndex, 1);
-                renderCerts(); 
-            }
+        async function downloadLocalPDF(certIndex) {
+            let cert = sessionCerts[certIndex];
+            try {
+                const { jsPDF } = window.jspdf; const pdf = new jsPDF(); pdf.deletePage(1);
+                for(let i = 0; i < cert.images.length; i++) {
+                    let imgData = cert.images[i]; let img = new Image(); img.src = imgData;
+                    await new Promise(r => img.onload = r);
+                    let orientation = img.width > img.height ? 'l' : 'p';
+                    pdf.addPage([img.width, img.height], orientation); pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
+                }
+                pdf.save(`${cert.certName}_Compiled.pdf`);
+            } catch (err) { showAppAlert("Ralat PDF", "Gagal.", "error"); }
         }
 
         // ==========================================
-        // SISTEM SCANNER & EDITOR
+        // SISTEM SCANNER ASAL (UNTUK BATCH PERTAMA KALI)
         // ==========================================
-        let opencvReady = false;
-        const video = document.getElementById('video'), canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
-
-        function onOpenCvReady() {
-            opencvReady = true; setStatus("<i class='fa-solid fa-check'></i> AI Bersedia! Sila tambah gambar.", "success");
-            document.getElementById('btnCaptureCam').disabled = false; document.getElementById('btnUploadFile').disabled = false;
-        }
-
+        function onOpenCvReady() { opencvReady = true; setStatus("<i class='fa-solid fa-check'></i> AI Bersedia!", "success"); }
         function openScanner() {
-            if(!activeStudent) return showAppAlert("Perhatian", "Pilih nama pelajar terlebih dahulu dari senarai di sebelah kiri.", "info");
+            if(!activeStudent) return showAppAlert("Perhatian", "Pilih nama pelajar dari senarai.", "info");
             document.getElementById('scannerStudentLabel').innerText = activeStudent;
-            
-            let dateStr = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14);
-            document.getElementById('certName').value = `Sijil_${dateStr}`;
-            
-            currentBatch = []; updateBatchUI();
+            let dateStr = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14); document.getElementById('certName').value = `Sijil_${dateStr}`;
+            currentBatch = []; document.getElementById('batchGallery').innerHTML = "";
             switchScreen('scannerScreen'); startCamera();
         }
-
-        function closeScanner() { 
-            // Amaran jika pengguna tekan Tutup tapi belum simpan gambar
-            if (currentBatch.length > 0) {
-                if(!confirm("⚠️ Anda ada gambar yang BELUM DISIMPAN! Adakah anda pasti mahu membuang hasil kerja ini dan tutup Editor?")) {
-                    return; // Batal tindakan tutup
-                }
-            }
-            stopCamera(); 
-            switchScreen('dashboardScreen'); 
-        }
-
-        function startCamera() { navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(stream => video.srcObject = stream).catch(e => setStatus("Kamera tidak ditemui, sila guna butang Fail.", "warning")); video.style.display = 'block'; canvas.style.display = 'none'; }
+        function closeScanner() { stopCamera(); switchScreen('dashboardScreen'); }
+        function startCamera() { navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(stream => video.srcObject = stream).catch(e => setStatus("Kamera tiada.", "warning")); video.style.display = 'block'; canvas.style.display = 'none'; }
         function stopCamera() { if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop()); }
 
-        function updateBatchUI() {
-            const gallery = document.getElementById('batchGallery');
-            if(currentBatch.length === 0) { gallery.innerHTML = `<div class="empty-batch">Koleksi kosong. Sila guna Butang 1 di bawah.</div>`; return; }
-            gallery.innerHTML = "";
-            currentBatch.forEach((base64Img, index) => {
-                gallery.innerHTML += `
-                    <div class="batch-item">
-                        <img src="${base64Img}">
-                        <div class="batch-actions">
-                            <button onclick="applyFilterToPage(${index})" title="Buang Bayang"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
-                            <button class="btn-trash" onclick="deletePage(${index})" title="Buang Kepingan Ini"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function deletePage(index) { currentBatch.splice(index, 1); updateBatchUI(); }
-
         document.getElementById('btnCaptureCam').addEventListener('click', () => {
-            if (!opencvReady) return showAppAlert("Sabar", "Sistem AI sedang bersiap sedia.", "warning");
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            setStatus("<i class='fa-solid fa-gear fa-spin'></i> AI Memotong gambar...", "info");
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight; ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            setStatus("<i class='fa-solid fa-gear fa-spin'></i> AI Memotong...", "info");
             setTimeout(() => {
-                let processedImg = detectAndWarpDocument(canvas);
-                currentBatch.push(processedImg); updateBatchUI();
-                setStatus("<i class='fa-solid fa-check'></i> Dimasukkan ke galeri! Sila tekan Butang 2 untuk simpan.", "success");
+                let processedImg = (!opencvReady) ? canvas.toDataURL('image/jpeg', 0.9) : detectAndWarpDocument(canvas);
+                currentBatch.push(processedImg); setStatus("<i class='fa-solid fa-check'></i> Ditambah! Boleh tekan butang Simpan.", "success");
             }, 100);
         });
 
         document.getElementById('fileUploadInput').addEventListener('change', async (e) => {
             const file = e.target.files[0]; if(!file) return;
             if(file.type === "application/pdf") {
-                setStatus("<i class='fa-solid fa-spinner fa-spin'></i> AI sedang memecahkan helaian PDF...", "info");
+                setStatus("<i class='fa-solid fa-spinner fa-spin'></i> AI mengekstrak PDF...", "info");
                 try {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                    const arrayBuffer = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
                     for(let i = 1; i <= pdf.numPages; i++) {
-                        const page = await pdf.getPage(i);
-                        const viewport = page.getViewport({scale: 1.5}); 
+                        const page = await pdf.getPage(i); const viewport = page.getViewport({scale: 1.5}); 
                         canvas.width = viewport.width; canvas.height = viewport.height;
                         await page.render({canvasContext: ctx, viewport: viewport}).promise;
                         currentBatch.push(canvas.toDataURL('image/jpeg', 0.9));
                     }
-                    updateBatchUI(); setStatus("<i class='fa-solid fa-check-double'></i> Selesai dipecahkan! Sila tekan Butang 2 untuk simpan.", "success");
-                } catch(err) { showAppAlert("Ralat PDF", "Gagal mengekstrak fail PDF.", "error", err.toString()); }
+                    setStatus("<i class='fa-solid fa-check-double'></i> Selesai!", "success");
+                } catch(err) { showAppAlert("Ralat PDF", "Gagal ekstrak.", "error"); }
             } else {
-                setStatus("<i class='fa-solid fa-gear fa-spin'></i> Memproses gambar...", "info");
-                const img = new Image();
-                img.onload = function() {
+                const img = new Image(); img.onload = function() {
                     canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0);
-                    let processedImg = detectAndWarpDocument(canvas);
-                    currentBatch.push(processedImg); updateBatchUI();
-                    setStatus("<i class='fa-solid fa-check'></i> Gambar ditambah! Sila tekan Butang 2 untuk simpan.", "success");
+                    let processedImg = (!opencvReady) ? canvas.toDataURL('image/jpeg', 0.9) : detectAndWarpDocument(canvas);
+                    currentBatch.push(processedImg); setStatus("<i class='fa-solid fa-check'></i> Gambar ditambah!", "success");
                 }
                 img.src = URL.createObjectURL(file);
             }
@@ -537,8 +620,7 @@
                 let contours = new cv.MatVector(), hierarchy = new cv.Mat(); cv.findContours(dst, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
                 let maxArea = 0, maxContour = null;
                 for (let i = 0; i < contours.size(); ++i) {
-                    let cnt = contours.get(i), area = cv.contourArea(cnt), approx = new cv.Mat();
-                    cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
+                    let cnt = contours.get(i), area = cv.contourArea(cnt), approx = new cv.Mat(); cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
                     if (approx.rows === 4 && area > maxArea && area > 50000) { maxArea = area; if (maxContour) maxContour.delete(); maxContour = approx.clone(); }
                     approx.delete();
                 }
@@ -559,82 +641,26 @@
             } catch (err) { return srcCanvas.toDataURL('image/jpeg', 0.9); }
         }
 
-        function applyFilterToPage(index) {
-            setStatus("<i class='fa-solid fa-wand-magic-sparkles'></i> Membersihkan helaian...", "info");
-            let img = new Image();
-            img.onload = () => {
-                canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0);
-                let mat = cv.imread(canvas); cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY, 0); cv.adaptiveThreshold(mat, mat, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15);
-                cv.imshow(canvas, mat); mat.delete();
-                currentBatch[index] = canvas.toDataURL('image/jpeg', 0.9); updateBatchUI(); setStatus("<i class='fa-solid fa-check'></i> Selesai dibersihkan!", "success");
-            };
-            img.src = currentBatch[index];
-        }
-
-        // ==========================================
-        // FUNGSI SIMPAN KE LOKAL (Baru)
-        // ==========================================
-        function saveToDashboardLocal() {
-            if(currentBatch.length === 0) return showAppAlert("Koleksi Kosong", "Sila tambah gambar sijil terlebih dahulu.", "warning");
-            let cName = document.getElementById('certName').value.trim();
-            if(!cName) { showAppAlert("Nama Fail Diperlukan", "Sila taip nama fail di ruangan atas.", "warning"); return; }
-            
-            // Masukkan ke Dashboard sebagai 'local'
-            sessionCerts.push({ student: activeStudent, certName: cName, images: [...currentBatch], type: 'local' });
-            
-            currentBatch = []; // Kosongkan memori sementara supaya tak prompt amaran
-            showAppAlert("Tersimpan (Lokal)", "Sijil berjaya disimpan terus ke dalam paparan Dashboard tanpa menggunakan internet.", "success");
-            
-            stopCamera();
-            switchScreen('dashboardScreen');
-            renderCerts(); 
-        }
-
-        // ==========================================
-        // FUNGSI SIMPAN & UPLOAD KE GOOGLE DRIVE
-        // ==========================================
         async function generateAndSavePDF() {
-            if(currentBatch.length === 0) return showAppAlert("Koleksi Kosong", "Sila tambah gambar sijil terlebih dahulu.", "warning");
+            if(currentBatch.length === 0) return showAppAlert("Koleksi Kosong", "Sila tambah gambar sijil.", "warning");
             let cName = document.getElementById('certName').value.trim();
-            if(!cName) { showAppAlert("Nama Fail Diperlukan", "Sila taip nama fail di ruangan atas.", "warning"); return; }
-            
-            document.getElementById('btnPdfBasic').disabled = true;
-            setStatus("<i class='fa-solid fa-layer-group fa-beat'></i> Menggabungkan & Upload ke Drive...", "info");
-
+            if(!cName) { showAppAlert("Nama Fail", "Sila taip nama fail.", "warning"); return; }
+            document.getElementById('btnPdfBasic').disabled = true; setStatus("<i class='fa-solid fa-layer-group fa-beat'></i> Menggabungkan & Upload...", "info");
             try {
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF(); pdf.deletePage(1);
-
+                const { jsPDF } = window.jspdf; const pdf = new jsPDF(); pdf.deletePage(1);
                 for(let i = 0; i < currentBatch.length; i++) {
-                    let imgData = currentBatch[i];
-                    let img = new Image(); img.src = imgData;
-                    await new Promise(r => img.onload = r);
-                    let orientation = img.width > img.height ? 'l' : 'p';
-                    pdf.addPage([img.width, img.height], orientation);
-                    pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
+                    let imgData = currentBatch[i]; let img = new Image(); img.src = imgData; await new Promise(r => img.onload = r);
+                    let orientation = img.width > img.height ? 'l' : 'p'; pdf.addPage([img.width, img.height], orientation); pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
                 }
-
                 const pdfBase64 = pdf.output('datauristring');
-                let res = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: "upload", pdfData: pdfBase64, fileName: `${activeStudent} - ${cName}`, studentName: activeStudent, certName: cName, guruEmail: currentUserEmail })
-                });
-                
+                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "upload", pdfData: pdfBase64, fileName: `${activeStudent} - ${cName}`, studentName: activeStudent, certName: cName, guruEmail: currentUserEmail }) });
                 let result = await res.json();
                 if (result.status === "success") {
-                    // Masukkan ke Dashboard sebagai 'drive'
-                    sessionCerts.push({ student: activeStudent, certName: cName, images: [...currentBatch], type: 'drive' });
-                    
-                    currentBatch = []; // Kosongkan supaya amaran tak naik
-                    showAppAlert("Berjaya Muat Naik!", "Sijil telah dihantar ke dalam Google Drive. Ia juga dipaparkan di Dashboard untuk didownload lokal.", "success");
-                    
-                    stopCamera();
-                    switchScreen('dashboardScreen');
-                    renderCerts(); 
-                } else showAppAlert("Gagal Muat Naik", result.message, "error");
-
-            } catch (err) { showAppAlert("Ralat Sistem", "Ralat dikesan semasa proses ke pelayan.", "error", err.toString());
-            } finally { document.getElementById('btnPdfBasic').disabled = false; }
+                    sessionCerts.push({ student: activeStudent, certName: cName, images: [...currentBatch], needsSync: false }); // Masuk Dashboard tanpa amaran
+                    currentBatch = []; closeScanner(); renderCerts(); 
+                } else showAppAlert("Gagal", result.message, "error");
+            } catch (err) { showAppAlert("Ralat Sistem", "Ralat dikesan.", "error", err.toString()); } 
+            finally { document.getElementById('btnPdfBasic').disabled = false; }
         }
     </script>
 </body>
