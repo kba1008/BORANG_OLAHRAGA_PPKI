@@ -692,7 +692,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwlBIfA-icK5A29U5SxsNZzDpr2FepRfTvE_k4wTCp4lbSG8F1XD_K5JaQj-DvglQtS/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6ctqKJB2XLa9eRFdXXQVzR6deoK4auu-hS6W1Yqah61q6twG7EIKfOYhjmPWsgZ6o/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -916,13 +916,17 @@ ${hairPath}
         async function api(payload, attempt = 0) {
             let res, text;
             const controller = new AbortController();
-            const timeoutMs = payload && payload.action === "getRawPdf" ? 15000 : 20000;
+            const act = payload && payload.action;
+            const isUpload = act === "updateFile" || act === "upload";
+            // Muat naik PDF besar perlukan masa lebih panjang
+            const timeoutMs = act === "getRawPdf" ? 15000 : (isUpload ? 180000 : 20000);
             const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
             try {
                 res = await fetch(WEB_APP_URL, { method: 'POST', redirect: 'follow', body: JSON.stringify(payload), signal: controller.signal });
                 text = await res.text();
             } catch (netErr) {
-                const maxRetries = payload && payload.action === "getRawPdf" ? 0 : 1;
+                // Jangan ulang hantar fail (elak simpan berganda di Drive)
+                const maxRetries = (act === "getRawPdf" || isUpload) ? 0 : 1;
                 if (attempt < maxRetries) { await new Promise(r => setTimeout(r, 800 * (attempt + 1))); return api(payload, attempt + 1); }
                 if (netErr && netErr.name === 'AbortError') throw new Error("Server mengambil masa terlalu lama. Cuba buka fail terus atau cuba semula.");
                 throw new Error("Gagal menyambung ke server. Sila semak talian internet anda.");
@@ -932,7 +936,7 @@ ${hairPath}
             const trimmed = (text || "").trim();
             // Apps Script kadang pulangkan halaman HTML (log masuk / kuota / ralat sementara)
             if (!trimmed || trimmed.startsWith("<")) {
-                if (attempt < 2) { await new Promise(r => setTimeout(r, 900 * (attempt + 1))); return api(payload, attempt + 1); }
+                if (attempt < 2 && !isUpload) { await new Promise(r => setTimeout(r, 900 * (attempt + 1))); return api(payload, attempt + 1); }
                 const looksLogin = /accounts\.google\.com|sign in|log masuk|authoriz/i.test(trimmed);
                 throw new Error(looksLogin
                     ? "Sesi Google tamat. Sila buka pautan Web App sekali dalam pelayar dan benarkan akses, kemudian cuba semula."
@@ -2542,13 +2546,35 @@ ${hairPath}
         /* ==========================================
          * 8. SYNC CLOUD & PDF
          * ========================================== */
+        /* Kecilkan & mampatkan imej supaya saiz PDF tidak terlalu besar untuk dihantar */
+        function compressPageImage(dataUrl, maxSide = 1700, quality = 0.72) {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.onload = () => {
+                    try {
+                        let w = img.width, h = img.height;
+                        const scale = Math.min(1, maxSide / Math.max(w, h));
+                        w = Math.round(w * scale); h = Math.round(h * scale);
+                        const cv = document.createElement('canvas');
+                        cv.width = w; cv.height = h;
+                        const ctx = cv.getContext('2d');
+                        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(cv.toDataURL('image/jpeg', quality));
+                    } catch (e) { resolve(dataUrl); }
+                };
+                img.onerror = () => resolve(dataUrl);
+                img.src = dataUrl;
+            });
+        }
+
         async function buildPdf(cert) {
             await ensureAllPages(cert);
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF();
             pdf.deletePage(1);
             for (let i = 0; i < cert.images.length; i++) {
-                const imgData = cert.images[i];
+                const imgData = await compressPageImage(cert.images[i]);
                 const img = new Image(); img.src = imgData;
                 await new Promise(r => { img.onload = r; img.onerror = r; });
                 const orientation = img.width > img.height ? 'l' : 'p';
@@ -2580,7 +2606,10 @@ ${hairPath}
                     // Beri masa Drive siapkan fail sebelum thumbnail terkini dimuatkan
                     setTimeout(() => fetchCertsFromDB(activeStudent.name), 2500);
                 } else showAppAlert("Maaf", result.message, "error");
-            } catch (err) { hideLoading(); showAppAlert("Ralat", "Gagal menghantar ke Cloud.", "error"); }
+            } catch (err) {
+                hideLoading();
+                showAppAlert("Ralat", (err && err.message) ? err.message : "Gagal menghantar ke Cloud.", "error");
+            }
         }
 
         /* Nama fail PDF ikut NAMA PENUH pelajar berdaftar */
