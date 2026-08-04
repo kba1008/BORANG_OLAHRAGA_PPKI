@@ -1,11 +1,11 @@
 /**
- * Service Worker - Sistem Sijil Pro v2
+ * Service Worker - Sistem Sijil Pro v3
  * Strategi:
  *  - App shell (HTML/manifest/ikon): cache-first + kemas kini di latar (stale-while-revalidate)
  *  - Library CDN: cache-first (laju & boleh offline)
  *  - Panggilan API Apps Script: SENTIASA rangkaian (jangan cache data pelajar)
  */
-const CACHE_NAME = 'sijilpro-v2';
+const CACHE_NAME = 'sijilpro-v3';
 const SHELL = ['./', './index.html', './manifest.json'];
 const CDN_HOSTS = ['cdnjs.cloudflare.com', 'docs.opencv.org', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
