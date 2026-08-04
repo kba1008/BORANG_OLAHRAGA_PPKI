@@ -84,6 +84,21 @@
         .page-badge { position:absolute; top:6px; left:6px; background:rgba(31,41,55,0.85); color:#fff; font-size:11px; font-weight:600; padding:2px 8px; border-radius:20px; }
         .thumb-actions { display: flex; flex-direction: column; }
         .thumb-actions button { border-radius: 0; padding: 10px 0; font-size: 12px; }
+        .thumb-move { display:flex; border-top:1px solid var(--border); }
+        .thumb-move button { flex:1; border:none; background:#f3f4f6; color:var(--primary); font-size:14px; padding:9px 0; cursor:pointer; border-radius:0; }
+        .thumb-move button:active { background:#e0e7ff; }
+        .thumb-move button:disabled { color:#c7c9d1; background:#fafafa; }
+        .thumb-move button + button { border-left:1px solid var(--border); }
+
+        /* Dropdown pelajar (telefon) */
+        .mstudent-picker { position:relative; }
+        .mstudent-picker label { display:block; font-size:11px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:var(--text-light); margin-bottom:4px; }
+        .mstudent-picker select { -webkit-appearance:none; appearance:none; width:100%; margin:0; padding:14px 42px 14px 16px; font-size:15px; font-weight:600; color:var(--text-main); background:#fff; border:1.5px solid var(--border); border-radius:12px; box-shadow:var(--shadow); text-overflow:ellipsis; }
+        .mstudent-picker select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(79,70,229,0.15); }
+        .mstudent-picker::after { content:"\f078"; font-family:"Font Awesome 6 Free"; font-weight:900; font-size:12px; color:var(--primary); position:absolute; right:16px; bottom:16px; pointer-events:none; }
+        .mstudent-picker select option { padding:12px; font-size:15px; color:var(--text-main); }
+        .mstudent-picker select option:disabled { color:var(--text-light); font-weight:700; }
+        #studentModal input#regName, #studentModal input#regKelas, #studentModal input#regIc, #studentModal input#regKategori { text-transform: uppercase; }
         .thumb-add-btn { min-width: 150px; max-width: 150px; border: 2px dashed var(--primary); border-radius: var(--radius); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; color: var(--primary); font-weight: bold; background: rgba(79, 70, 229, 0.05); gap:6px; }
 
         .cloud-certs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 15px; }
@@ -124,14 +139,17 @@
         @keyframes sk { 0%{background-position:100% 50%} 100%{background-position:0 50%} }
 
         /* ================= SCAN STUDIO (v3) ================= */
-        #scanStudioModal .modal-box { max-width: 980px; width: 100%; height: 100vh; max-height: 100vh; border-radius: 0; padding: 12px; background: #111827; color: #fff; }
-        @media (min-width: 900px) { #scanStudioModal .modal-box { height: 94vh; border-radius: 18px; } }
+        #scanStudioModal { padding: 0; align-items: stretch; justify-content: stretch; }
+        #scanStudioModal .modal-box { max-width: none; width: 100vw; height: 100vh; height: 100dvh; max-height: none; border-radius: 0; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); background: #111827; color: #fff; overflow: hidden; }
+        body.scan-open { overflow: hidden; }
+        @media (min-width: 900px) { #scanStudioModal { padding: 20px; align-items: center; justify-content: center; }
+            #scanStudioModal .modal-box { width: 100%; max-width: 1100px; height: 94vh; border-radius: 18px; padding: 14px; } }
         .scan-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,.12); }
         .scan-head .sub { font-size: 12px; font-weight: 500; color: #9ca3af; }
         .scan-stage { flex: 1; display: flex; flex-direction: column; min-height: 0; gap: 10px; padding-top: 10px; }
         .scan-stage.hidden { display: none !important; }
 
-        #scanVideo { width: 100%; flex: 1; min-height: 0; object-fit: contain; background: #000; border-radius: 10px; margin: 0; max-height: none; }
+        #scanVideo { width: 100%; flex: 1 1 auto; min-height: 55vh; object-fit: contain; background: #000; border-radius: 10px; margin: 0; max-height: none; }
         .scan-cam-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .scan-cam-bar button { width: auto; }
         .shutter { width: 74px !important; height: 74px; border-radius: 50%; background: #fff; border: 5px solid rgba(255,255,255,.35); padding: 0; flex: 0 0 auto; }
@@ -139,15 +157,15 @@
         .scan-shots { display: flex; gap: 8px; overflow-x: auto; min-height: 0; }
         .scan-shots img { height: 62px; border-radius: 6px; border: 2px solid rgba(255,255,255,.3); }
 
-        .crop-wrap { position: relative; flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; background: #000; border-radius: 10px; overflow: hidden; touch-action: none; }
-        .crop-holder { position: relative; touch-action: none; }
+        .crop-wrap { position: relative; flex: 1 1 auto; min-height: 55vh; display: flex; justify-content: center; align-items: center; background: #000; border-radius: 10px; overflow: hidden; touch-action: none; }
+        .crop-holder { position: relative; touch-action: none; max-width: 100%; max-height: 100%; }
         #cropCanvas { display: block; max-width: 100%; max-height: 100%; }
         #cropSvg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
         .crop-handle { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: rgba(79,70,229,.35); border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.5); cursor: grab; touch-action: none; }
         .crop-handle:active { cursor: grabbing; background: rgba(16,185,129,.6); }
         .crop-hint { font-size: 12px; color: #9ca3af; text-align: center; }
 
-        .filter-preview-wrap { flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; background: #000; border-radius: 10px; overflow: hidden; }
+        .filter-preview-wrap { flex: 1 1 auto; min-height: 55vh; display: flex; justify-content: center; align-items: center; background: #000; border-radius: 10px; overflow: hidden; }
         #filterPreview { max-width: 100%; max-height: 100%; object-fit: contain; }
         .filter-strip { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px; }
         .filter-chip { flex: 0 0 auto; width: 84px; text-align: center; cursor: pointer; border-radius: 10px; padding: 4px; border: 2px solid transparent; background: rgba(255,255,255,.06); }
@@ -379,7 +397,10 @@
                 </div>
 
                 <div class="mobile-only" style="margin-bottom:10px;">
-                    <select id="studentSelectMobile" onchange="onMobileStudentPick(this.value)"></select>
+                    <div class="mstudent-picker">
+                        <label for="studentSelectMobile">Senarai Pelajar</label>
+                        <select id="studentSelectMobile" onchange="onMobileStudentPick(this.value)"></select>
+                    </div>
                     <button class="btn-ghost" id="btnLoadMoreMobile" style="display:none; width:100%; padding:8px; font-size:13px;" onclick="loadStudentPage(false)">
                         <i class="fa-solid fa-angles-down"></i> Muat lebih ramai pelajar
                     </button>
@@ -580,9 +601,29 @@ ${hairPath}
         function switchScreen(screenId) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(screenId).classList.add('active-screen'); }
         function setStatus(msg, type = "info") { let el = document.getElementById('status'); el.innerHTML = msg; if (type === "info") { el.style.color = "var(--primary)"; el.style.background = "rgba(79,70,229,0.1)"; } if (type === "success") { el.style.color = "var(--secondary)"; el.style.background = "rgba(16,185,129,0.1)"; } }
 
-        async function api(payload) {
-            const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
-            return await res.json();
+        async function api(payload, attempt = 0) {
+            let res, text;
+            try {
+                res = await fetch(WEB_APP_URL, { method: 'POST', redirect: 'follow', body: JSON.stringify(payload) });
+                text = await res.text();
+            } catch (netErr) {
+                if (attempt < 2) { await new Promise(r => setTimeout(r, 800 * (attempt + 1))); return api(payload, attempt + 1); }
+                throw new Error("Gagal menyambung ke server. Sila semak talian internet anda.");
+            }
+            const trimmed = (text || "").trim();
+            // Apps Script kadang pulangkan halaman HTML (log masuk / kuota / ralat sementara)
+            if (!trimmed || trimmed.startsWith("<")) {
+                if (attempt < 2) { await new Promise(r => setTimeout(r, 900 * (attempt + 1))); return api(payload, attempt + 1); }
+                const looksLogin = /accounts\.google\.com|sign in|log masuk|authoriz/i.test(trimmed);
+                throw new Error(looksLogin
+                    ? "Sesi Google tamat. Sila buka pautan Web App sekali dalam pelayar dan benarkan akses, kemudian cuba semula."
+                    : "Server sibuk atau fail terlalu besar. Sila cuba semula sebentar lagi.");
+            }
+            try {
+                return JSON.parse(trimmed);
+            } catch (e) {
+                throw new Error("Balasan server tidak sah. Sila cuba semula.");
+            }
         }
 
         /* ==========================================
@@ -823,17 +864,19 @@ ${hairPath}
 
         async function submitStudent() {
             const oldName = document.getElementById('editOldName').value;
-            const newName = document.getElementById('regName').value.trim();
+            const UP = (id) => String(document.getElementById(id).value || "").trim().toUpperCase();
+            const newName = UP('regName');
             if (!newName) return showAppAlert("Perhatian", "Sila masukkan nama pelajar.", "warning");
+            document.getElementById('regName').value = newName;
 
             showLoading("Menyimpan rekod pelajar...");
             const actionType = oldName ? "updateStudent" : "addStudent";
             const payload = {
                 action: actionType, oldName: oldName, studentName: newName,
-                kelas: document.getElementById('regKelas').value,
-                ic: document.getElementById('regIc').value,
+                kelas: UP('regKelas'),
+                ic: UP('regIc'),
                 jantina: document.getElementById('regJantina').value,
-                kategori: document.getElementById('regKategori').value,
+                kategori: UP('regKategori'),
                 gambarBase64: chosenPhotoBase64, guruEmail: currentUserEmail
             };
 
@@ -1091,7 +1134,21 @@ ${hairPath}
                     del.onclick = () => deleteLocalThumbnail(idx, pIdx);
                     actions.appendChild(del);
 
-                    item.appendChild(im); item.appendChild(badge); item.appendChild(actions);
+                    const move = document.createElement('div');
+                    move.className = 'thumb-move';
+                    const bLeft = document.createElement('button');
+                    bLeft.type = 'button'; bLeft.title = 'Alih ke kiri';
+                    bLeft.innerHTML = '<i class="fa-solid fa-arrow-left"></i>';
+                    bLeft.disabled = pIdx === 0;
+                    bLeft.onclick = (ev) => { ev.stopPropagation(); movePage(idx, pIdx, pIdx - 1); };
+                    const bRight = document.createElement('button');
+                    bRight.type = 'button'; bRight.title = 'Alih ke kanan';
+                    bRight.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
+                    bRight.disabled = pIdx === cert.images.length - 1;
+                    bRight.onclick = (ev) => { ev.stopPropagation(); movePage(idx, pIdx, pIdx + 1); };
+                    move.appendChild(bLeft); move.appendChild(bRight);
+
+                    item.appendChild(im); item.appendChild(badge); item.appendChild(move); item.appendChild(actions);
                     strip.appendChild(item);
                 });
 
@@ -1107,6 +1164,14 @@ ${hairPath}
             });
         }
 
+        /** Alih page ke kedudukan baru (berfungsi pada telefon & laptop) */
+        function movePage(certIdx, from, to) {
+            const cert = sessionCerts[certIdx];
+            if (!cert || to < 0 || to >= cert.images.length || from === to) return;
+            cert.images.splice(to, 0, cert.images.splice(from, 1)[0]);
+            if (cert.thumbs) cert.thumbs.splice(to, 0, cert.thumbs.splice(from, 1)[0]);
+            cert.needsSync = true; renderCerts();
+        }
         function dragStart(e, cIdx, pIdx) { dragSourceCertIndex = cIdx; dragSourcePageIndex = pIdx; e.dataTransfer.effectAllowed = 'move'; e.currentTarget.classList.add('dragging'); }
         function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.add('drag-over'); }
         function dragLeave(e) { if (e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over'); }
@@ -1479,34 +1544,91 @@ ${hairPath}
                 document.getElementById('scanStage' + s).classList.toggle('hidden', s !== name));
         }
 
+        let scanCamDevices = [];
+        let scanCamIndex = -1;
+
+        async function refreshScanCamList() {
+            try {
+                const ds = await navigator.mediaDevices.enumerateDevices();
+                scanCamDevices = ds.filter(d => d.kind === 'videoinput');
+            } catch (e) { scanCamDevices = []; }
+        }
+        function pickCamIndexByFacing(facing) {
+            if (!scanCamDevices.length) return -1;
+            const back = /back|rear|environment|belakang|world/i;
+            const front = /front|user|selfie|face|hadapan|depan/i;
+            let i = -1;
+            if (facing === 'environment') {
+                i = scanCamDevices.findIndex(d => back.test(d.label || ''));
+                if (i < 0) i = scanCamDevices.findIndex(d => !front.test(d.label || ''));
+                if (i < 0) i = scanCamDevices.length - 1;   // biasanya kamera belakang di hujung senarai
+            } else {
+                i = scanCamDevices.findIndex(d => front.test(d.label || ''));
+                if (i < 0) i = 0;
+            }
+            return i;
+        }
+
         async function openScanCamera() {
             scanCamShots = [];
             document.getElementById('scanShots').innerHTML = "";
             updateCamContinue();
             document.getElementById('scanStudioModal').style.display = 'flex';
+            document.body.classList.add('scan-open');
             showScanStage('Camera');
+            scanFacing = 'environment';
+            scanCamIndex = -1;
             await startScanCamera();
         }
 
         async function startScanCamera() {
             stopScanCamera();
             const v = document.getElementById('scanVideo');
-            try {
-                scanCamStream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: { ideal: scanFacing },
-                        width: { ideal: 3840 }, height: { ideal: 2160 }
-                    }, audio: false
-                });
-                v.srcObject = scanCamStream;
-            } catch (e) {
-                showAppAlert("Kamera", "Tidak dapat membuka kamera. Sila benarkan akses kamera atau guna pilihan Muat Naik Fail.", "warning");
+
+            // Jika label kamera belum diketahui, minta kebenaran dahulu supaya senarai kamera lengkap
+            if (!scanCamDevices.length || !scanCamDevices.some(d => d.label)) {
+                try {
+                    const tmp = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+                    tmp.getTracks().forEach(t => t.stop());
+                } catch (e) { /* abaikan */ }
+                await refreshScanCamList();
             }
+            if (scanCamIndex < 0) scanCamIndex = pickCamIndexByFacing(scanFacing);
+
+            const hi = { width: { ideal: 3840 }, height: { ideal: 2160 } };
+            const tries = [];
+            const dev = scanCamDevices[scanCamIndex];
+            if (dev && dev.deviceId) tries.push({ video: Object.assign({ deviceId: { exact: dev.deviceId } }, hi), audio: false });
+            tries.push({ video: Object.assign({ facingMode: { exact: scanFacing } }, hi), audio: false });
+            tries.push({ video: Object.assign({ facingMode: { ideal: scanFacing } }, hi), audio: false });
+            tries.push({ video: true, audio: false });
+
+            for (const c of tries) {
+                try { scanCamStream = await navigator.mediaDevices.getUserMedia(c); break; }
+                catch (e) { scanCamStream = null; }
+            }
+            if (!scanCamStream) {
+                showAppAlert("Kamera", "Tidak dapat membuka kamera. Sila benarkan akses kamera atau guna pilihan Muat Naik Fail.", "warning");
+                return;
+            }
+            v.srcObject = scanCamStream;
+            try { await v.play(); } catch (e) { }
+            const st = scanCamStream.getVideoTracks()[0].getSettings();
+            if (st && st.facingMode) scanFacing = st.facingMode;
         }
         function stopScanCamera() {
             if (scanCamStream) { scanCamStream.getTracks().forEach(t => t.stop()); scanCamStream = null; }
         }
-        function flipScanCamera() { scanFacing = (scanFacing === 'environment') ? 'user' : 'environment'; startScanCamera(); }
+        async function flipScanCamera() {
+            await refreshScanCamList();
+            if (scanCamDevices.length > 1) {
+                scanCamIndex = (scanCamIndex + 1 + scanCamDevices.length) % scanCamDevices.length;
+            } else {
+                scanFacing = (scanFacing === 'environment') ? 'user' : 'environment';
+                scanCamIndex = -1;
+            }
+            await startScanCamera();
+        }
 
         function updateCamContinue() {
             const b = document.getElementById('btnCamContinue');
@@ -1539,12 +1661,14 @@ ${hairPath}
             if (!scanTarget) scanTarget = { type: 'batch' };
             scanQueue = images; scanIdx = 0;
             document.getElementById('scanStudioModal').style.display = 'flex';
+            document.body.classList.add('scan-open');
             loadScanPage();
         }
 
         function closeScanStudio() {
             stopScanCamera();
             document.getElementById('scanStudioModal').style.display = 'none';
+            document.body.classList.remove('scan-open');
             scanQueue = []; scanIdx = 0; scanSrcCanvas = null; scanWarpedCanvas = null;
         }
 
@@ -1566,6 +1690,11 @@ ${hairPath}
             img.src = scanQueue[scanIdx];
         }
 
+        window.addEventListener('resize', () => {
+            const st = document.getElementById('scanStageCrop');
+            if (st && !st.classList.contains('hidden') && scanSrcCanvas) drawCropStage();
+        });
+
         function skipScanPage() { scanIdx++; loadScanPage(); }
 
         function afterScanFinished() {
@@ -1582,8 +1711,9 @@ ${hairPath}
             const wrap = document.getElementById('cropWrap');
             const holder = document.getElementById('cropHolder');
             const cv2 = document.getElementById('cropCanvas');
-            const maxW = wrap.clientWidth - 40, maxH = wrap.clientHeight - 40;
-            scanDispScale = Math.min(maxW / scanSrcCanvas.width, maxH / scanSrcCanvas.height, 1);
+            const maxW = wrap.clientWidth - 16, maxH = wrap.clientHeight - 16;
+            // Isi ruang sebesar mungkin (boleh besarkan imej kecil) supaya mudah diedit di telefon
+            scanDispScale = Math.min(maxW / scanSrcCanvas.width, maxH / scanSrcCanvas.height);
             cv2.width = Math.round(scanSrcCanvas.width * scanDispScale);
             cv2.height = Math.round(scanSrcCanvas.height * scanDispScale);
             cv2.getContext('2d').drawImage(scanSrcCanvas, 0, 0, cv2.width, cv2.height);
@@ -1976,14 +2106,28 @@ ${hairPath}
             const current = activeStudent ? activeStudent.name : "";
             sel.innerHTML = "";
             const ph = document.createElement('option');
-            ph.value = ""; ph.innerText = list.length ? `-- Pilih pelajar (${list.length}) --` : "-- Tiada padanan --";
+            ph.value = ""; ph.disabled = true; ph.selected = !current;
+            ph.innerText = list.length ? `Pilih pelajar (${list.length} rekod)` : "Tiada padanan ditemui";
             sel.appendChild(ph);
+
+            // Kumpulkan mengikut kelas supaya senarai nampak kemas & profesional
+            const groups = new Map();
             list.forEach(s => {
-                const o = document.createElement('option');
-                o.value = s.name;
-                o.innerText = s.name + (s.kelas ? ` — ${s.kelas}` : "");
-                if (s.name === current) o.selected = true;
-                sel.appendChild(o);
+                const key = (s.kelas || "").trim().toUpperCase() || "TANPA KELAS";
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key).push(s);
+            });
+            [...groups.keys()].sort().forEach(key => {
+                const g = document.createElement('optgroup');
+                g.label = `${key}  (${groups.get(key).length})`;
+                groups.get(key).forEach(s => {
+                    const o = document.createElement('option');
+                    o.value = s.name;
+                    o.innerText = String(s.name || "").toUpperCase();
+                    if (s.name === current) o.selected = true;
+                    g.appendChild(o);
+                });
+                sel.appendChild(g);
             });
             const more = document.getElementById('btnLoadMoreMobile');
             if (more) more.style.display = studentHasMore ? 'flex' : 'none';
