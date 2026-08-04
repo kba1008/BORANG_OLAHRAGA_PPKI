@@ -374,6 +374,20 @@
         </div>
     </div>
 
+    <!-- PENGURUSAN PENGGUNA (MASTER ADMIN) -->
+    <div id="userAdminModal" class="modal-overlay">
+        <div class="modal-box" style="max-width:640px;">
+            <h3 style="margin-bottom:5px;"><i class="fa-solid fa-user-shield"></i> Pengurusan Pengguna</h3>
+            <p style="font-size:12px; color:var(--text-light); margin-bottom:12px;">Luluskan pengguna baharu sebelum mereka boleh menggunakan sistem.</p>
+            <div id="userAdminList" style="max-height:55vh; overflow:auto;"></div>
+            <div class="btn-group" style="margin-top:15px;">
+                <button class="btn-primary" onclick="loadUsers()"><i class="fa-solid fa-rotate"></i> Muat Semula</button>
+                <button class="btn-ghost" onclick="document.getElementById('userAdminModal').style.display='none'">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+
     <!-- PEMBACA SATU PAGE -->
     <div id="pageViewModal" class="modal-overlay">
         <div class="modal-box" id="pageViewBox">
@@ -571,10 +585,11 @@
             <i class="fa-solid fa-expand" style="font-size: 40px; color: var(--primary); margin-bottom: 10px;"></i>
             <h3>Pengurusan Sijil Pelajar</h3>
             <p style="color: var(--text-light); margin-bottom: 20px; font-size: 14px;">Sistem Pintar AI</p>
-            <input type="email" id="loginEmail" placeholder="Email Guru (Cth: guru@edu.my)">
-            <input type="password" id="loginPassword" placeholder="Kata Laluan">
+            <input type="text" id="loginEmail" placeholder="Emel (Cth: guru@edu.my)" autocomplete="username">
+            <input type="password" id="loginPassword" placeholder="Kata Laluan" autocomplete="current-password">
             <button class="btn-primary" onclick="login()" style="margin-top: 15px;">Log Masuk</button>
             <button class="btn-ghost" onclick="register()">Daftar Akaun Baru</button>
+            <p style="color: var(--text-light); font-size: 12px; margin-top: 12px;">Akaun baharu perlu diluluskan oleh Master Admin sebelum boleh digunakan.</p>
         </div>
     </div>
 
@@ -584,7 +599,10 @@
             <h2><i class="fa-solid fa-graduation-cap"></i> Pengurusan Sijil Pelajar</h2>
             <div style="display: flex; gap: 15px; align-items: center;">
                 <span id="userEmailDisplay" style="font-size: 14px; font-weight: 500;"></span>
+                <button class="btn-ghost" id="btnAdminUsers" onclick="openUserAdmin()" style="width:auto; padding:8px 15px; display:none;"><i class="fa-solid fa-user-shield"></i> Pengguna</button>
                 <button class="btn-ghost" onclick="logout()" style="width: auto; padding: 8px 15px;"><i class="fa-solid fa-power-off"></i></button>
+            </div>
+
             </div>
         </div>
 
@@ -692,7 +710,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwlBIfA-icK5A29U5SxsNZzDpr2FepRfTvE_k4wTCp4lbSG8F1XD_K5JaQj-DvglQtS/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6ctqKJB2XLa9eRFdXXQVzR6deoK4auu-hS6W1Yqah61q6twG7EIKfOYhjmPWsgZ6o/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -953,13 +971,21 @@ ${hairPath}
          * 2. AUTH & CACHE RINGAN
          * ========================================== */
         const CACHE_KEY = 'sijilProStudentsV2';
+        let currentUserRole = "User";
+
+        function applyRoleUI() {
+            const btn = document.getElementById('btnAdminUsers');
+            if (btn) btn.style.display = (currentUserRole === "Admin") ? "inline-flex" : "none";
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
             refreshAvatarPreview();
             const savedUser = localStorage.getItem("sijilProUser");
             if (savedUser) {
                 currentUserEmail = savedUser;
+                currentUserRole = localStorage.getItem("sijilProRole") || "User";
                 document.getElementById('userEmailDisplay').innerText = savedUser;
+                applyRoleUI();
                 switchScreen('dashboardScreen');
                 const cached = localStorage.getItem(CACHE_KEY);
                 if (cached) {
@@ -977,15 +1003,20 @@ ${hairPath}
         });
 
         async function login() {
-            let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value;
-            if (!email || !pass) return showAppAlert("Maklumat", "Sila isi email dan laluan.", "warning");
+            let email = document.getElementById('loginEmail').value.trim(), pass = document.getElementById('loginPassword').value;
+            if (!email || !pass) return showAppAlert("Maklumat", "Sila isi emel dan kata laluan.", "warning");
             showLoading("Menyemak log masuk...");
             try {
                 let data = await api({ action: "login", email, password: pass });
                 hideLoading();
                 if (data.status === "success") {
-                    currentUserEmail = email; localStorage.setItem("sijilProUser", email);
-                    document.getElementById('userEmailDisplay').innerText = email;
+                    currentUserEmail = data.email || email;
+                    currentUserRole = data.role || "User";
+                    localStorage.setItem("sijilProUser", currentUserEmail);
+                    localStorage.setItem("sijilProRole", currentUserRole);
+                    sessionStorage.setItem("sijilProPass", pass);
+                    document.getElementById('userEmailDisplay').innerText = currentUserEmail;
+                    applyRoleUI();
                     switchScreen('dashboardScreen');
                     showSkeleton(); reloadStudents(true);
                 } else showAppAlert("Maaf", data.message, "error");
@@ -993,17 +1024,87 @@ ${hairPath}
         }
 
         async function register() {
-            let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value;
-            if (!email || !pass) return showAppAlert("Maklumat", "Sila isi email dan laluan.", "warning");
+            let email = document.getElementById('loginEmail').value.trim(), pass = document.getElementById('loginPassword').value;
+            if (!email || !pass) return showAppAlert("Maklumat", "Sila isi emel dan kata laluan.", "warning");
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showAppAlert("Maklumat", "Sila masukkan alamat emel yang sah.", "warning");
+            if (pass.length < 6) return showAppAlert("Maklumat", "Kata laluan mesti sekurang-kurangnya 6 aksara.", "warning");
             showLoading("Mendaftar akaun...");
             try { let d = await api({ action: "register", email, password: pass }); hideLoading(); showAppAlert("Info", d.message, d.status === "success" ? "success" : "error"); }
             catch (e) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error"); }
         }
 
         function logout() {
-            localStorage.removeItem("sijilProUser"); localStorage.removeItem(CACHE_KEY);
+            localStorage.removeItem("sijilProUser"); localStorage.removeItem("sijilProRole"); localStorage.removeItem(CACHE_KEY);
+            sessionStorage.removeItem("sijilProPass");
+            currentUserRole = "User"; applyRoleUI();
             sessionCerts = []; studentsList = []; activeStudent = null; switchScreen('loginScreen');
         }
+
+        /* ==========================================
+         * 2b. PENGURUSAN PENGGUNA (MASTER ADMIN)
+         * ========================================== */
+        function adminCreds() {
+            return { adminEmail: currentUserEmail, adminPassword: sessionStorage.getItem("sijilProPass") || "" };
+        }
+
+        function openUserAdmin() {
+            if (currentUserRole !== "Admin") return showAppAlert("Akses", "Admin sahaja.", "warning");
+            if (!sessionStorage.getItem("sijilProPass")) {
+                return showAppAlert("Sesi", "Sila log masuk semula untuk mengurus pengguna.", "warning");
+            }
+            document.getElementById('userAdminModal').style.display = 'flex';
+            loadUsers();
+        }
+
+        async function loadUsers() {
+            const box = document.getElementById('userAdminList');
+            box.innerHTML = '<p style="color:var(--text-light); font-size:13px;">Memuatkan...</p>';
+            try {
+                const d = await api(Object.assign({ action: "getUsers" }, adminCreds()));
+                if (d.status !== "success") { box.innerHTML = '<p style="color:#dc2626; font-size:13px;">' + d.message + '</p>'; return; }
+                const users = d.data || [];
+                if (!users.length) { box.innerHTML = '<p style="color:var(--text-light); font-size:13px;">Tiada pengguna.</p>'; return; }
+                users.sort((a, b) => (a.status === "Pending" ? -1 : 1) - (b.status === "Pending" ? -1 : 1));
+                box.innerHTML = users.map(u => {
+                    const warna = u.status === "Approved" ? "#16a34a" : (u.status === "Rejected" ? "#dc2626" : "#d97706");
+                    const isMaster = u.email.toLowerCase() === "admin";
+                    const butang = isMaster ? '<span style="font-size:11px; color:var(--text-light);">Master Admin</span>' :
+                        (u.status === "Approved"
+                            ? '<button class="btn-ghost" style="width:auto;padding:6px 10px;font-size:12px;" onclick="setUserStatus(\'' + u.email + '\',\'Rejected\')"><i class="fa-solid fa-ban"></i> Tolak</button>'
+                            : '<button class="btn-success" style="width:auto;padding:6px 10px;font-size:12px;" onclick="setUserStatus(\'' + u.email + '\',\'Approved\')"><i class="fa-solid fa-check"></i> Luluskan</button>') +
+                        '<button class="btn-danger" style="width:auto;padding:6px 10px;font-size:12px;margin-left:6px;" onclick="removeUser(\'' + u.email + '\')"><i class="fa-solid fa-trash"></i></button>';
+                    return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:8px;">' +
+                        '<div style="min-width:0;"><div style="font-weight:600;font-size:14px;word-break:break-all;">' + u.email + '</div>' +
+                        '<div style="font-size:12px;color:' + warna + ';">' + u.status + ' &middot; ' + u.role + '</div></div>' +
+                        '<div style="display:flex;flex-shrink:0;">' + butang + '</div></div>';
+                }).join('');
+            } catch (e) {
+                box.innerHTML = '<p style="color:#dc2626; font-size:13px;">Gagal menghubungi pelayan.</p>';
+            }
+        }
+
+        async function setUserStatus(email, newStatus) {
+            showLoading("Mengemas kini...");
+            try {
+                const d = await api(Object.assign({ action: "setUserStatus", email, newStatus }, adminCreds()));
+                hideLoading();
+                showAppAlert(d.status === "success" ? "Berjaya" : "Ralat", d.message, d.status === "success" ? "success" : "error");
+                loadUsers();
+            } catch (e) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error"); }
+        }
+
+        async function removeUser(email) {
+            const ok = await appConfirm("Padam Pengguna", "Padam akaun " + email + "?", "Padam");
+            if (!ok) return;
+            showLoading("Memadam...");
+            try {
+                const d = await api(Object.assign({ action: "deleteUser", email }, adminCreds()));
+                hideLoading();
+                showAppAlert(d.status === "success" ? "Berjaya" : "Ralat", d.message, d.status === "success" ? "success" : "error");
+                loadUsers();
+            } catch (e) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error"); }
+        }
+
 
         /* ==========================================
          * 3. SENARAI PELAJAR (PAGING + CARIAN SERVER)

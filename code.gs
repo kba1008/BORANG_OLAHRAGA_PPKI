@@ -36,7 +36,11 @@ function doPost(e) {
     else if (action === "getRawPdf") result = tarikPdfUntukDiedit(data.fileUrl);
     else if (action === "updateStudent") result = kemaskiniMaklumatPelajar(data);
     else if (action === "deleteStudent") result = buangPelajar(data.studentName);
+    else if (action === "getUsers") result = senaraiPengguna(data);
+    else if (action === "setUserStatus") result = tetapStatusPengguna(data);
+    else if (action === "deleteUser") result = buangPengguna(data);
     else result = { status: "error", message: "Action tidak dikenali: " + action };
+
 
     return output.setContent(JSON.stringify(result));
   } catch (err) {
@@ -133,26 +137,127 @@ function bacaSemuaPelajarRingkas(sheet) {
 /* ============================================================
  * AUTH
  * ============================================================ */
+/** Pastikan akaun MASTER ADMIN wujud DALAM GOOGLE SHEET sahaja (bukan hardcode). */
+function pastikanAdmin(sheet) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    var emails = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = 0; i < emails.length; i++) {
+      if (emails[i][0] && emails[i][0].toString().trim().toLowerCase() === "admin") {
+        // Pastikan peranan & status betul
+        sheet.getRange(i + 2, 3, 1, 2).setValues([["Admin", "Approved"]]);
+        return;
+      }
+    }
+  }
+  sheet.appendRow(["admin", "101010", "Admin", "Approved"]);
+}
+
+function sheetPengguna() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_PENGGUNA);
+  pastikanAdmin(sheet);
+  return sheet;
+}
+
 function daftarPengguna(email, password) {
-  var ss = SpreadsheetApp.openById(SPREADSHEET_ID), sheet = getOrCreateSheet(ss, SHEET_PENGGUNA);
-  sheet.appendRow([email, password, (email === "admin") ? "Admin" : "User", (email === "admin") ? "Approved" : "Pending"]);
-  return { status: "success", message: "Pendaftaran berjaya. Sila tunggu kelulusan Admin." };
+  email = (email || "").toString().trim();
+  password = (password || "").toString();
+  if (!email || !password) return { status: "error", message: "Email dan kata laluan diperlukan." };
+  if (password.length < 6) return { status: "error", message: "Kata laluan mesti sekurang-kurangnya 6 aksara." };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { status: "error", message: "Sila masukkan alamat emel yang sah." };
+
+  var sheet = sheetPengguna();
+  var lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    var emails = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = 0; i < emails.length; i++) {
+      if (emails[i][0] && emails[i][0].toString().trim().toLowerCase() === email.toLowerCase()) {
+        return { status: "error", message: "Emel ini sudah didaftarkan." };
+      }
+    }
+  }
+  sheet.appendRow([email, password, "User", "Pending"]);
+  return { status: "success", message: "Pendaftaran berjaya. Akaun anda perlu diluluskan oleh Master Admin sebelum boleh digunakan." };
 }
 
 function semakLogin(email, password) {
-  if (email === "admin" && password === "101010") return { status: "success", role: "Admin" };
-  var ss = SpreadsheetApp.openById(SPREADSHEET_ID), sheet = getOrCreateSheet(ss, SHEET_PENGGUNA);
+  email = (email || "").toString().trim();
+  password = (password || "").toString();
+  var sheet = sheetPengguna();
   var lastRow = sheet.getLastRow();
-  if (lastRow < 2) return { status: "error", message: "Email atau Kata laluan salah." };
+  if (lastRow < 2) return { status: "error", message: "Emel atau kata laluan salah." };
   var records = sheet.getRange(2, 1, lastRow - 1, 4).getValues();
   for (var i = 0; i < records.length; i++) {
-    if (records[i][0] == email && records[i][1] == password) {
-      if (records[i][3] == "Approved") return { status: "success", role: records[i][2] || "User" };
-      return { status: "error", message: "Akaun masih Pending." };
+    var e = records[i][0] ? records[i][0].toString().trim() : "";
+    if (e.toLowerCase() !== email.toLowerCase()) continue;
+    if (records[i][1].toString() !== password) return { status: "error", message: "Emel atau kata laluan salah." };
+    var status = (records[i][3] || "").toString().trim();
+    if (status === "Approved") return { status: "success", role: records[i][2] || "User", email: e };
+    if (status === "Rejected") return { status: "error", message: "Akaun anda telah ditolak oleh Admin." };
+    return { status: "error", message: "Akaun anda masih menunggu kelulusan Master Admin." };
+  }
+  return { status: "error", message: "Emel atau kata laluan salah." };
+}
+
+/** Sahkan pemanggil ialah Master Admin (berdasarkan rekod dalam Sheet). */
+function sahAdmin(email, password) {
+  var res = semakLogin(email, password);
+  return res.status === "success" && res.role === "Admin";
+}
+
+function senaraiPengguna(data) {
+  if (!sahAdmin(data.adminEmail, data.adminPassword)) return { status: "error", message: "Akses ditolak. Admin sahaja." };
+  var sheet = sheetPengguna();
+  var lastRow = sheet.getLastRow();
+  var out = [];
+  if (lastRow > 1) {
+    var rows = sheet.getRange(2, 1, lastRow - 1, 4).getValues();
+    for (var i = 0; i < rows.length; i++) {
+      if (!rows[i][0]) continue;
+      out.push({ row: i + 2, email: rows[i][0].toString(), role: rows[i][2] || "User", status: rows[i][3] || "Pending" });
     }
   }
-  return { status: "error", message: "Email atau Kata laluan salah." };
+  return { status: "success", data: out };
 }
+
+function tetapStatusPengguna(data) {
+  if (!sahAdmin(data.adminEmail, data.adminPassword)) return { status: "error", message: "Akses ditolak. Admin sahaja." };
+  var target = (data.email || "").toString().trim();
+  if (target.toLowerCase() === "admin") return { status: "error", message: "Akaun Master Admin tidak boleh diubah." };
+  var status = data.newStatus === "Approved" ? "Approved" : "Rejected";
+  var sheet = sheetPengguna();
+  var lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    var emails = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = 0; i < emails.length; i++) {
+      if (emails[i][0] && emails[i][0].toString().trim().toLowerCase() === target.toLowerCase()) {
+        sheet.getRange(i + 2, 4).setValue(status);
+        return { status: "success", message: "Status " + target + " ditukar kepada " + status + "." };
+      }
+    }
+  }
+  return { status: "error", message: "Pengguna tidak dijumpai." };
+}
+
+function buangPengguna(data) {
+  if (!sahAdmin(data.adminEmail, data.adminPassword)) return { status: "error", message: "Akses ditolak. Admin sahaja." };
+  var target = (data.email || "").toString().trim();
+  if (target.toLowerCase() === "admin") return { status: "error", message: "Akaun Master Admin tidak boleh dipadam." };
+  var sheet = sheetPengguna();
+  var lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    var emails = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = 0; i < emails.length; i++) {
+      if (emails[i][0] && emails[i][0].toString().trim().toLowerCase() === target.toLowerCase()) {
+        sheet.deleteRow(i + 2);
+        return { status: "success", message: "Pengguna " + target + " dipadam." };
+      }
+    }
+  }
+  return { status: "error", message: "Pengguna tidak dijumpai." };
+}
+
 
 /* ============================================================
  * SIJIL (PDF)
