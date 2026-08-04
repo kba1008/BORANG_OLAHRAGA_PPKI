@@ -158,42 +158,93 @@ function semakLogin(email, password) {
  * SIJIL (PDF)
  * ============================================================ */
 function muatNaikSijil(data) {
-  var pdfBase64 = data.pdfData.split(',')[1];
-  var blob = Utilities.newBlob(Utilities.base64Decode(pdfBase64), 'application/pdf', data.fileName + ".pdf");
-  var file = DriveApp.getFolderById(FOLDER_ID).createFile(blob);
-  try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
-  var fileUrl = file.getUrl();
-  var ss = SpreadsheetApp.openById(SPREADSHEET_ID), sheet = getOrCreateSheet(ss, SHEET_SIJIL);
-  sheet.appendRow([Utilities.formatDate(new Date(), "Asia/Kuala_Lumpur", "dd-MM-yyyy HH:mm"), data.studentName, data.certName, data.guruEmail, fileUrl]);
-  CacheService.getScriptCache().remove("certs_" + data.studentName);
-  return { status: "success", message: "Berjaya!", url: fileUrl };
+  // Satu pelajar = satu fail terkini sahaja. Simpan dulu, padam lama kemudian.
+  return kemaskiniSijil(data);
+}
+
+
+/** Padam (trash) fail PDF lama di Drive berdasarkan pautan. Selamat: tidak throw. */
+function padamFailDrive(url, kecualiId) {
+  try {
+    if (!url) return false;
+    var m = String(url).match(/[-\w]{25,}/);
+    if (!m) return false;
+    var id = m[0];
+    if (kecualiId && id === kecualiId) return false;
+    DriveApp.getFileById(id).setTrashed(true);
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 function kemaskiniSijil(data) {
+  // 1) SIMPAN DULU fail baharu. Jika internet/simpan gagal, fail lama kekal utuh.
   var pdfBase64 = data.pdfData.split(',')[1];
-  var blob = Utilities.newBlob(Utilities.base64Decode(pdfBase64), 'application/pdf', data.fileName + ".pdf");
+  var bytes = Utilities.base64Decode(pdfBase64);
+  if (!bytes || bytes.length === 0) return { status: "error", message: "Data PDF kosong. Fail lama tidak disentuh." };
+
+  var blob = Utilities.newBlob(bytes, 'application/pdf', data.fileName + ".pdf");
   var file = DriveApp.getFolderById(FOLDER_ID).createFile(blob);
   try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
+  var newId = file.getId();
   var fileUrl = file.getUrl();
+
+  // 2) Sahkan fail baharu benar-benar wujud & bersaiz sebelum padam apa-apa.
+  var okBaharu = false;
+  try { okBaharu = DriveApp.getFileById(newId).getSize() > 0; } catch (e) { okBaharu = false; }
+  if (!okBaharu) return { status: "error", message: "Fail baharu gagal disimpan di Drive. Fail lama tidak dipadam." };
 
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID), sheet = getOrCreateSheet(ss, SHEET_SIJIL);
   var tarikh = Utilities.formatDate(new Date(), "Asia/Kuala_Lumpur", "dd-MM-yyyy HH:mm");
   var lastRow = sheet.getLastRow();
+  var namaPelajar = (data.studentName || "").toString().trim();
+
+  var barisSama = 0;
+  var urlLama = [];
+  var barisBuang = [];
+
   if (lastRow > 1) {
     var records = sheet.getRange(2, 1, lastRow - 1, 5).getValues();
     for (var i = 0; i < records.length; i++) {
-      if (records[i][1] == data.studentName && records[i][2] == data.certName) {
-        sheet.getRange(i + 2, 1).setValue(tarikh);
-        sheet.getRange(i + 2, 5).setValue(fileUrl);
-        CacheService.getScriptCache().remove("certs_" + data.studentName);
-        return { status: "success", message: "Fail dikemas kini!", url: fileUrl };
+      var rowNama = records[i][1] ? records[i][1].toString().trim() : "";
+      if (rowNama !== namaPelajar) continue;
+      if (!barisSama) {
+        barisSama = i + 2;          // guna baris pertama pelajar ini sebagai rekod terkini
+        urlLama.push(records[i][4]); // fail lama pada baris ini juga perlu dipadam
+      } else {
+        urlLama.push(records[i][4]);
+        barisBuang.push(i + 2);      // baris sejarah lain -> buang
       }
     }
   }
-  sheet.appendRow([tarikh, data.studentName, data.certName, data.guruEmail, fileUrl]);
-  CacheService.getScriptCache().remove("certs_" + data.studentName);
-  return { status: "success", message: "Rekod baru disimpan.", url: fileUrl };
+
+  // 3) Kemas kini rekod supaya menunjuk kepada fail TERKINI.
+  if (barisSama) {
+    sheet.getRange(barisSama, 1, 1, 5).setValues([[tarikh, namaPelajar, data.certName, data.guruEmail, fileUrl]]);
+  } else {
+    sheet.appendRow([tarikh, namaPelajar, data.certName, data.guruEmail, fileUrl]);
+  }
+
+  // 4) Barulah padam baris sejarah + fail PDF lama di Drive.
+  barisBuang.sort(function (a, b) { return b - a; });
+  for (var d = 0; d < barisBuang.length; d++) {
+    try { sheet.deleteRow(barisBuang[d]); } catch (e) {}
+  }
+  var dipadam = 0;
+  for (var u = 0; u < urlLama.length; u++) {
+    if (padamFailDrive(urlLama[u], newId)) dipadam++;
+  }
+
+  CacheService.getScriptCache().remove("certs_" + namaPelajar);
+  return {
+    status: "success",
+    message: "Fail terkini disimpan" + (dipadam ? " (" + dipadam + " fail lama dipadam)." : "."),
+    url: fileUrl,
+    deleted: dipadam
+  };
 }
+
 
 function dapatkanSijil(studentName) {
   var cache = CacheService.getScriptCache();
