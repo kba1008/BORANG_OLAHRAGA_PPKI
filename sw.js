@@ -5,7 +5,7 @@
  *  - Library CDN: cache-first (laju & boleh offline)
  *  - Panggilan API Apps Script: SENTIASA rangkaian (jangan cache data pelajar)
  */
-const CACHE_NAME = 'sijilpro-v3';
+const CACHE_NAME = 'sijilpro-v5';
 const SHELL = ['./', './index.html', './manifest.json'];
 const CDN_HOSTS = ['cdnjs.cloudflare.com', 'docs.opencv.org', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 

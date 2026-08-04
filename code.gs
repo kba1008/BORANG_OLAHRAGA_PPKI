@@ -211,13 +211,43 @@ function dapatkanSijil(studentName) {
 
 function tarikPdfUntukDiedit(url) {
   try {
-    var idMatch = url.match(/[-\w]{25,}/);
+    if (!url) return { status: "error", message: "Pautan fail kosong." };
+    var idMatch = String(url).match(/[-\w]{25,}/);
     if (!idMatch) return { status: "error", message: "ID fail tidak sah." };
+
     var file = DriveApp.getFileById(idMatch[0]);
-    var base64 = Utilities.base64Encode(file.getBlob().getBytes());
-    return { status: "success", base64Data: base64 };
+    var mime = file.getMimeType();
+    var blob;
+
+    // Google Docs/Slides bukan fail binari - eksport dulu jadi PDF
+    if (mime && mime.indexOf("application/vnd.google-apps") === 0) {
+      if (mime === "application/vnd.google-apps.folder") {
+        return { status: "error", message: "Pautan ini adalah folder, bukan fail sijil." };
+      }
+      blob = file.getAs("application/pdf");
+      mime = "application/pdf";
+    } else {
+      blob = file.getBlob();
+    }
+
+    var bytes = blob.getBytes();
+    if (!bytes || bytes.length === 0) {
+      return { status: "error", message: "Fail kosong (0 bait) di Drive." };
+    }
+    // Had selamat Apps Script (~50MB respons); elak respons terpotong yang buat atob gagal
+    if (bytes.length > 20 * 1024 * 1024) {
+      return { status: "error", message: "Fail terlalu besar untuk diedit (" + Math.round(bytes.length / 1048576) + " MB). Had 20 MB." };
+    }
+
+    return {
+      status: "success",
+      base64Data: Utilities.base64Encode(bytes),
+      mimeType: mime,
+      fileName: file.getName(),
+      size: bytes.length
+    };
   } catch (err) {
-    return { status: "error", message: "Gagal akses: " + err.toString() };
+    return { status: "error", message: "Gagal akses fail: " + err.toString() };
   }
 }
 
