@@ -95,6 +95,17 @@
 
         .avatar-preview-row { display:flex; align-items:center; gap:15px; margin-top:12px; text-align:left; }
         .avatar-preview-row img { width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--border); background:#e5e7eb;}
+        .student-profile-info img { cursor: zoom-in; }
+        /* Pengalih/zum gambar profil */
+        .crop-stage { position:relative; width:260px; height:260px; margin:0 auto; overflow:hidden; border-radius:50%; background:#111827; touch-action:none; cursor:grab; border:3px solid var(--primary); }
+        .crop-stage.dragging { cursor:grabbing; }
+        .crop-stage img { position:absolute; left:0; top:0; transform-origin:0 0; user-select:none; -webkit-user-drag:none; pointer-events:none; max-width:none; }
+        .crop-hint { font-size:12px; color:var(--text-light); text-align:center; margin-top:10px; }
+        .crop-zoom-row { display:flex; align-items:center; gap:10px; margin-top:12px; }
+        .crop-zoom-row input[type=range] { flex:1; padding:0; border:none; }
+        /* Paparan gambar penuh */
+        #photoViewer .modal-box { max-width: 92vw; width:auto; text-align:center; }
+        #photoViewerImg { max-width: 86vw; max-height: 70vh; border-radius:10px; background:#111827; object-fit:contain; }
 
         .cert-list { display: flex; flex-direction: column; gap: 20px; }
         .cert-card { background: var(--surface); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 15px; }
@@ -376,7 +387,7 @@
                 <img id="regAvatarPreview" alt="Gambar profil pelajar">
                 <div style="flex:1;">
                     <label style="font-size:12px; font-weight:bold; color:var(--text-light);">Gambar Profil (Tidak Wajib)</label>
-                    <input type="file" id="regGambar" accept="image/*" capture="environment" style="border:none; padding-left:0;" onchange="previewChosenPhoto()">
+                    <input type="file" id="regGambar" accept="image/*" style="border:none; padding-left:0;" onchange="previewChosenPhoto()">
                     <div style="font-size:11px; color:var(--text-light);">Jika tiada gambar, avatar mengikut jantina digunakan.</div>
                     <button class="btn-ghost" type="button" style="width:auto; padding:4px 8px; font-size:12px; margin-top:4px;" onclick="clearChosenPhoto()"><i class="fa-solid fa-rotate-left"></i> Guna avatar default</button>
                 </div>
@@ -385,6 +396,38 @@
             <div class="btn-group" style="margin-top:15px;">
                 <button class="btn-primary" id="btnSaveStudentModal" onclick="submitStudent()"><i class="fa-solid fa-save"></i> Simpan Rekod</button>
                 <button class="btn-ghost" onclick="document.getElementById('studentModal').style.display='none'">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PENGALIH / ZUM GAMBAR PROFIL -->
+    <div id="photoCropModal" class="modal-overlay">
+        <div class="modal-box" style="max-width:360px;">
+            <h3 style="margin-bottom:12px;"><i class="fa-solid fa-crop-simple"></i> Susun Gambar Profil</h3>
+            <div class="crop-stage" id="cropStage">
+                <img id="cropImg" alt="Gambar untuk disusun">
+            </div>
+            <div class="crop-zoom-row">
+                <i class="fa-solid fa-magnifying-glass-minus" style="color:var(--text-light);"></i>
+                <input type="range" id="cropZoom" min="1" max="4" step="0.01" value="1" oninput="cropSetZoom(parseFloat(this.value))">
+                <i class="fa-solid fa-magnifying-glass-plus" style="color:var(--text-light);"></i>
+            </div>
+            <div class="crop-hint"><i class="fa-solid fa-hand-pointer"></i> Seret gambar untuk gerakkan &middot; cubit / skrol untuk zum</div>
+            <div class="btn-group" style="margin-top:15px;">
+                <button class="btn-primary" onclick="applyCrop()"><i class="fa-solid fa-check"></i> Guna Gambar Ini</button>
+                <button class="btn-ghost" onclick="cancelCrop()">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAPARAN GAMBAR PROFIL PENUH -->
+    <div id="photoViewer" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="photoViewerTitle" style="margin-bottom:12px;"><i class="fa-solid fa-image"></i> Gambar Profil</h3>
+            <img id="photoViewerImg" alt="Gambar profil pelajar">
+            <div class="btn-group" style="margin-top:15px;">
+                <button class="btn-primary" onclick="downloadActivePhoto()"><i class="fa-solid fa-download"></i> Muat Turun</button>
+                <button class="btn-ghost" onclick="document.getElementById('photoViewer').style.display='none'">Tutup</button>
             </div>
         </div>
     </div>
@@ -695,7 +738,7 @@
                 <div id="studentDetails" style="display: none;">
                     <div class="student-header">
                         <div class="student-profile-info">
-                            <img id="activeStudentPic" alt="Gambar profil pelajar">
+                            <img id="activeStudentPic" alt="Gambar profil pelajar" title="Klik untuk paparan penuh" onclick="openPhotoViewer()">
                             <div>
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <h2 id="activeStudentTitle">Nama Pelajar</h2>
@@ -769,7 +812,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbytIWKUFZl3bvhhupbHXhAS16jHIiOkuElOIioJlomEhwEjway7LKFXmjNgr9id6jB-/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6ctqKJB2XLa9eRFdXXQVzR6deoK4auu-hS6W1Yqah61q6twG7EIKfOYhjmPWsgZ6o/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -1478,17 +1521,186 @@ ${hairPath}
             el.src = chosenPhotoBase64 || defaultAvatar(document.getElementById('regJantina').value);
         }
         function clearChosenPhoto() { chosenPhotoBase64 = ""; document.getElementById('regGambar').value = ""; refreshAvatarPreview(); }
-        async function previewChosenPhoto() {
+        function previewChosenPhoto() {
             const f = document.getElementById('regGambar').files[0];
             if (!f) { clearChosenPhoto(); return; }
-            chosenPhotoBase64 = await compressImage(f, 320, 0.8);
+            const reader = new FileReader();
+            reader.onload = e => openCropper(e.target.result);
+            reader.readAsDataURL(f);
+        }
+
+        /* ------- Pengalih / zum gambar profil sebelum simpan ------- */
+        const CROP_BOX = 260, CROP_OUT = 640;
+        let cropState = { img: null, base: 1, zoom: 1, x: 0, y: 0, drag: null, pinch: null };
+
+        function openCropper(dataUrl) {
+            const img = new Image();
+            img.onload = function () {
+                cropState.img = img;
+                cropState.base = Math.max(CROP_BOX / img.width, CROP_BOX / img.height);
+                cropState.zoom = 1;
+                const el = document.getElementById('cropImg');
+                el.src = dataUrl;
+                el.style.width = img.width + 'px';
+                el.style.height = img.height + 'px';
+                const dw = img.width * cropState.base, dh = img.height * cropState.base;
+                cropState.x = (CROP_BOX - dw) / 2;
+                cropState.y = (CROP_BOX - dh) / 2;
+                document.getElementById('cropZoom').value = 1;
+                document.getElementById('photoCropModal').style.display = 'flex';
+                paintCrop();
+            };
+            img.onerror = () => showAppAlert("Ralat", "Gambar tidak dapat dibaca. Cuba fail lain.", "error");
+            img.src = dataUrl;
+        }
+
+        function cropClamp() {
+            const s = cropState.base * cropState.zoom;
+            const dw = cropState.img.width * s, dh = cropState.img.height * s;
+            cropState.x = Math.min(0, Math.max(CROP_BOX - dw, cropState.x));
+            cropState.y = Math.min(0, Math.max(CROP_BOX - dh, cropState.y));
+        }
+
+        function paintCrop() {
+            if (!cropState.img) return;
+            cropClamp();
+            const s = cropState.base * cropState.zoom;
+            document.getElementById('cropImg').style.transform =
+                `translate(${cropState.x}px, ${cropState.y}px) scale(${s})`;
+        }
+
+        function cropZoomAt(nextZoom, px, py) {
+            const z = Math.min(4, Math.max(1, nextZoom));
+            const k = z / cropState.zoom;
+            cropState.x = px - (px - cropState.x) * k;
+            cropState.y = py - (py - cropState.y) * k;
+            cropState.zoom = z;
+            document.getElementById('cropZoom').value = z;
+            paintCrop();
+        }
+
+        function cropSetZoom(z) { cropZoomAt(z, CROP_BOX / 2, CROP_BOX / 2); }
+
+        function initCropStage() {
+            const stage = document.getElementById('cropStage');
+            if (!stage || stage.dataset.bound) return;
+            stage.dataset.bound = "1";
+            const pts = new Map();
+            const local = e => {
+                const r = stage.getBoundingClientRect();
+                return { x: e.clientX - r.left, y: e.clientY - r.top };
+            };
+            stage.addEventListener('pointerdown', e => {
+                if (!cropState.img) return;
+                stage.setPointerCapture(e.pointerId);
+                pts.set(e.pointerId, local(e));
+                stage.classList.add('dragging');
+                if (pts.size === 2) {
+                    const [a, b] = [...pts.values()];
+                    cropState.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), z: cropState.zoom };
+                }
+            });
+            stage.addEventListener('pointermove', e => {
+                if (!cropState.img || !pts.has(e.pointerId)) return;
+                const prev = pts.get(e.pointerId), cur = local(e);
+                pts.set(e.pointerId, cur);
+                if (pts.size === 2 && cropState.pinch) {
+                    const [a, b] = [...pts.values()];
+                    const d = Math.hypot(a.x - b.x, a.y - b.y);
+                    cropZoomAt(cropState.pinch.z * (d / cropState.pinch.d), (a.x + b.x) / 2, (a.y + b.y) / 2);
+                    return;
+                }
+                cropState.x += cur.x - prev.x;
+                cropState.y += cur.y - prev.y;
+                paintCrop();
+            });
+            const up = e => {
+                pts.delete(e.pointerId);
+                if (pts.size < 2) cropState.pinch = null;
+                if (!pts.size) stage.classList.remove('dragging');
+            };
+            stage.addEventListener('pointerup', up);
+            stage.addEventListener('pointercancel', up);
+            stage.addEventListener('wheel', e => {
+                if (!cropState.img) return;
+                e.preventDefault();
+                const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+                const pt = local(e);
+                cropZoomAt(cropState.zoom * Math.exp(-dy * 0.0015), pt.x, pt.y);
+            }, { passive: false });
+        }
+
+        function cancelCrop() {
+            document.getElementById('photoCropModal').style.display = 'none';
+            document.getElementById('regGambar').value = "";
+            cropState.img = null;
+        }
+
+        function applyCrop() {
+            if (!cropState.img) return cancelCrop();
+            const f = CROP_OUT / CROP_BOX;
+            const s = cropState.base * cropState.zoom;
+            const c = document.createElement('canvas');
+            c.width = CROP_OUT; c.height = CROP_OUT;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, CROP_OUT, CROP_OUT);
+            ctx.drawImage(cropState.img, cropState.x * f, cropState.y * f,
+                cropState.img.width * s * f, cropState.img.height * s * f);
+            chosenPhotoBase64 = c.toDataURL('image/jpeg', 0.9);
+            document.getElementById('photoCropModal').style.display = 'none';
+            cropState.img = null;
             refreshAvatarPreview();
+        }
+
+        /* ------- Paparan penuh + muat turun gambar profil ------- */
+        function fullPhotoUrl(student) {
+            if (!student) return "";
+            if (student.gambarLocal) return student.gambarLocal;
+            if (student.gambar && student.gambar.indexOf("data:") === 0) return student.gambar;
+            if (student.gambarId) return `https://drive.google.com/thumbnail?id=${student.gambarId}&sz=w1600`;
+            return "";
+        }
+
+        function openPhotoViewer() {
+            if (!activeStudent) return;
+            const url = fullPhotoUrl(activeStudent);
+            if (!url) return showAppAlert("Maklumat", "Pelajar ini belum ada gambar profil. Sila muat naik melalui Edit Profil.", "warning");
+            document.getElementById('photoViewerTitle').innerHTML =
+                '<i class="fa-solid fa-image"></i> ' + (activeStudent.name || "Gambar Profil");
+            const img = document.getElementById('photoViewerImg');
+            attachAvatarFallback(img, activeStudent);
+            img.src = url;
+            document.getElementById('photoViewer').style.display = 'flex';
+        }
+
+        async function downloadActivePhoto() {
+            if (!activeStudent) return;
+            const url = fullPhotoUrl(activeStudent);
+            if (!url) return;
+            const nama = (activeStudent.name || "pelajar").replace(/[^A-Za-z0-9]+/g, "_");
+            try {
+                if (url.indexOf("data:") === 0) {
+                    const a = document.createElement('a');
+                    a.href = url; a.download = nama + ".jpg";
+                    document.body.appendChild(a); a.click(); a.remove();
+                    return;
+                }
+                if (activeStudent.gambarId) {
+                    window.open(`https://drive.google.com/uc?export=download&id=${activeStudent.gambarId}`, "_blank");
+                    return;
+                }
+                window.open(url, "_blank");
+            } catch (e) {
+                window.open(url, "_blank");
+            }
         }
 
         function openAddStudent() {
             document.getElementById('studentModalTitle').innerHTML = '<i class="fa-solid fa-user-plus"></i> Pendaftaran Pelajar Baru';
             ['editOldName', 'regName', 'regSekolah', 'regKelas', 'regIc', 'regJantina', 'regKategori'].forEach(id => document.getElementById(id).value = "");
             clearChosenPhoto();
+            initCropStage();
             document.getElementById('studentModal').style.display = 'flex';
         }
 
@@ -1507,6 +1719,7 @@ ${hairPath}
             const el = document.getElementById('regAvatarPreview');
             attachAvatarFallback(el, activeStudent);
             el.src = studentPhoto(activeStudent, 200);
+            initCropStage();
             document.getElementById('studentModal').style.display = 'flex';
         }
 
