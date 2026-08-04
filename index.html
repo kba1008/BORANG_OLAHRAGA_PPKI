@@ -143,6 +143,17 @@
         .canvas-stage { display: inline-block; margin: 0 auto; }
         #editorCanvas { display: block !important; max-width: none; cursor: crosshair; touch-action: inherit; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.15); }
         .editor-footer { display: flex; justify-content: space-between; margin-top: 12px; gap: 10px; }
+        /* Pembaca satu page */
+        #pageViewBox { max-width: 1000px; width: 98%; height: calc(100dvh - 24px); padding: 14px; display:flex; flex-direction:column; }
+        .pv-stage { flex:1; overflow:auto; background:#e5e7eb; border:1px solid #ccc; border-radius:10px; display:flex; align-items:flex-start; justify-content:center; padding:10px; -webkit-overflow-scrolling:touch; }
+        .pv-stage img { display:block; background:#fff; box-shadow:0 0 10px rgba(0,0,0,.15); max-width:100%; height:auto; }
+        .pv-stage.zoomed img { max-width:none; }
+        .pv-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+        .pv-bar button { width:auto; padding:8px 14px; font-size:13px; }
+        .pv-footer { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+        .pv-footer button { width:auto; padding:10px 16px; }
+        .erase-preview { width:26px; height:26px; border-radius:50%; border:1px solid var(--border); display:inline-block; }
+
         .tool-options { display: none; background: #fff; padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border); box-shadow: var(--shadow); font-size: 13px; text-align: left;}
 
         /* Panel teks gaya editor standard */
@@ -339,6 +350,30 @@
         </div>
     </div>
 
+    <!-- PEMBACA SATU PAGE -->
+    <div id="pageViewModal" class="modal-overlay">
+        <div class="modal-box" id="pageViewBox">
+            <div class="pv-bar">
+                <h3 style="margin:0; font-size:17px; text-align:left;"><i class="fa-solid fa-book-open"></i> <span id="pvTitle">Page</span></h3>
+                <span style="margin-left:auto;"></span>
+                <button onclick="pvZoom(-1)" title="Zum keluar"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                <span id="pvZoomLevel" style="font-size:12px; min-width:46px; text-align:center;">Muat</span>
+                <button onclick="pvZoom(1)" title="Zum masuk"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                <button onclick="pvZoom(0)" title="Muat skrin"><i class="fa-solid fa-compress"></i></button>
+            </div>
+            <div class="pv-stage" id="pvStage"><img id="pvImg" alt="Page"></div>
+            <div class="pv-footer">
+                <button class="btn-ghost" style="background:#f3f4f6;" onclick="pvNav(-1)"><i class="fa-solid fa-arrow-left"></i> Sebelum</button>
+                <span id="pvCount" style="align-self:center; font-size:13px; color:var(--text-muted, #6b7280);"></span>
+                <button class="btn-ghost" style="background:#f3f4f6;" onclick="pvNav(1)">Seterusnya <i class="fa-solid fa-arrow-right"></i></button>
+                <span style="flex:1;"></span>
+                <button class="btn-primary" onclick="pvScan()"><i class="fa-solid fa-crop-simple"></i> Imbas Semula</button>
+                <button class="btn-warning" onclick="pvEdit()"><i class="fa-solid fa-pen-ruler"></i> Edit</button>
+                <button class="btn-danger" onclick="closePageViewer()"><i class="fa-solid fa-xmark"></i> Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <!-- EDITOR POWER -->
     <div id="powerEditorModal" class="modal-overlay">
         <div class="modal-box" id="editorModalBox">
@@ -384,6 +419,19 @@
                         <button class="icon-btn" title="Buang teks" onclick="deleteActiveLayer()"><i class="fa-solid fa-trash"></i></button>
                         <span class="txt-hint"><i class="fa-solid fa-hand-pointer"></i> Ketik gambar untuk tambah teks &middot; seret teks untuk alih kedudukan &middot; ketik dua kali untuk sunting.</span>
                     </div>
+                </div>
+            </div>
+            <div id="eraseOptions" class="tool-options">
+                <div class="txt-row">
+                    <label><i class="fa-solid fa-eraser"></i> Saiz</label>
+                    <input type="range" id="eraseSize" min="4" max="250" value="30" oninput="updateEraseUI()">
+                    <span id="eraseSizeVal" style="min-width:52px; font-size:12px;">30 px</span>
+                    <label><i class="fa-solid fa-fill-drip"></i> Warna</label>
+                    <input type="color" id="eraseColor" value="#ffffff" oninput="updateEraseUI()">
+                    <span class="erase-preview" id="erasePreview"></span>
+                    <button class="icon-btn" id="btnPickColor" title="Cedok warna latar dari gambar" onclick="toggleColorPicker()"><i class="fa-solid fa-eye-dropper"></i></button>
+                    <button class="icon-btn" title="Warna putih" onclick="setEraseColor('#ffffff')"><i class="fa-solid fa-square" style="color:#fff; text-shadow:0 0 2px #999;"></i></button>
+                    <span class="txt-hint"><i class="fa-solid fa-eye-dropper"></i> Tekan cedok warna, ketik pada latar yang anda mahu tiru, kemudian sapu pada bahagian yang hendak dipadam.</span>
                 </div>
             </div>
             <div id="cropOptions" class="tool-options">
@@ -1198,9 +1246,20 @@ ${hairPath}
         /** Muatkan sijil terkini ke ruangan paparan (mod baca sahaja) */
         async function previewLatestCert(cert) {
             if (!cert || !activeStudent) return;
-            const already = sessionCerts.some(c => c.student === activeStudent.name && c.sourceUrl === cert.url);
-            if (already) return;
+            const mine = sessionCerts.filter(c => c.student === activeStudent.name);
+            if (mine.some(c => c.needsSync)) return;                       // ada deraf belum simpan - jangan ganggu
+            if (mine.some(c => c.sourceUrl === cert.url)) return;          // sudah dipaparkan
             await pullFromCloudToEditor(cert.url, cert.certName, { preview: true });
+            // Buang salinan lama hanya SELEPAS kad terkini berjaya dimuatkan
+            const loaded = sessionCerts.some(c => c.student === activeStudent.name && c.sourceUrl === cert.url);
+            if (loaded) {
+                for (let i = sessionCerts.length - 1; i >= 0; i--) {
+                    const c = sessionCerts[i];
+                    if (c.student === activeStudent.name && !c.needsSync && c.sourceUrl !== cert.url) sessionCerts.splice(i, 1);
+                }
+                undoStack = [];
+                renderCerts();
+            }
         }
 
         function buildCloudCertCard(cert, i) {
@@ -1288,11 +1347,27 @@ ${hairPath}
             const id = driveId(url) || url;
             if (pdfCache[id]) return pdfCache[id];
 
-            const data = await api({ action: "getRawPdf", fileUrl: url });
-            if (!data || data.status !== "success") throw new Error((data && data.message) || "Gagal tarik fail dari Cloud.");
-
-            const bytes = base64ToBytes(data.base64Data);
-            if (!bytes.length) throw new Error("Fail kosong (0 bait) di Drive.");
+            // Kadangkala Drive belum siap sepenuhnya sebaik sahaja PDF disimpan.
+            // Cuba beberapa kali sebelum menyerah.
+            let data = null, bytes = null, lastErr = null;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    data = await api({ action: "getRawPdf", fileUrl: url });
+                    if (!data || data.status !== "success") throw new Error((data && data.message) || "Gagal tarik fail dari Cloud.");
+                    if (!data.base64Data) throw new Error("Fail kosong diterima dari Cloud.");
+                    bytes = base64ToBytes(data.base64Data);
+                    if (!bytes.length) throw new Error("Fail kosong (0 bait) di Drive.");
+                    break;
+                } catch (e) {
+                    lastErr = e; bytes = null;
+                    if (attempt < 3) {
+                        const t = document.getElementById('loadingText');
+                        if (t) t.innerText = `Fail belum sedia di Cloud... cuba lagi (${attempt}/2)`;
+                        await new Promise(r => setTimeout(r, 1500 * attempt));
+                    }
+                }
+            }
+            if (!bytes) throw lastErr || new Error("Gagal tarik fail dari Cloud.");
 
             const mime = (data.mimeType || '').toLowerCase();
             const isPdfHeader = bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46; // %PDF
@@ -1426,7 +1501,15 @@ ${hairPath}
                     showAppAlert("Sedia Diedit", `${n} page dibuka. Page dimuatkan bila diperlukan sahaja - jadi cepat walaupun 100 page.`, "success");
                 }
                 backgroundThumbs(cert);
-            } catch (err) { hideLoading(); showAppAlert("Ralat", "Gagal: " + err.message, "error"); }
+            } catch (err) {
+                hideLoading();
+                if (preview) {
+                    console.warn('preview gagal', err);
+                    setStatus("<i class='fa-solid fa-cloud-arrow-down'></i> Sijil terkini belum sedia dipaparkan. Tekan Sejarah untuk buka.", "warning");
+                } else {
+                    showAppAlert("Ralat", "Gagal: " + err.message, "error");
+                }
+            }
         }
 
         /* Bantuan susunan page: kekalkan images/thumbs/lazy segerak */
@@ -1471,6 +1554,31 @@ ${hairPath}
             });
         }
 
+        /* ---------- Undo perubahan sebelum simpan ---------- */
+        let undoStack = [];
+        function pushCertUndo(certIdx, label) {
+            const c = sessionCerts[certIdx];
+            if (!c) return;
+            undoStack.push({
+                certIdx, label: label || 'Perubahan',
+                images: (c.images || []).slice(),
+                thumbs: (c.thumbs || []).slice(),
+                lazy: (c.lazy || []).slice(),
+                needsSync: c.needsSync
+            });
+            if (undoStack.length > 40) undoStack.shift();
+        }
+        function undoLastChange() {
+            const snap = undoStack.pop();
+            if (!snap) return showAppAlert("Tiada Undo", "Tiada perubahan untuk dibatalkan.", "warning");
+            const c = sessionCerts[snap.certIdx];
+            if (!c) return renderCerts();
+            c.images = snap.images; c.thumbs = snap.thumbs; c.lazy = snap.lazy;
+            c.needsSync = undoStack.length ? true : snap.needsSync;
+            renderCerts();
+            showAppAlert("Undo", `Dibatalkan: ${snap.label}.`, "success");
+        }
+
         function renderCerts() {
             const listUI = document.getElementById('certGridUI');
             listUI.innerHTML = "";
@@ -1478,6 +1586,15 @@ ${hairPath}
 
             const myCerts = [];
             sessionCerts.forEach((c, idx) => { if (c.student === activeStudent.name) myCerts.push({ cert: c, idx }); });
+            // Paparkan deraf yang belum disimpan + hanya SATU kad tersimpan yang paling terkini.
+            // Versi lama boleh dilihat semula melalui butang Sejarah.
+            const syncedOnly = myCerts.filter(x => !x.cert.needsSync);
+            if (syncedOnly.length > 1) {
+                const keep = syncedOnly[syncedOnly.length - 1];
+                for (let i = myCerts.length - 1; i >= 0; i--) {
+                    if (!myCerts[i].cert.needsSync && myCerts[i] !== keep) myCerts.splice(i, 1);
+                }
+            }
             if (!myCerts.length) { listUI.innerHTML = `<p style="font-size:14px; color:grey;">Tiada sijil untuk dipaparkan.</p>`; return; }
 
             myCerts.forEach(({ cert, idx }) => {
@@ -1505,6 +1622,17 @@ ${hairPath}
                     mainBtn.onclick = () => downloadLocalPDF(idx);
                 }
                 const editing = cert.editMode !== false;
+                if (editing) {
+                    const bUndo = document.createElement('button');
+                    bUndo.className = 'btn-ghost';
+                    bUndo.style.cssText = "width:auto; padding:10px; background:#f3f4f6;";
+                    bUndo.innerHTML = `<i class="fa-solid fa-rotate-left"></i> Undo${undoStack.length ? ' (' + undoStack.length + ')' : ''}`;
+                    bUndo.disabled = !undoStack.length;
+                    bUndo.style.opacity = undoStack.length ? '1' : '0.5';
+                    bUndo.title = 'Batalkan perubahan terakhir sebelum simpan';
+                    bUndo.onclick = () => undoLastChange();
+                    right.appendChild(bUndo);
+                }
                 if (!editing) {
                     const bStartEdit = document.createElement('button');
                     bStartEdit.className = 'btn-warning';
@@ -1541,7 +1669,7 @@ ${hairPath}
                     im.src = ready || PENDING_THUMB;
                     if (!ready) im.classList.add('pending');
                     if (cert.lazy && cert.lazy[pIdx]) im.dataset.thumbKey = cert.lazy[pIdx].key;
-                    im.onclick = () => { if (editing) openScanEditorForPage(idx, pIdx); else if (cert.sourceUrl) window.open(cert.sourceUrl, '_blank'); };
+                    im.onclick = () => { if (editing) openScanEditorForPage(idx, pIdx); else openPageViewer(idx, pIdx); };
 
                     const badge = document.createElement('span');
                     badge.className = 'page-badge';
@@ -1615,6 +1743,7 @@ ${hairPath}
         function movePage(certIdx, from, to) {
             const cert = sessionCerts[certIdx];
             if (!cert || to < 0 || to >= cert.images.length || from === to) return;
+            pushCertUndo(certIdx, `Alih Page ${from + 1}`);
             certMove(cert, from, to);
             cert.needsSync = true; renderCerts();
         }
@@ -1641,6 +1770,7 @@ ${hairPath}
             if (e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over');
             if (dragSourceCertIndex !== tCIdx || dragSourcePageIndex === tPIdx) return;
             const cert = sessionCerts[tCIdx];
+            pushCertUndo(tCIdx, `Alih Page ${dragSourcePageIndex + 1}`);
             certMove(cert, dragSourcePageIndex, tPIdx);
             cert.needsSync = true; renderCerts();
         }
@@ -1649,12 +1779,14 @@ ${hairPath}
             if (dragSourceCertIndex !== tCIdx) return;
             const cert = sessionCerts[tCIdx];
             if (dragSourcePageIndex === cert.images.length - 1) return;
+            pushCertUndo(tCIdx, `Alih Page ${dragSourcePageIndex + 1}`);
             certMove(cert, dragSourcePageIndex, cert.images.length - 1);
             cert.needsSync = true; renderCerts();
         }
         async function deleteLocalThumbnail(certIdx, pageIdx) {
             const ok = await appConfirm("Buang page ini?", "Page yang dibuang tidak boleh dikembalikan selepas disimpan.", "Buang");
             if (!ok) return;
+            pushCertUndo(certIdx, `Buang Page ${pageIdx + 1}`);
             certRemove(sessionCerts[certIdx], pageIdx);
             sessionCerts[certIdx].needsSync = true; renderCerts();
         }
@@ -1685,6 +1817,7 @@ ${hairPath}
             const files = Array.from(e.target.files || []); if (!files.length) return;
             const certIdx = targetInlineCertIndex;
             const cert = sessionCerts[certIdx];
+            pushCertUndo(certIdx, 'Tambah Page');
             const pdfs = files.filter(f => f.type === "application/pdf");
             const imgs = files.filter(f => f.type !== "application/pdf");
             showLoading("Menambah page...");
@@ -1850,6 +1983,7 @@ ${hairPath}
             flattenLayers();
             const full = baseCanvas.toDataURL('image/jpeg', 0.85);
             const cert = sessionCerts[activeEditCertIndex];
+            pushCertUndo(activeEditCertIndex, `Edit Page ${activeEditPageIndex + 1}`);
             cert.images[activeEditPageIndex] = full;
             if (!cert.thumbs) cert.thumbs = [];
             cert.thumbs[activeEditPageIndex] = await makeThumb(full);
@@ -1866,6 +2000,10 @@ ${hairPath}
             document.getElementById(map[toolName] || 'toolPan')?.classList.add('active-tool');
             document.getElementById('textOptions').style.display = toolName === 'text' ? 'block' : 'none';
             document.getElementById('cropOptions').style.display = toolName === 'crop' ? 'block' : 'none';
+            const eo = document.getElementById('eraseOptions');
+            if (eo) eo.style.display = toolName === 'erase' ? 'block' : 'none';
+            if (toolName !== 'erase') pickingColor = false;
+            updateEraseUI();
             const box = document.getElementById('canvasContainer');
             box.classList.toggle('tool-active', !!toolName);
             editorCanvas.style.cursor = toolName === 'text' ? 'move' : toolName === 'erase' ? 'cell' : toolName === 'crop' ? 'crosshair' : 'grab';
@@ -1993,7 +2131,14 @@ ${hairPath}
                 return;
             }
             e.preventDefault(); isDrawing = true;
-            if (edTool === 'erase') { edCtx.beginPath(); edCtx.moveTo(pos.x, pos.y); edCtx.strokeStyle = "#ffffff"; edCtx.lineWidth = 30; edCtx.lineCap = "round"; }
+            if (edTool === 'erase') {
+                if (pickingColor) { isDrawing = false; pickColorAt(pos); return; }
+                const col = eraseColorValue(), w = eraseSizeValue();
+                edCtx.beginPath(); edCtx.moveTo(pos.x, pos.y); edCtx.strokeStyle = col; edCtx.lineWidth = w; edCtx.lineCap = "round"; edCtx.lineJoin = "round";
+                baseCtx.beginPath(); baseCtx.moveTo(pos.x, pos.y); baseCtx.strokeStyle = col; baseCtx.lineWidth = w; baseCtx.lineCap = "round"; baseCtx.lineJoin = "round";
+                edCtx.lineTo(pos.x + 0.01, pos.y); edCtx.stroke();
+                baseCtx.lineTo(pos.x + 0.01, pos.y); baseCtx.stroke();
+            }
             else if (edTool === 'crop') { cropStartX = pos.x; cropStartY = pos.y; cropSnapshot = baseCtx.getImageData(0, 0, baseCanvas.width, baseCanvas.height); }
         }
         function moveAction(e) {
@@ -2009,7 +2154,6 @@ ${hairPath}
             e.preventDefault(); const pos = getEdPos(e);
             if (edTool === 'erase') {
                 edCtx.lineTo(pos.x, pos.y); edCtx.stroke();
-                baseCtx.strokeStyle = "#ffffff"; baseCtx.lineWidth = 30; baseCtx.lineCap = "round";
                 baseCtx.lineTo(pos.x, pos.y); baseCtx.stroke();
             } else if (edTool === 'crop') {
                 edCtx.putImageData(cropSnapshot, 0, 0);
@@ -2050,6 +2194,99 @@ ${hairPath}
                 renderEditor(); saveHistory(); hideLoading();
             }, 100);
         }
+        /* ---------- Pemadam pintar (tiru warna latar) ---------- */
+        let pickingColor = false;
+        function eraseColorValue() { return document.getElementById('eraseColor')?.value || '#ffffff'; }
+        function eraseSizeValue() { return +(document.getElementById('eraseSize')?.value) || 30; }
+        function setEraseColor(hex) {
+            const el = document.getElementById('eraseColor'); if (el) el.value = hex;
+            updateEraseUI();
+        }
+        function updateEraseUI() {
+            const v = document.getElementById('eraseSizeVal'); if (v) v.innerText = eraseSizeValue() + ' px';
+            const p = document.getElementById('erasePreview');
+            if (p) { p.style.background = eraseColorValue(); const d = Math.max(10, Math.min(34, eraseSizeValue() / 4)); p.style.width = d + 'px'; p.style.height = d + 'px'; }
+            const b = document.getElementById('btnPickColor'); if (b) b.classList.toggle('on', pickingColor);
+        }
+        function toggleColorPicker() {
+            if (edTool !== 'erase') setTool('erase');
+            pickingColor = !pickingColor;
+            editorCanvas.style.cursor = pickingColor ? 'copy' : 'cell';
+            updateEraseUI();
+        }
+        /** Ambil purata warna kecil pada kedudukan ketikan supaya warna latar lebih tepat */
+        function pickColorAt(pos) {
+            const x = Math.max(0, Math.min(baseCanvas.width - 1, Math.round(pos.x)));
+            const y = Math.max(0, Math.min(baseCanvas.height - 1, Math.round(pos.y)));
+            const r0 = Math.max(0, x - 2), c0 = Math.max(0, y - 2);
+            const w = Math.min(5, baseCanvas.width - r0), h = Math.min(5, baseCanvas.height - c0);
+            const d = baseCtx.getImageData(r0, c0, w, h).data;
+            let r = 0, g = 0, b = 0, n = 0;
+            for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; n++; }
+            const hex = '#' + [r / n, g / n, b / n].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+            setEraseColor(hex);
+            pickingColor = false;
+            editorCanvas.style.cursor = 'cell';
+            updateEraseUI();
+        }
+
+        /* ---------- Pembaca satu page ---------- */
+        let pvCertIdx = -1, pvPageIdx = -1, pvZoomVal = 0;
+        async function openPageViewer(cIdx, pIdx) {
+            const cert = sessionCerts[cIdx];
+            if (!cert) return;
+            let src = cert.images[pIdx];
+            if (!src) {
+                showLoading("Membuka page " + (pIdx + 1) + "...");
+                try { src = await ensurePageImage(cert, pIdx); } finally { hideLoading(); }
+            }
+            if (!src) return showAppAlert("Ralat", "Page ini tidak dapat dibuka.", "error");
+            pvCertIdx = cIdx; pvPageIdx = pIdx; pvZoomVal = 0;
+            document.getElementById('pvImg').src = src;
+            document.getElementById('pvTitle').innerText = `${cert.certName} — Page ${pIdx + 1}`;
+            document.getElementById('pvCount').innerText = `Page ${pIdx + 1} / ${cert.images.length}`;
+            applyPvZoom();
+            document.getElementById('pageViewModal').style.display = 'flex';
+            document.body.classList.add('modal-open');
+        }
+        function closePageViewer() {
+            document.getElementById('pageViewModal').style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+        function pvNav(step) {
+            const cert = sessionCerts[pvCertIdx]; if (!cert) return;
+            const next = pvPageIdx + step;
+            if (next < 0 || next >= cert.images.length) return;
+            openPageViewer(pvCertIdx, next);
+        }
+        function pvZoom(dir) {
+            if (dir === 0) pvZoomVal = 0; else pvZoomVal = Math.max(0, Math.min(6, pvZoomVal + dir));
+            applyPvZoom();
+        }
+        function applyPvZoom() {
+            const stage = document.getElementById('pvStage'), img = document.getElementById('pvImg');
+            const lbl = document.getElementById('pvZoomLevel');
+            if (!pvZoomVal) { stage.classList.remove('zoomed'); img.style.width = ''; lbl.innerText = 'Muat'; return; }
+            stage.classList.add('zoomed');
+            const pct = 100 + pvZoomVal * 50;
+            img.style.width = (stage.clientWidth * pct / 100) + 'px';
+            lbl.innerText = pct + '%';
+        }
+        function pvEdit() {
+            const c = pvCertIdx, p = pvPageIdx;
+            closePageViewer();
+            const cert = sessionCerts[c];
+            if (cert && cert.editMode === false) { cert.editMode = true; renderCerts(); }
+            openPowerEditor(c, p);
+        }
+        function pvScan() {
+            const c = pvCertIdx, p = pvPageIdx;
+            closePageViewer();
+            const cert = sessionCerts[c];
+            if (cert && cert.editMode === false) { cert.editMode = true; renderCerts(); }
+            openScanEditorForPage(c, p);
+        }
+
         window.addEventListener('resize', () => {
             if (document.getElementById('powerEditorModal').style.display === 'flex') fitEditor();
         });
@@ -2089,8 +2326,11 @@ ${hairPath}
                 hideLoading();
                 if (result.status === "success") {
                     cert.needsSync = false;
+                    undoStack = [];
                     showAppAlert("Berjaya", "Sijil tersimpan di Cloud.", "success");
-                    renderCerts(); fetchCertsFromDB(activeStudent.name);
+                    renderCerts();
+                    // Beri masa Drive siapkan fail sebelum thumbnail terkini dimuatkan
+                    setTimeout(() => fetchCertsFromDB(activeStudent.name), 2500);
                 } else showAppAlert("Maaf", result.message, "error");
             } catch (err) { hideLoading(); showAppAlert("Ralat", "Gagal menghantar ke Cloud.", "error"); }
         }
@@ -2798,6 +3038,7 @@ ${hairPath}
                 if (scanTarget && scanTarget.type === 'replace') {
                     const cert = sessionCerts[scanTarget.idx];
                     if (cert) {
+                        pushCertUndo(scanTarget.idx, `Imbas Page ${scanTarget.page + 1}`);
                         cert.images[scanTarget.page] = full;
                         if (!cert.thumbs) cert.thumbs = [];
                         cert.thumbs[scanTarget.page] = thumb;
@@ -2806,7 +3047,7 @@ ${hairPath}
                     }
                 } else if (scanTarget && scanTarget.type === 'cert') {
                     const cert = sessionCerts[scanTarget.idx];
-                    if (cert) { certPush(cert, full, thumb); cert.needsSync = true; }
+                    if (cert) { pushCertUndo(scanTarget.idx, 'Tambah Page'); certPush(cert, full, thumb); cert.needsSync = true; }
                 } else {
                     currentBatch.push({ full, thumb });
                 }
