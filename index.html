@@ -746,6 +746,27 @@ ${hairPath}
             });
         }
 
+        /* Senarai hanya papar NAMA. Maklumat lain hanya muncul sebagai petunjuk
+         * bila carian sepadan dengan medan tersebut (kelas / IC / kategori). */
+        function searchMatchHint(student) {
+            const q = (document.getElementById('searchStudent').value || "").trim().toLowerCase();
+            if (!q) return "";
+            const name = String(student.name || "").toLowerCase();
+            const parts = q.split(/\s+/).filter(p => p && name.indexOf(p) === -1);
+            if (!parts.length) return "";
+            const fields = [
+                { label: "Kelas", val: student.kelas },
+                { label: "IC", val: student.ic },
+                { label: "Kategori", val: student.kategori }
+            ];
+            const hits = [];
+            fields.forEach(f => {
+                const v = String(f.val || "").toLowerCase();
+                if (v && parts.some(p => v.indexOf(p) > -1)) hits.push(`${f.label}: ${f.val}`);
+            });
+            return hits.join(" • ");
+        }
+
         function renderStudentList() {
             const ul = document.getElementById('studentListUI');
             const frag = document.createDocumentFragment();
@@ -768,7 +789,9 @@ ${hairPath}
                 img.src = studentPhoto(student, 80);
 
                 const box = document.createElement('div');
-                box.innerHTML = `<span style="display:block;">${student.name}</span><span style="font-size:10px; color:var(--text-light);">${student.kelas || '-'}</span>`;
+                const nameHtml = `<span style="display:block; font-weight:600; text-transform:uppercase; letter-spacing:.2px;">${student.name || ''}</span>`;
+                const hint = searchMatchHint(student);
+                box.innerHTML = nameHtml + (hint ? `<span style="font-size:10px; color:var(--text-light);">${hint}</span>` : "");
 
                 li.appendChild(img); li.appendChild(box);
                 li.onclick = () => selectStudent(student.name);
@@ -2110,25 +2133,15 @@ ${hairPath}
             ph.innerText = list.length ? `Pilih pelajar (${list.length} rekod)` : "Tiada padanan ditemui";
             sel.appendChild(ph);
 
-            // Kumpulkan mengikut kelas supaya senarai nampak kemas & profesional
-            const groups = new Map();
-            list.forEach(s => {
-                const key = (s.kelas || "").trim().toUpperCase() || "TANPA KELAS";
-                if (!groups.has(key)) groups.set(key, []);
-                groups.get(key).push(s);
-            });
-            [...groups.keys()].sort().forEach(key => {
-                const g = document.createElement('optgroup');
-                g.label = `${key}  (${groups.get(key).length})`;
-                groups.get(key).forEach(s => {
+            // Papar NAMA sahaja (disusun A-Z) supaya senarai nampak kemas.
+            [...list].sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")))
+                .forEach(s2 => {
                     const o = document.createElement('option');
-                    o.value = s.name;
-                    o.innerText = String(s.name || "").toUpperCase();
-                    if (s.name === current) o.selected = true;
-                    g.appendChild(o);
+                    o.value = s2.name;
+                    o.innerText = String(s2.name || "").toUpperCase();
+                    if (s2.name === current) o.selected = true;
+                    sel.appendChild(o);
                 });
-                sel.appendChild(g);
-            });
             const more = document.getElementById('btnLoadMoreMobile');
             if (more) more.style.display = studentHasMore ? 'flex' : 'none';
         }
