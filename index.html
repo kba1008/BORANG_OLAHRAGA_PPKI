@@ -114,8 +114,9 @@
                 <h3><i class="fa-solid fa-users"></i> Urus Pelajar</h3>
                 <div class="add-student-box">
                     <input type="text" id="newStudentName" placeholder="Nama Pelajar Baru...">
-                    <button class="btn-primary" onclick="addStudent()"><i class="fa-solid fa-plus"></i></button>
+                    <button class="btn-primary" onclick="addStudent()" id="btnAddStudent"><i class="fa-solid fa-plus"></i></button>
                 </div>
+                <!-- Senarai ditarik dari Google Sheet -->
                 <ul class="student-list" id="studentListUI"></ul>
             </div>
 
@@ -129,7 +130,6 @@
                         <div>
                             <h2 id="activeStudentTitle">Nama Pelajar</h2>
                         </div>
-                        <!-- Buka Editor Sijil Berbilang -->
                         <button class="btn-success" onclick="openScanner()">
                             <i class="fa-solid fa-plus"></i> Editor Multi-Sijil
                         </button>
@@ -154,11 +154,9 @@
             <p style="text-align:left; font-size:13px; color:var(--text-light); margin-bottom:5px;">Nama Fail PDF (Boleh edit kemudian):</p>
             <input type="text" id="certName" style="margin-bottom: 15px;">
 
-            <!-- Viewport Kamera / Pemprosesan -->
             <video id="video" autoplay playsinline></video>
             <canvas id="canvas"></canvas>
 
-            <!-- Galeri Sijil Sementara (Batch Viewer) -->
             <div class="batch-container">
                 <h4 style="font-size: 14px; margin-bottom: 10px;"><i class="fa-solid fa-layer-group"></i> Kepingan Sijil Untuk Digabungkan:</h4>
                 <div class="batch-gallery" id="batchGallery">
@@ -166,10 +164,8 @@
                 </div>
             </div>
 
-            <!-- Input File Menerima Imej DAN PDF -->
             <input type="file" id="fileUploadInput" accept="image/*,application/pdf" style="display: none;">
 
-            <!-- Butang Kawalan -->
             <div class="btn-group">
                 <button id="btnCaptureCam" class="btn-primary" disabled><i class="fa-solid fa-camera"></i> Tambah (Snap)</button>
                 <button id="btnUploadFile" class="btn-primary" onclick="document.getElementById('fileUploadInput').click();" disabled><i class="fa-solid fa-folder-open"></i> Tambah (Fail/PDF)</button>
@@ -181,20 +177,20 @@
         </div>
     </div>
 
-    <!-- Scripts: OpenCV (Image AI), PDF.js (PDF Extractor), jsPDF (PDF Builder) -->
+    <!-- Scripts -->
     <script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvReady();"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz0SwYALnHk__s0caW_ugaJDUTwFZ7uWCLGKS594ltvIjQV_TPqGvqaZjcD3lApPAii/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxOrI7Q-Rpk8xtBe7Ol6TyiWzmSx2Mg5PUpc-YOuMadiKEPXeBzNpBkk79qk-nDrvtB/exec"; 
         
         let currentUserEmail = "";
-        let studentsList = ["Ahmad Ali bin Abu", "Siti Nurhaliza"];
+        let studentsList = []; // Nama dikosongkan. Akan ditarik dari DB.
         let activeStudent = "";
         let sessionCerts = [];
-        let currentBatch = []; // Array untuk menyimpan kepingan gambar sijil
+        let currentBatch = []; 
 
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
@@ -212,14 +208,14 @@
         }
 
         // ==========================================
-        // AUTO-LOGIN & AUTH
+        // AUTO-LOGIN & FETCH DATA
         // ==========================================
         document.addEventListener("DOMContentLoaded", () => {
             const savedUser = localStorage.getItem("sijilProUser");
             if (savedUser) {
                 currentUserEmail = savedUser;
                 document.getElementById('userEmailDisplay').innerText = savedUser;
-                renderStudentList();
+                fetchStudents(); // Tarik senarai nama
                 switchScreen('dashboardScreen');
             } else switchScreen('loginScreen');
         });
@@ -233,14 +229,70 @@
                 if(data.status === "success") {
                     currentUserEmail = email; localStorage.setItem("sijilProUser", email);
                     document.getElementById('userEmailDisplay').innerText = email;
-                    renderStudentList(); switchScreen('dashboardScreen');
+                    fetchStudents(); // Tarik senarai nama lepas login
+                    switchScreen('dashboardScreen');
                 } else alert(data.message);
             } catch (err) { alert("Ralat pelayan."); }
         }
         
         function logout() {
             localStorage.removeItem("sijilProUser"); stopCamera();
+            studentsList = []; // Clear local data
             switchScreen('loginScreen');
+        }
+
+        // ==========================================
+        // DB SYNC: TARIK & SIMPAN PELAJAR KE GOOGLE SHEET
+        // ==========================================
+        async function fetchStudents() {
+            const ul = document.getElementById('studentListUI');
+            ul.innerHTML = `<li style="text-align:center; padding:15px; color:grey;"><i class="fa-solid fa-spinner fa-spin"></i> Menyegerak Pangkalan Data...</li>`;
+            
+            try {
+                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "getStudents" }) });
+                let data = await res.json();
+                if (data.status === "success") {
+                    studentsList = data.data;
+                    renderStudentList();
+                }
+            } catch (err) {
+                ul.innerHTML = `<li style="text-align:center; color:red;">Gagal menarik data. Cuba lagi.</li>`;
+            }
+        }
+
+        async function addStudent() {
+            let input = document.getElementById('newStudentName');
+            let name = input.value.trim();
+            if(!name) return;
+            if(studentsList.includes(name)) return alert("Nama sudah wujud dalam pangkalan data.");
+            
+            let btn = document.getElementById('btnAddStudent');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                // Simpan ke Google Sheet
+                let res = await fetch(WEB_APP_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "addStudent", studentName: name, guruEmail: currentUserEmail }) 
+                });
+                let data = await res.json();
+                
+                if(data.status === "success") {
+                    studentsList.push(name);
+                    studentsList.sort(); // Susun A-Z
+                    input.value = "";
+                    renderStudentList();
+                    selectStudent(name); // Auto pilih pelajar baru
+                } else {
+                    alert("Gagal menyimpan nama.");
+                }
+            } catch (err) {
+                alert("Ralat pelayan semasa menyimpan.");
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-plus"></i>';
+                btn.disabled = false;
+            }
         }
 
         // ==========================================
@@ -248,26 +300,30 @@
         // ==========================================
         function renderStudentList() {
             const ul = document.getElementById('studentListUI'); ul.innerHTML = "";
+            if(studentsList.length === 0) {
+                ul.innerHTML = `<li style="text-align:center; padding:15px; color:grey; font-size: 14px;">Belum ada pelajar didaftarkan. Sila tambah.</li>`;
+                return;
+            }
             studentsList.forEach(name => {
                 let li = document.createElement('li');
                 li.className = `student-item ${name === activeStudent ? 'active' : ''}`;
                 li.innerHTML = `<i class="fa-solid fa-user"></i> ${name}`;
-                li.onclick = () => { activeStudent = name; renderStudentList(); 
-                    document.getElementById('emptyState').style.display='none'; 
-                    document.getElementById('studentDetails').style.display='block';
-                    document.getElementById('activeStudentTitle').innerText = name; renderCerts();
-                };
+                li.onclick = () => selectStudent(name);
                 ul.appendChild(li);
             });
         }
-        function addStudent() {
-            let name = document.getElementById('newStudentName').value.trim();
-            if(name && !studentsList.includes(name)) { studentsList.push(name); renderStudentList(); }
+        
+        function selectStudent(name) {
+            activeStudent = name; renderStudentList(); 
+            document.getElementById('emptyState').style.display='none'; 
+            document.getElementById('studentDetails').style.display='block';
+            document.getElementById('activeStudentTitle').innerText = name; renderCerts();
         }
+
         function renderCerts() {
             const grid = document.getElementById('certGridUI'); grid.innerHTML = "";
             let myCerts = sessionCerts.filter(c => c.student === activeStudent);
-            if(myCerts.length === 0) grid.innerHTML = `<p style="font-size:14px; color:grey;">Belum ada fail.</p>`;
+            if(myCerts.length === 0) grid.innerHTML = `<p style="font-size:14px; color:grey;">Belum ada sijil diproses untuk sesi ini.</p>`;
             myCerts.forEach(cert => grid.innerHTML += `<div class="cert-card"><i class="fa-solid fa-file-pdf"></i><div><h4>${cert.certName}</h4><p>Tersimpan di Drive</p></div></div>`);
         }
 
@@ -286,13 +342,10 @@
             if(!activeStudent) return alert("Pilih pelajar dahulu.");
             document.getElementById('scannerStudentLabel').innerText = activeStudent;
             
-            // HANTAM NAMA SIJIL DULU (Format: Sijil_TahunBulanHari_Masa)
             let dateStr = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14);
             document.getElementById('certName').value = `Sijil_${dateStr}`;
             
-            currentBatch = []; // Kosongkan batch baru
-            updateBatchUI();
-            
+            currentBatch = []; updateBatchUI();
             switchScreen('scannerScreen'); startCamera();
         }
 
@@ -300,11 +353,10 @@
         function startCamera() { navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(stream => video.srcObject = stream).catch(e => setStatus("Kamera tak dijumpai.", "warning")); video.style.display = 'block'; canvas.style.display = 'none'; }
         function stopCamera() { if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop()); }
 
-        // MENGEMAS KINI GALERI THUMBNAIL
         function updateBatchUI() {
             const gallery = document.getElementById('batchGallery');
             if(currentBatch.length === 0) {
-                gallery.innerHTML = `<div class="empty-batch">Belum ada sijil. Tambah dari Kamera atau Fail.</div>`;
+                gallery.innerHTML = `<div class="empty-batch">Belum ada sijil. Snap kamera atau pilih fail di bawah.</div>`;
                 return;
             }
             gallery.innerHTML = "";
@@ -321,14 +373,8 @@
             });
         }
 
-        function deletePage(index) {
-            currentBatch.splice(index, 1);
-            updateBatchUI();
-        }
+        function deletePage(index) { currentBatch.splice(index, 1); updateBatchUI(); }
 
-        // ==========================================
-        // PROSES 1: SNAP KAMERA -> AUTO CROP -> MASUK BATCH
-        // ==========================================
         document.getElementById('btnCaptureCam').addEventListener('click', () => {
             if (!opencvReady) return alert("Tunggu AI");
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
@@ -336,57 +382,43 @@
             setStatus("<i class='fa-solid fa-gear fa-spin'></i> AI Memotong gambar...", "info");
             setTimeout(() => {
                 let processedImg = detectAndWarpDocument(canvas);
-                currentBatch.push(processedImg);
-                updateBatchUI();
+                currentBatch.push(processedImg); updateBatchUI();
                 setStatus("<i class='fa-solid fa-check'></i> Ditambah ke galeri! Snap lagi atau edit di bawah.", "success");
             }, 100);
         });
 
-        // ==========================================
-        // PROSES 2: BUKA FAIL (IMEJ ATAU PDF)
-        // ==========================================
         document.getElementById('fileUploadInput').addEventListener('change', async (e) => {
             const file = e.target.files[0]; if(!file) return;
             
-            // JIKA FAIL ADALAH PDF (PECAHKAN MUKA SURAT)
             if(file.type === "application/pdf") {
                 setStatus("<i class='fa-solid fa-spinner fa-spin'></i> AI sedang memecahkan helaian PDF...", "info");
                 try {
                     const arrayBuffer = await file.arrayBuffer();
                     const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-                    
                     for(let i = 1; i <= pdf.numPages; i++) {
                         const page = await pdf.getPage(i);
-                        const viewport = page.getViewport({scale: 1.5}); // Kualiti tinggi
+                        const viewport = page.getViewport({scale: 1.5}); 
                         canvas.width = viewport.width; canvas.height = viewport.height;
                         await page.render({canvasContext: ctx, viewport: viewport}).promise;
-                        
-                        // Masukkan setiap helai ke dalam batch
                         currentBatch.push(canvas.toDataURL('image/jpeg', 0.9));
                     }
                     updateBatchUI();
-                    setStatus("<i class='fa-solid fa-check-double'></i> Selesai dipecahkan! Anda boleh edit, buang atau tambah kepingan lain.", "success");
+                    setStatus("<i class='fa-solid fa-check-double'></i> Selesai dipecahkan!", "success");
                 } catch(err) { setStatus("Gagal membaca PDF.", "error"); }
-            } 
-            // JIKA FAIL ADALAH GAMBAR (JALANKAN AUTO CROP)
-            else {
+            } else {
                 setStatus("<i class='fa-solid fa-gear fa-spin'></i> Memproses gambar...", "info");
                 const img = new Image();
                 img.onload = function() {
                     canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0);
                     let processedImg = detectAndWarpDocument(canvas);
-                    currentBatch.push(processedImg);
-                    updateBatchUI();
+                    currentBatch.push(processedImg); updateBatchUI();
                     setStatus("<i class='fa-solid fa-check'></i> Gambar ditambah ke galeri.", "success");
                 }
                 img.src = URL.createObjectURL(file);
             }
-            e.target.value = ""; // Reset input
+            e.target.value = ""; 
         });
 
-        // ==========================================
-        // ALGORITMA OPENCV (Fungsi Guna Semula)
-        // ==========================================
         function detectAndWarpDocument(srcCanvas) {
             try {
                 let src = cv.imread(srcCanvas); let dst = new cv.Mat();
@@ -425,33 +457,23 @@
             } catch (err) { return srcCanvas.toDataURL('image/jpeg', 0.9); }
         }
 
-        // FUNGSI BUANG BAYANG (Untuk kepingan individu)
         function applyFilterToPage(index) {
             setStatus("<i class='fa-solid fa-wand-magic-sparkles'></i> Membersihkan helaian...", "info");
             let img = new Image();
             img.onload = () => {
-                canvas.width = img.width; canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                
+                canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0);
                 let mat = cv.imread(canvas);
                 cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY, 0);
                 cv.adaptiveThreshold(mat, mat, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15);
-                cv.imshow(canvas, mat);
-                mat.delete();
-                
-                currentBatch[index] = canvas.toDataURL('image/jpeg', 0.9);
-                updateBatchUI();
+                cv.imshow(canvas, mat); mat.delete();
+                currentBatch[index] = canvas.toDataURL('image/jpeg', 0.9); updateBatchUI();
                 setStatus("<i class='fa-solid fa-check'></i> Selesai dibersihkan!", "success");
             };
             img.src = currentBatch[index];
         }
 
-        // ==========================================
-        // GABUNG SEMULA & UPLOAD JADI PDF POWER
-        // ==========================================
         async function generateAndSavePDF() {
-            if(currentBatch.length === 0) return alert("Tiada kepingan sijil dalam galeri. Sila snap atau muat naik fail.");
-            
+            if(currentBatch.length === 0) return alert("Tiada kepingan sijil dalam galeri.");
             let cName = document.getElementById('certName').value.trim();
             if(!cName) { alert("Sila pastikan ruangan Nama Fail tidak kosong."); document.getElementById('certName').focus(); return; }
             
@@ -460,15 +482,12 @@
 
             try {
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF();
-                pdf.deletePage(1); // Buang muka surat kosong default
+                const pdf = new jsPDF(); pdf.deletePage(1);
 
-                // Gabungkan setiap gambar mengikut saiz asalnya
                 for(let i = 0; i < currentBatch.length; i++) {
                     let imgData = currentBatch[i];
                     let img = new Image(); img.src = imgData;
                     await new Promise(r => img.onload = r);
-                    
                     let orientation = img.width > img.height ? 'l' : 'p';
                     pdf.addPage([img.width, img.height], orientation);
                     pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
@@ -487,7 +506,6 @@
                 });
                 
                 let result = await res.json();
-                
                 if (result.status === "success") {
                     sessionCerts.push({ student: activeStudent, certName: cName });
                     alert("Berjaya disimpan dalam Google Drive sekolah!");
