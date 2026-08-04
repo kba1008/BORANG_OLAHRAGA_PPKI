@@ -26,7 +26,7 @@ function doPost(e) {
     var action = data.action;
     var result;
 
-    if (action === "register") result = daftarPengguna(data.email, data.password);
+    if (action === "register") result = daftarPengguna(data);
     else if (action === "login") result = semakLogin(data.email, data.password);
     else if (action === "upload") result = muatNaikSijil(data);
     else if (action === "updateFile") result = kemaskiniSijil(data);
@@ -61,8 +61,8 @@ function getOrCreateSheet(ss, sheetName) {
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
     var headers = [];
-    if (sheetName === SHEET_PENGGUNA) headers = ["Email", "Kata Laluan", "Peranan", "Status"];
-    else if (sheetName === SHEET_SIJIL) headers = ["Tarikh & Masa", "Nama Pelajar", "Nama Sijil", "Email Guru", "Pautan Fail Drive (PDF)"];
+    if (sheetName === SHEET_PENGGUNA) headers = ["Email", "Kata Laluan", "Peranan", "Status", "Nama Penuh", "Nama Sekolah", "No Telefon", "Jawatan", "Tarikh Daftar"];
+    else if (sheetName === SHEET_SIJIL) headers = ["Tarikh & Masa", "Nama Pelajar", "Nama Sijil", "Email Guru", "Pautan Fail Drive (PDF)", "Dikemaskini Oleh"];
     else if (sheetName === SHEET_PELAJAR) headers = ["Nama Pelajar", "Kelas", "No IC", "Jantina", "Kategori", "ID Gambar Drive", "Didaftar Oleh", "Tarikh Daftar", "Nama Sekolah"];
     if (headers.length > 0) {
       sheet.appendRow(headers);
@@ -153,17 +153,38 @@ function pastikanAdmin(sheet) {
   sheet.appendRow(["admin", "101010", "Admin", "Approved"]);
 }
 
+/** Pastikan lajur 5-9 (Nama Penuh, Sekolah, Telefon, Jawatan, Tarikh) wujud pada sheet lama */
+function pastikanLajurPengguna(sheet) {
+  if (sheet.getMaxColumns() < 9) sheet.insertColumnsAfter(sheet.getMaxColumns(), 9 - sheet.getMaxColumns());
+  var tajuk = ["Email", "Kata Laluan", "Peranan", "Status", "Nama Penuh", "Nama Sekolah", "No Telefon", "Jawatan", "Tarikh Daftar"];
+  var semasa = sheet.getRange(1, 1, 1, 9).getValues()[0];
+  for (var i = 0; i < 9; i++) {
+    if (!semasa[i]) sheet.getRange(1, i + 1).setValue(tajuk[i]);
+  }
+}
+
 function sheetPengguna() {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sheet = getOrCreateSheet(ss, SHEET_PENGGUNA);
+  pastikanLajurPengguna(sheet);
   pastikanAdmin(sheet);
   return sheet;
 }
 
-function daftarPengguna(email, password) {
-  email = (email || "").toString().trim();
-  password = (password || "").toString();
-  if (!email || !password) return { status: "error", message: "Email dan kata laluan diperlukan." };
+function daftarPengguna(data) {
+  var email = (data.email || "").toString().trim();
+  var password = (data.password || "").toString();
+  var nama = (data.namaPenuh || "").toString().trim();
+  var sekolah = (data.sekolah || "").toString().trim();
+  var telefon = (data.telefon || "").toString().trim();
+  var jawatan = (data.jawatan || "").toString().trim();
+
+  if (!nama) return { status: "error", message: "Nama penuh diperlukan." };
+  if (!sekolah) return { status: "error", message: "Nama sekolah diperlukan." };
+  if (!telefon) return { status: "error", message: "No telefon diperlukan." };
+  if (!/^[0-9+\-\s]{8,20}$/.test(telefon)) return { status: "error", message: "No telefon tidak sah." };
+  if (!jawatan) return { status: "error", message: "Jawatan diperlukan." };
+  if (!email || !password) return { status: "error", message: "Emel dan kata laluan diperlukan." };
   if (password.length < 6) return { status: "error", message: "Kata laluan mesti sekurang-kurangnya 6 aksara." };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { status: "error", message: "Sila masukkan alamat emel yang sah." };
 
@@ -177,7 +198,8 @@ function daftarPengguna(email, password) {
       }
     }
   }
-  sheet.appendRow([email, password, "User", "Pending"]);
+  sheet.appendRow([email, password, "User", "Pending", nama, sekolah, telefon, jawatan,
+    Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm")]);
   return { status: "success", message: "Pendaftaran berjaya. Akaun anda perlu diluluskan oleh Master Admin sebelum boleh digunakan." };
 }
 
@@ -187,13 +209,13 @@ function semakLogin(email, password) {
   var sheet = sheetPengguna();
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return { status: "error", message: "Emel atau kata laluan salah." };
-  var records = sheet.getRange(2, 1, lastRow - 1, 4).getValues();
+  var records = sheet.getRange(2, 1, lastRow - 1, 9).getValues();
   for (var i = 0; i < records.length; i++) {
     var e = records[i][0] ? records[i][0].toString().trim() : "";
     if (e.toLowerCase() !== email.toLowerCase()) continue;
     if (records[i][1].toString() !== password) return { status: "error", message: "Emel atau kata laluan salah." };
     var status = (records[i][3] || "").toString().trim();
-    if (status === "Approved") return { status: "success", role: records[i][2] || "User", email: e };
+    if (status === "Approved") return { status: "success", role: records[i][2] || "User", email: e, namaPenuh: records[i][4] || "", sekolah: records[i][5] || "" };
     if (status === "Rejected") return { status: "error", message: "Akaun anda telah ditolak oleh Admin." };
     return { status: "error", message: "Akaun anda masih menunggu kelulusan Master Admin." };
   }
@@ -212,10 +234,14 @@ function senaraiPengguna(data) {
   var lastRow = sheet.getLastRow();
   var out = [];
   if (lastRow > 1) {
-    var rows = sheet.getRange(2, 1, lastRow - 1, 4).getValues();
+    var rows = sheet.getRange(2, 1, lastRow - 1, 9).getValues();
     for (var i = 0; i < rows.length; i++) {
       if (!rows[i][0]) continue;
-      out.push({ row: i + 2, email: rows[i][0].toString(), role: rows[i][2] || "User", status: rows[i][3] || "Pending" });
+      out.push({
+        row: i + 2, email: rows[i][0].toString(), role: rows[i][2] || "User", status: rows[i][3] || "Pending",
+        namaPenuh: rows[i][4] || "", sekolah: rows[i][5] || "", telefon: rows[i][6] ? rows[i][6].toString() : "",
+        jawatan: rows[i][7] || "", tarikh: rows[i][8] ? rows[i][8].toString() : ""
+      });
     }
   }
   return { status: "success", data: out };
@@ -283,6 +309,14 @@ function padamFailDrive(url, kecualiId) {
   }
 }
 
+/** Pastikan sheet Sijil ada lajur "Dikemaskini Oleh" (lajur ke-6). */
+function pastikanLajurSijil(sheet) {
+  var lastCol = sheet.getLastColumn();
+  if (lastCol < 6) {
+    sheet.getRange(1, 6).setValue("Dikemaskini Oleh").setFontWeight("bold").setBackground("#4f46e5").setFontColor("white");
+  }
+}
+
 function kemaskiniSijil(data) {
   // 1) SIMPAN DULU fail baharu. Jika internet/simpan gagal, fail lama kekal utuh.
   var pdfBase64 = data.pdfData.split(',')[1];
@@ -301,7 +335,9 @@ function kemaskiniSijil(data) {
   if (!okBaharu) return { status: "error", message: "Fail baharu gagal disimpan di Drive. Fail lama tidak dipadam." };
 
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID), sheet = getOrCreateSheet(ss, SHEET_SIJIL);
+  pastikanLajurSijil(sheet);
   var tarikh = Utilities.formatDate(new Date(), "Asia/Kuala_Lumpur", "dd-MM-yyyy HH:mm");
+  var dikemaskiniOleh = (data.guruNama || data.guruEmail || "").toString().trim();
   var lastRow = sheet.getLastRow();
   var namaPelajar = (data.studentName || "").toString().trim();
 
@@ -310,7 +346,7 @@ function kemaskiniSijil(data) {
   var barisBuang = [];
 
   if (lastRow > 1) {
-    var records = sheet.getRange(2, 1, lastRow - 1, 5).getValues();
+    var records = sheet.getRange(2, 1, lastRow - 1, 6).getValues();
     for (var i = 0; i < records.length; i++) {
       var rowNama = records[i][1] ? records[i][1].toString().trim() : "";
       if (rowNama !== namaPelajar) continue;
@@ -326,9 +362,9 @@ function kemaskiniSijil(data) {
 
   // 3) Kemas kini rekod supaya menunjuk kepada fail TERKINI.
   if (barisSama) {
-    sheet.getRange(barisSama, 1, 1, 5).setValues([[tarikh, namaPelajar, data.certName, data.guruEmail, fileUrl]]);
+    sheet.getRange(barisSama, 1, 1, 6).setValues([[tarikh, namaPelajar, data.certName, data.guruEmail, fileUrl, dikemaskiniOleh]]);
   } else {
-    sheet.appendRow([tarikh, namaPelajar, data.certName, data.guruEmail, fileUrl]);
+    sheet.appendRow([tarikh, namaPelajar, data.certName, data.guruEmail, fileUrl, dikemaskiniOleh]);
   }
 
   // 4) Barulah padam baris sejarah + fail PDF lama di Drive.
@@ -359,6 +395,7 @@ function dapatkanSijil(studentName) {
   if (hit) return JSON.parse(hit);
 
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID), sheet = getOrCreateSheet(ss, SHEET_SIJIL);
+  pastikanLajurSijil(sheet);
   var lastRow = sheet.getLastRow();
   var certs = [];
   if (lastRow > 1) {
@@ -369,8 +406,8 @@ function dapatkanSijil(studentName) {
       .matchCase(true)
       .findAll();
     for (var i = matches.length - 1; i >= 0; i--) {
-      var row = sheet.getRange(matches[i].getRow(), 1, 1, 5).getValues()[0];
-      certs.push({ date: row[0], certName: row[2], url: row[4] });
+      var row = sheet.getRange(matches[i].getRow(), 1, 1, 6).getValues()[0];
+      certs.push({ date: row[0], certName: row[2], url: row[4], guruEmail: row[3], updatedBy: row[5] || row[3] });
     }
   }
   var res = { status: "success", data: certs };

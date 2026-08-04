@@ -352,7 +352,7 @@
             <input type="hidden" id="editOldName" value="">
             <input type="text" id="regName" placeholder="Nama Penuh Pelajar (Cth: ALI BIN ABU)">
             <input type="text" id="regSekolah" placeholder="Nama Sekolah (Cth: SK SELAMA)">
-            <input type="text" id="regKelas" placeholder="Kelas/Umur (Cth: 5 CERDIK)">
+            <input type="text" id="regKelas" placeholder="Kelas (Cth: 5 CERDIK)">
             <input type="text" id="regIc" placeholder="No. Kad Pengenalan (Cth: 940101025601)">
             <select id="regJantina" onchange="refreshAvatarPreview()"><option value="">Pilih Jantina...</option><option value="Lelaki">Lelaki</option><option value="Perempuan">Perempuan</option></select>
             <input type="text" id="regKategori" placeholder="Kategori (Cth: BPL15)">
@@ -370,6 +370,24 @@
             <div class="btn-group" style="margin-top:15px;">
                 <button class="btn-primary" id="btnSaveStudentModal" onclick="submitStudent()"><i class="fa-solid fa-save"></i> Simpan Rekod</button>
                 <button class="btn-ghost" onclick="document.getElementById('studentModal').style.display='none'">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PENDAFTARAN AKAUN BAHARU -->
+    <div id="registerModal" class="modal-overlay">
+        <div class="modal-box" style="max-width:480px;">
+            <h3 style="margin-bottom:5px;"><i class="fa-solid fa-user-plus"></i> Daftar Akaun Baharu</h3>
+            <p style="font-size:12px; color:var(--text-light); margin-bottom:12px;">Semua maklumat wajib diisi. Akaun anda hanya boleh digunakan selepas diluluskan oleh Master Admin.</p>
+            <input type="text" id="regNama" placeholder="Nama Penuh">
+            <input type="text" id="regSekolah" placeholder="Nama Sekolah">
+            <input type="tel" id="regTelefon" placeholder="No Telefon (Cth: 0123456789)">
+            <input type="text" id="regJawatan" placeholder="Jawatan (Cth: Guru Kelas)">
+            <input type="email" id="regEmail" placeholder="Emel" autocomplete="email">
+            <input type="password" id="regPassword" placeholder="Kata Laluan (min. 6 aksara)" autocomplete="new-password">
+            <div class="btn-group" style="margin-top:15px;">
+                <button class="btn-primary" onclick="submitRegister()"><i class="fa-solid fa-paper-plane"></i> Hantar Pendaftaran</button>
+                <button class="btn-ghost" onclick="document.getElementById('registerModal').style.display='none'">Batal</button>
             </div>
         </div>
     </div>
@@ -602,8 +620,6 @@
                 <button class="btn-ghost" id="btnAdminUsers" onclick="openUserAdmin()" style="width:auto; padding:8px 15px; display:none;"><i class="fa-solid fa-user-shield"></i> Pengguna</button>
                 <button class="btn-ghost" onclick="logout()" style="width: auto; padding: 8px 15px;"><i class="fa-solid fa-power-off"></i></button>
             </div>
-
-            </div>
         </div>
 
         <div class="dashboard-container">
@@ -669,6 +685,7 @@
 
                     <h3 style="font-size: 15px; color: var(--text-main); margin-bottom: 10px;"><i class="fa-solid fa-file-pdf"></i> Sijil Terkini</h3>
                     <div class="cert-list" id="certGridUI"></div>
+                    <p id="certUpdatedBy" style="font-size:12px; color:var(--text-light); margin-top:8px; display:none;"></p>
                 </div>
             </div>
         </div>
@@ -710,7 +727,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyG2UYHS0GCH_TLe-ejUc79H9bxud-W2_INExkc9kj_h8OJdVCw-fRp_H7ZHSttu5aA/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6ctqKJB2XLa9eRFdXXQVzR6deoK4auu-hS6W1Yqah61q6twG7EIKfOYhjmPWsgZ6o/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -764,6 +781,7 @@
         const THUMB_W = 260;            // resolusi kecil untuk paparan thumbnail
 
         let currentUserEmail = "";
+        let currentUserName = "";
         let studentsList = [];          // hanya page yang telah dimuatkan
         let studentTotal = 0;
         let studentPage = 1;
@@ -981,25 +999,40 @@ ${hairPath}
         document.addEventListener("DOMContentLoaded", () => {
             refreshAvatarPreview();
             const savedUser = localStorage.getItem("sijilProUser");
-            if (savedUser) {
-                currentUserEmail = savedUser;
-                currentUserRole = localStorage.getItem("sijilProRole") || "User";
-                document.getElementById('userEmailDisplay').innerText = savedUser;
-                applyRoleUI();
-                switchScreen('dashboardScreen');
-                const cached = localStorage.getItem(CACHE_KEY);
-                if (cached) {
-                    try {
-                        const parsed = JSON.parse(cached);
-                        studentsList = parsed.data || [];
-                        studentTotal = parsed.total || studentsList.length;
-                        renderStudentList();
-                    } catch (e) {}
-                } else {
-                    showSkeleton();
-                }
-                reloadStudents(true);
-            } else { switchScreen('loginScreen'); }
+            const savedPass = sessionStorage.getItem("sijilProPass");
+            // Skrin log masuk sahaja sehingga sesi disahkan sebagai "Approved"
+            switchScreen('loginScreen');
+            if (savedUser && savedPass) {
+                showLoading("Mengesahkan sesi...");
+                api({ action: "login", email: savedUser, password: savedPass }).then(d => {
+                    hideLoading();
+                    if (!d || d.status !== "success") {
+                        logout();
+                        if (d && d.message) showAppAlert("Sesi", d.message, "warning");
+                        return;
+                    }
+                    currentUserEmail = d.email || savedUser;
+                    currentUserRole = d.role || "User";
+                    currentUserName = d.namaPenuh || currentUserEmail;
+                    localStorage.setItem("sijilProRole", currentUserRole);
+                    localStorage.setItem("sijilProNama", currentUserName);
+                    document.getElementById('userEmailDisplay').innerText = currentUserName;
+                    applyRoleUI();
+                    switchScreen('dashboardScreen');
+                    const cached = localStorage.getItem(CACHE_KEY);
+                    if (cached) {
+                        try {
+                            const parsed = JSON.parse(cached);
+                            studentsList = parsed.data || [];
+                            studentTotal = parsed.total || studentsList.length;
+                            renderStudentList();
+                        } catch (e) {}
+                    } else {
+                        showSkeleton();
+                    }
+                    reloadStudents(true);
+                }).catch(() => { hideLoading(); logout(); });
+            } else { logout(); }
         });
 
         async function login() {
@@ -1012,10 +1045,12 @@ ${hairPath}
                 if (data.status === "success") {
                     currentUserEmail = data.email || email;
                     currentUserRole = data.role || "User";
+                    currentUserName = data.namaPenuh || currentUserEmail;
                     localStorage.setItem("sijilProUser", currentUserEmail);
                     localStorage.setItem("sijilProRole", currentUserRole);
+                    localStorage.setItem("sijilProNama", currentUserName);
                     sessionStorage.setItem("sijilProPass", pass);
-                    document.getElementById('userEmailDisplay').innerText = currentUserEmail;
+                    document.getElementById('userEmailDisplay').innerText = currentUserName;
                     applyRoleUI();
                     switchScreen('dashboardScreen');
                     showSkeleton(); reloadStudents(true);
@@ -1023,18 +1058,32 @@ ${hairPath}
             } catch (err) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error"); }
         }
 
-        async function register() {
-            let email = document.getElementById('loginEmail').value.trim(), pass = document.getElementById('loginPassword').value;
-            if (!email || !pass) return showAppAlert("Maklumat", "Sila isi emel dan kata laluan.", "warning");
+        function register() {
+            ["regNama","regSekolah","regTelefon","regJawatan","regEmail","regPassword"].forEach(id => document.getElementById(id).value = "");
+            document.getElementById('registerModal').style.display = 'flex';
+        }
+
+        async function submitRegister() {
+            const v = id => document.getElementById(id).value.trim();
+            const namaPenuh = v('regNama'), sekolah = v('regSekolah'), telefon = v('regTelefon'),
+                  jawatan = v('regJawatan'), email = v('regEmail'), pass = document.getElementById('regPassword').value;
+            if (!namaPenuh || !sekolah || !telefon || !jawatan || !email || !pass)
+                return showAppAlert("Maklumat", "Sila lengkapkan semua maklumat.", "warning");
+            if (!/^[0-9+\-\s]{8,20}$/.test(telefon)) return showAppAlert("Maklumat", "No telefon tidak sah.", "warning");
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showAppAlert("Maklumat", "Sila masukkan alamat emel yang sah.", "warning");
             if (pass.length < 6) return showAppAlert("Maklumat", "Kata laluan mesti sekurang-kurangnya 6 aksara.", "warning");
             showLoading("Mendaftar akaun...");
-            try { let d = await api({ action: "register", email, password: pass }); hideLoading(); showAppAlert("Info", d.message, d.status === "success" ? "success" : "error"); }
-            catch (e) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error"); }
+            try {
+                let d = await api({ action: "register", email, password: pass, namaPenuh, sekolah, telefon, jawatan });
+                hideLoading();
+                if (d.status === "success") document.getElementById('registerModal').style.display = 'none';
+                showAppAlert(d.status === "success" ? "Berjaya" : "Ralat", d.message, d.status === "success" ? "success" : "error");
+            } catch (e) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error"); }
         }
 
         function logout() {
-            localStorage.removeItem("sijilProUser"); localStorage.removeItem("sijilProRole"); localStorage.removeItem(CACHE_KEY);
+            localStorage.removeItem("sijilProUser"); localStorage.removeItem("sijilProRole"); localStorage.removeItem("sijilProNama"); localStorage.removeItem(CACHE_KEY);
+            currentUserEmail = ""; currentUserName = ""; setUpdatedByLabel(null);
             sessionStorage.removeItem("sijilProPass");
             currentUserRole = "User"; applyRoleUI();
             sessionCerts = []; studentsList = []; activeStudent = null; switchScreen('loginScreen');
@@ -1074,8 +1123,10 @@ ${hairPath}
                             : '<button class="btn-success" style="width:auto;padding:6px 10px;font-size:12px;" onclick="setUserStatus(\'' + u.email + '\',\'Approved\')"><i class="fa-solid fa-check"></i> Luluskan</button>') +
                         '<button class="btn-danger" style="width:auto;padding:6px 10px;font-size:12px;margin-left:6px;" onclick="removeUser(\'' + u.email + '\')"><i class="fa-solid fa-trash"></i></button>';
                     return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:8px;">' +
-                        '<div style="min-width:0;"><div style="font-weight:600;font-size:14px;word-break:break-all;">' + u.email + '</div>' +
-                        '<div style="font-size:12px;color:' + warna + ';">' + u.status + ' &middot; ' + u.role + '</div></div>' +
+                        '<div style="min-width:0;"><div style="font-weight:600;font-size:14px;word-break:break-all;">' + (u.namaPenuh || u.email) + '</div>' +
+                        '<div style="font-size:12px;color:var(--text-light);word-break:break-all;">' + u.email + '</div>' +
+                        (u.sekolah || u.jawatan || u.telefon ? '<div style="font-size:12px;color:var(--text-light);">' + [u.jawatan, u.sekolah, u.telefon].filter(Boolean).join(' &middot; ') + '</div>' : '') +
+                        '<div style="font-size:12px;color:' + warna + ';font-weight:600;">' + u.status + ' &middot; ' + u.role + '</div></div>' +
                         '<div style="display:flex;flex-shrink:0;">' + butang + '</div></div>';
                 }).join('');
             } catch (e) {
@@ -1416,6 +1467,21 @@ ${hairPath}
 
         // Jangan muat turun keseluruhan PDF setiap kali pelajar dipilih.
         // Kad/thumbnail muncul dahulu; PDF penuh hanya dimuat atas permintaan pengguna.
+        function nowStamp() {
+            const d = new Date(), p = n => String(n).padStart(2, '0');
+            return `${p(d.getDate())}-${p(d.getMonth() + 1)}-${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+        }
+        /** Papar log "Dikemaskini oleh" di bawah paparan Sijil Terkini */
+        function setUpdatedByLabel(meta) {
+            const el = document.getElementById('certUpdatedBy');
+            if (!el) return;
+            const nama = meta && (meta.updatedBy || meta.guruEmail);
+            if (!nama) { el.style.display = 'none'; el.innerHTML = ''; return; }
+            el.style.display = 'block';
+            el.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> Dikemaskini oleh: <strong>${nama}</strong>` +
+                (meta.date ? ` &middot; ${meta.date}` : '');
+        }
+
         let autoPreviewLatest = false;
         let certRequestToken = 0;
         async function fetchCertsFromDB(studentName) {
@@ -1426,6 +1492,7 @@ ${hairPath}
                 const data = await api({ action: "getCerts", studentName });
                 if (token !== certRequestToken || !activeStudent || activeStudent.name !== studentName) return;
                 container.innerHTML = "";
+                setUpdatedByLabel(data.data && data.data.length ? data.data[0] : null);
                 if (data.status !== "success") { container.innerHTML = "<p style='color:red;'>Gagal memuatkan.</p>"; return; }
                 if (!data.data.length) { container.innerHTML = "<p style='color:grey; font-size:13px;'>Tiada sijil terdahulu.</p>"; return; }
 
@@ -1507,7 +1574,8 @@ ${hairPath}
             const info = document.createElement('div');
             info.className = 'cloud-cert-info';
             info.innerHTML = `<div class="cloud-cert-name"><i class="fa-solid fa-file-pdf" style="color:var(--danger);"></i> ${cert.certName}</div>
-                <div class="cloud-cert-date">Tarikh: ${cert.date}</div>`;
+                <div class="cloud-cert-date">Tarikh: ${cert.date}</div>
+                ${cert.updatedBy ? `<div class="cloud-cert-date">Dikemaskini oleh: ${cert.updatedBy}</div>` : ''}`;
 
             const btnRow = document.createElement('div');
             btnRow.style.cssText = "display:flex; gap:8px; flex-wrap:wrap;";
@@ -2696,13 +2764,15 @@ ${hairPath}
                 const result = await api({
                     action: "updateFile", pdfData: pdfBase64,
                     fileName: `${activeStudent.name} - ${cert.certName}`,
-                    studentName: activeStudent.name, certName: cert.certName, guruEmail: currentUserEmail
+                    studentName: activeStudent.name, certName: cert.certName,
+                    guruEmail: currentUserEmail, guruNama: currentUserName || currentUserEmail
                 });
                 hideLoading();
                 if (result.status === "success") {
                     cert.needsSync = false;
                     undoStack = [];
                     showAppAlert("Berjaya", "Sijil tersimpan di Cloud.", "success");
+                    setUpdatedByLabel({ updatedBy: currentUserName || currentUserEmail, date: nowStamp() });
                     renderCerts();
                     // Beri masa Drive siapkan fail sebelum thumbnail terkini dimuatkan
                     setTimeout(() => fetchCertsFromDB(activeStudent.name), 2500);
