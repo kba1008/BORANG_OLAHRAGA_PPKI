@@ -17,6 +17,9 @@ function doPost(e) {
     else if (action === "addStudent") return output.setContent(JSON.stringify(tambahPelajar(data))); 
     else if (action === "getCerts") return output.setContent(JSON.stringify(dapatkanSijil(data.studentName))); 
     
+    // FUNGSI BARU: TARIK PDF DARI DRIVE KE EDITOR
+    else if (action === "getRawPdf") return output.setContent(JSON.stringify(tarikPdfUntukDiedit(data.fileUrl)));
+
   } catch (err) { return output.setContent(JSON.stringify({ status: "error", message: err.toString() })); }
 }
 
@@ -66,9 +69,12 @@ function kemaskiniSijil(data) {
   var fileUrl = DriveApp.getFolderById(FOLDER_ID).createFile(blob).getUrl();
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID), sheet = getOrCreateSheet(ss, SHEET_SIJIL), records = sheet.getDataRange().getValues();
   var tarikh = Utilities.formatDate(new Date(), "Asia/Kuala_Lumpur", "dd-MM-yyyy HH:mm");
+  
+  // Update link pada sheet tanpa ubah nama asal fail dalam paparan
   for (var i = 1; i < records.length; i++) {
     if (records[i][1] == data.studentName && records[i][2] == data.certName) {
-      sheet.getRange(i + 1, 1).setValue(tarikh); sheet.getRange(i + 1, 5).setValue(fileUrl);
+      sheet.getRange(i + 1, 1).setValue(tarikh); 
+      sheet.getRange(i + 1, 5).setValue(fileUrl);
       return { status: "success", message: "Fail dikemas kini!", url: fileUrl };
     }
   }
@@ -95,18 +101,13 @@ function tambahPelajar(data) {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID), sheet = getOrCreateSheet(ss, SHEET_PELAJAR);
   var records = sheet.getDataRange().getValues();
   var nameTrimmed = data.studentName.trim();
-
-  // Semak nama bertindih
   for (var i = 1; i < records.length; i++) {
     if (records[i][0].toString().trim().toLowerCase() === nameTrimmed.toLowerCase()) {
       return { status: "error", message: "Nama pelajar ini sudah direkodkan di dalam sistem!" };
     }
   }
-
-  // GAMBAR DISIMPAN TERUS SEBAGAI TEKS DI SHEET (Bypass Google Drive DELIMA block)
   var picData = data.gambarBase64 ? data.gambarBase64 : "";
   var tarikh = Utilities.formatDate(new Date(), "Asia/Kuala_Lumpur", "dd-MM-yyyy HH:mm");
-  
   sheet.appendRow([nameTrimmed, data.kelas || "-", data.ic || "-", data.jantina || "-", data.kategori || "-", picData, data.guruEmail, tarikh]);
   return { status: "success", message: "Pelajar berjaya didaftarkan." };
 }
@@ -122,4 +123,19 @@ function dapatkanSijil(studentName) {
   }
   certs.reverse();
   return { status: "success", data: certs };
+}
+
+// FUNGSI BARU: BACA FILE PDF DARI DRIVE KE BASE64
+function tarikPdfUntukDiedit(url) {
+  try {
+    var idMatch = url.match(/[-\w]{25,}/);
+    if (!idMatch) return { status: "error", message: "ID fail tidak sah." };
+    
+    var file = DriveApp.getFileById(idMatch[0]);
+    var base64 = Utilities.base64Encode(file.getBlob().getBytes());
+    
+    return { status: "success", base64Data: base64 };
+  } catch (err) {
+    return { status: "error", message: "Akses Google Drive disekat. Pastikan fail boleh dibaca. Detail: " + err.toString() };
+  }
 }
