@@ -2,19 +2,23 @@
   "name": "Sistem Sijil Pro",
   "short_name": "SijilPro",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#007bff",
+  "background_color": "#f3f4f6",
+  "theme_color": "#4f46e5",
+  "description": "Pengurusan sijil pelajar - imbas, edit dan simpan ke Cloud.",
   "icons": [
     {
-      "src": "https://via.placeholder.com/192",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "https://via.placeholder.com/512",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

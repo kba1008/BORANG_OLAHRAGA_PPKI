@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pengurusan Sijil Pelajar</title>
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         :root {
             --primary: #4f46e5; --primary-hover: #4338ca; --secondary: #10b981; --secondary-hover: #059669;
@@ -18,7 +19,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; overscroll-behavior: none; }
-        
+
         .screen { display: none; width: 100%; max-width: 1200px; padding: 20px; animation: fadeIn 0.3s ease; }
         .active-screen { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -26,11 +27,11 @@
         .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 25px; }
         input, select { width: 100%; padding: 12px 16px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; transition: border 0.3s; background: #fff;}
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-        
+
         button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 12px 20px; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: white; width: 100%; }
         button:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
         button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
-        
+
         .btn-primary { background: var(--primary); } .btn-primary:hover { background: var(--primary-hover); }
         .btn-success { background: var(--secondary); } .btn-success:hover { background: var(--secondary-hover); }
         .btn-warning { background: var(--warning); color: #fff; } .btn-warning:hover { background: var(--warning-hover); }
@@ -40,55 +41,59 @@
         #loginScreen .card { max-width: 400px; margin: 10vh auto; text-align: center; }
         .dashboard-container { display: grid; grid-template-columns: 350px 1fr; gap: 20px; align-items: start; }
         @media (max-width: 768px) { .dashboard-container { grid-template-columns: 1fr; } }
-        
+
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px 25px; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); }
         .sidebar, .main-panel { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
-        
-        /* Carian & Susunan Pelajar */
-        .search-sort-box { display: flex; gap: 8px; margin-top: 15px; margin-bottom: 10px;}
+
+        .search-sort-box { display: flex; gap: 8px; margin-top: 15px; margin-bottom: 6px;}
         .search-sort-box input { margin: 0; flex: 1; padding: 10px 12px;}
         .search-sort-box select { margin: 0; width: auto; padding: 10px; cursor: pointer;}
-        
+        .list-meta { font-size: 11px; color: var(--text-light); margin-bottom: 6px; display:flex; justify-content:space-between; align-items:center;}
+
         .student-list { list-style: none; max-height: 55vh; overflow-y: auto; margin-top: 5px; }
-        .student-item { padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; display: flex; align-items: center; gap: 12px; }
-        .student-item img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background: #e5e7eb; border: 1px solid #d1d5db;}
+        .student-item { padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: background 0.15s; border: 1px solid transparent; display: flex; align-items: center; gap: 12px; }
+        .student-item:hover { background: #f9fafb; }
+        .student-item img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background: #e5e7eb; border: 1px solid #d1d5db; flex-shrink:0;}
         .student-item.active { background: rgba(79, 70, 229, 0.1); border-color: var(--primary); font-weight: 600; color: var(--primary); }
-        
+
         .student-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap:15px;}
         .student-profile-info { display: flex; gap: 15px; align-items: center; }
-        .student-profile-info img { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
+        .student-profile-info img { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); background:#e5e7eb; }
         .student-profile-info h2 { margin:0; font-size: 20px;}
         .student-profile-info p { margin:3px 0 0 0; font-size: 12px; color: var(--text-light); }
-        
+
+        .avatar-preview-row { display:flex; align-items:center; gap:15px; margin-top:12px; text-align:left; }
+        .avatar-preview-row img { width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--border); background:#e5e7eb;}
+
         .cert-list { display: flex; flex-direction: column; gap: 20px; }
-        .cert-card { background: var(--surface); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 15px; transition: border 0.3s; }
+        .cert-card { background: var(--surface); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 15px; }
         .cert-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; flex-wrap: wrap; gap: 10px;}
         .cert-header h4 { font-size: 16px; margin-bottom: 5px; color: var(--primary); }
         .cert-status { font-size: 12px; color: var(--text-light); }
         .cert-status.drive { color: var(--primary); font-weight: 500; }
         .cert-status.unsynced { color: var(--warning); font-weight: bold; animation: pulseText 2s infinite; }
         @keyframes pulseText { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        
+
         .cert-thumbnails { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; align-items: stretch; }
-        .thumb-item { position: relative; min-width: 150px; max-width: 150px; border: 2px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #fff; box-shadow: var(--shadow); flex-shrink: 0; cursor: grab; transition: all 0.2s; display:flex; flex-direction:column;}
+        .thumb-item { position: relative; min-width: 150px; max-width: 150px; border: 2px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #fff; box-shadow: var(--shadow); flex-shrink: 0; cursor: grab; transition: border .2s; display:flex; flex-direction:column;}
         .thumb-item:active { cursor: grabbing; }
-        .thumb-item.dragging { opacity: 0.5; transform: scale(0.95); border: 2px dashed var(--primary); }
-        .thumb-item.drag-over { border-left: 4px solid var(--primary); transform: translateX(5px); }
-        .thumb-item img { width: 100%; height: 180px; object-fit: cover; display: block; border-bottom: 1px solid var(--border); cursor: pointer; }
-        .thumb-item img:hover { filter: brightness(0.8); }
-        .img-overlay-text { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-shadow: 1px 1px 3px black; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
-        .thumb-item:hover .img-overlay-text { opacity: 1; }
+        .thumb-item.dragging { opacity: 0.5; border: 2px dashed var(--primary); }
+        .thumb-item.drag-over { border-left: 4px solid var(--primary); }
+        .thumb-item img { width: 100%; height: 180px; object-fit: cover; display: block; border-bottom: 1px solid var(--border); cursor: pointer; background:#f3f4f6; }
+        .thumb-item img:hover { filter: brightness(0.85); }
+        .page-badge { position:absolute; top:6px; left:6px; background:rgba(31,41,55,0.85); color:#fff; font-size:11px; font-weight:600; padding:2px 8px; border-radius:20px; }
         .thumb-actions { display: flex; flex-direction: column; }
         .thumb-actions button { border-radius: 0; padding: 10px 0; font-size: 12px; }
-        .thumb-add-btn { min-width: 150px; max-width: 150px; border: 2px dashed var(--primary); border-radius: var(--radius); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; color: var(--primary); font-weight: bold; background: rgba(79, 70, 229, 0.05); }
+        .thumb-add-btn { min-width: 150px; max-width: 150px; border: 2px dashed var(--primary); border-radius: var(--radius); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; color: var(--primary); font-weight: bold; background: rgba(79, 70, 229, 0.05); gap:6px; }
 
-        .cloud-certs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .cloud-cert-card { background: #fff; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; cursor: pointer;}
-        .cloud-cert-card:hover { transform: translateY(-3px); border-color: var(--primary); }
-        .cloud-cert-card img { width: 100%; height: 180px; object-fit: cover; border-bottom: 1px solid var(--border); background: #f3f4f6;}
+        .cloud-certs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 15px; }
+        .cloud-cert-card { background: #fff; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
+        .cloud-cert-card img.cover { width: 100%; height: 170px; object-fit: cover; border-bottom: 1px solid var(--border); background: #f3f4f6; cursor:pointer;}
         .cloud-cert-info { padding: 10px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;}
-        .cloud-cert-name { font-weight: 600; font-size: 13px; color: var(--text-main); margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;}
+        .cloud-cert-name { font-weight: 600; font-size: 13px; color: var(--text-main); margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
         .cloud-cert-date { font-size: 11px; color: var(--text-light); margin-bottom: 10px;}
+        .page-strip { display:flex; gap:10px; overflow-x:auto; padding:10px; background:#f9fafb; border-top:1px solid var(--border); }
+        .page-strip img { height:120px; border-radius:6px; border:1px solid var(--border); cursor:pointer; background:#fff; }
 
         #scannerScreen { text-align: center; }
         #scannerScreen .card { max-width: 800px; margin: auto; }
@@ -98,8 +103,7 @@
         .btn-group button { width: auto; min-width: 140px; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 9999; justify-content: center; align-items: center; animation: fadeIn 0.2s ease; }
-        .modal-box { background: var(--surface); padding: 25px; border-radius: 20px; width: 95%; max-width: 500px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.9); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; max-height: 95vh; display: flex; flex-direction: column; overflow-y:auto; }
-        @keyframes popIn { to { transform: scale(1); } }
+        .modal-box { background: var(--surface); padding: 25px; border-radius: 20px; width: 95%; max-width: 500px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-height: 95vh; display: flex; flex-direction: column; overflow-y:auto; }
         .hidden { display: none !important; }
 
         #editorModalBox { max-width: 950px; width: 98%; height: 96vh; padding: 15px; }
@@ -111,21 +115,25 @@
         .editor-footer { display: flex; justify-content: space-between; margin-top: 15px; gap: 10px; }
         .tool-options { display: none; background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px dashed var(--primary); font-size: 13px; text-align: left;}
 
-        /* Animasi Loading Kelakar */
         @keyframes bounceIcon { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-        .funny-loading-icon { font-size: 60px; color: var(--primary); margin-bottom: 25px; animation: bounceIcon 1s infinite; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .funny-loading-icon { font-size: 60px; color: #fff; margin-bottom: 25px; animation: bounceIcon 1s infinite; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .funny-loading-text { color: white; font-size: 18px; font-weight: bold; text-align: center; max-width: 80%; line-height: 1.4;}
+        .progress-wrap { width: 60%; max-width:320px; height: 8px; background: rgba(255,255,255,0.25); border-radius: 20px; margin-top: 18px; overflow:hidden;}
+        .progress-bar { height: 100%; width: 0%; background: #fff; border-radius: 20px; transition: width .2s; }
+        .skeleton { height:55px; border-radius:8px; background:linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 37%,#f3f4f6 63%); background-size:400% 100%; animation:sk 1.2s infinite; margin-bottom:8px;}
+        @keyframes sk { 0%{background-position:100% 50%} 100%{background-position:0 50%} }
     </style>
 </head>
 <body>
 
-    <!-- LOADING OVERLAY BERHIBUR -->
+    <!-- LOADING OVERLAY -->
     <div id="globalLoading" class="modal-overlay" style="z-index: 10000; flex-direction: column;">
         <i id="loadingIcon" class="fa-solid fa-mug-hot funny-loading-icon"></i>
         <div id="loadingText" class="funny-loading-text">Sabar ya cikgu, sistem sedang dihidupkan...</div>
+        <div class="progress-wrap" id="progressWrap" style="display:none;"><div class="progress-bar" id="progressBar"></div></div>
     </div>
 
-    <!-- ALERT OVERLAY -->
+    <!-- ALERT -->
     <div id="customAlert" class="modal-overlay" style="z-index: 10001;">
         <div class="modal-box" style="max-width: 400px;">
             <i id="alertIcon" class="fa-solid fa-circle-info" style="font-size: 50px; margin-bottom: 15px;"></i>
@@ -135,22 +143,27 @@
         </div>
     </div>
 
-    <!-- MODAL PELAJAR (GABUNGAN TAMBAH & EDIT) -->
+    <!-- MODAL PELAJAR -->
     <div id="studentModal" class="modal-overlay">
         <div class="modal-box">
             <h3 id="studentModalTitle" style="margin-bottom: 15px;"><i class="fa-solid fa-user-plus"></i> Pendaftaran Pelajar</h3>
-            
             <input type="hidden" id="editOldName" value="">
-            
             <input type="text" id="regName" placeholder="Nama Penuh (Wajib Diisi)">
             <input type="text" id="regKelas" placeholder="Kelas (Cth: 5 Cerdik)">
             <input type="text" id="regIc" placeholder="No. Kad Pengenalan">
-            <select id="regJantina"><option value="">Pilih Jantina...</option><option value="Lelaki">Lelaki</option><option value="Perempuan">Perempuan</option></select>
+            <select id="regJantina" onchange="refreshAvatarPreview()"><option value="">Pilih Jantina...</option><option value="Lelaki">Lelaki</option><option value="Perempuan">Perempuan</option></select>
             <input type="text" id="regKategori" placeholder="Kategori cth: Asnaf/B40">
-            <div style="text-align:left; margin-top:10px;">
-                <label style="font-size:12px; font-weight:bold; color:var(--text-light);">Gambar Profil (Tidak Wajib):</label>
-                <input type="file" id="regGambar" accept="image/*" style="border:none; padding-left:0;">
+
+            <div class="avatar-preview-row">
+                <img id="regAvatarPreview" alt="Gambar profil pelajar">
+                <div style="flex:1;">
+                    <label style="font-size:12px; font-weight:bold; color:var(--text-light);">Gambar Profil (Tidak Wajib)</label>
+                    <input type="file" id="regGambar" accept="image/*" capture="environment" style="border:none; padding-left:0;" onchange="previewChosenPhoto()">
+                    <div style="font-size:11px; color:var(--text-light);">Jika tiada gambar, avatar mengikut jantina digunakan.</div>
+                    <button class="btn-ghost" type="button" style="width:auto; padding:4px 8px; font-size:12px; margin-top:4px;" onclick="clearChosenPhoto()"><i class="fa-solid fa-rotate-left"></i> Guna avatar default</button>
+                </div>
             </div>
+
             <div class="btn-group" style="margin-top:15px;">
                 <button class="btn-primary" id="btnSaveStudentModal" onclick="submitStudent()"><i class="fa-solid fa-save"></i> Simpan Rekod</button>
                 <button class="btn-ghost" onclick="document.getElementById('studentModal').style.display='none'">Batal</button>
@@ -158,7 +171,7 @@
         </div>
     </div>
 
-    <!-- EDITOR POWER MODAL -->
+    <!-- EDITOR POWER -->
     <div id="powerEditorModal" class="modal-overlay">
         <div class="modal-box" id="editorModalBox">
             <h3 style="margin-bottom: 10px; text-align: left; font-size: 18px;"><i class="fa-solid fa-pen-ruler"></i> Editor Power</h3>
@@ -170,7 +183,7 @@
                 <button onclick="undoEditor()"><i class="fa-solid fa-rotate-left"></i> Undo</button>
             </div>
             <div id="textOptions" class="tool-options">
-                <label>Saiz: </label><input type="number" id="txtSize" value="30" style="width: 60px; padding: 5px; display: inline;"> px | 
+                <label>Saiz: </label><input type="number" id="txtSize" value="30" style="width: 60px; padding: 5px; display: inline;"> px |
                 <label>Warna: </label><input type="color" id="txtColor" value="#000000" style="width: 40px; padding: 0; display: inline; border: none;">
                 <br><i>Klik di atas gambar untuk taip teks.</i>
             </div>
@@ -217,17 +230,20 @@
                 <button class="btn-primary" onclick="openAddStudent()" style="width:100%; margin-top:10px;">
                     <i class="fa-solid fa-user-plus"></i> Pelajar Baru
                 </button>
-                
-                <!-- Ruang Carian & Susunan -->
+
                 <div class="search-sort-box">
-                    <input type="text" id="searchStudent" placeholder="Cari Nama/IC/Kelas..." onkeyup="renderStudentList()">
-                    <select id="sortStudent" onchange="renderStudentList()">
+                    <input type="text" id="searchStudent" placeholder="Cari Nama/IC/Kelas..." oninput="onSearchInput()">
+                    <select id="sortStudent" onchange="reloadStudents()">
                         <option value="az">A - Z</option>
                         <option value="za">Z - A</option>
                     </select>
                 </div>
+                <div class="list-meta">
+                    <span id="studentCountLabel">-</span>
+                    <span id="studentSyncLabel"></span>
+                </div>
 
-                <ul class="student-list" id="studentListUI"></ul>
+                <ul class="student-list" id="studentListUI" onscroll="onStudentListScroll()"></ul>
             </div>
 
             <div class="main-panel">
@@ -235,11 +251,11 @@
                     <i class="fa-solid fa-user-graduate" style="font-size: 50px; color:var(--text-light); margin-bottom:15px; display:block;"></i>
                     <h3 style="color:var(--text-light);">Pilih pelajar dari senarai di sebelah kiri</h3>
                 </div>
-                
+
                 <div id="studentDetails" style="display: none;">
                     <div class="student-header">
                         <div class="student-profile-info">
-                            <img id="activeStudentPic" src="https://via.placeholder.com/150">
+                            <img id="activeStudentPic" alt="Gambar profil pelajar">
                             <div>
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <h2 id="activeStudentTitle">Nama Pelajar</h2>
@@ -251,10 +267,10 @@
                         </div>
                         <button class="btn-success" onclick="openScanner()" style="width:auto;"><i class="fa-solid fa-plus"></i> Cipta Sijil Baru</button>
                     </div>
-                    
+
                     <h3 style="font-size: 15px; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-cloud"></i> Sijil Terdahulu (Terkini di atas)</h3>
                     <div id="dbCertsContainer" style="margin-bottom: 25px; padding:15px; background: #eef2ff; border-radius: 8px; border: 1px dashed var(--primary);"></div>
-                    
+
                     <h3 style="font-size: 15px; color: var(--text-main); margin-bottom: 10px;"><i class="fa-solid fa-pen-ruler"></i> Ruangan Editor (Deraf Sesi Ini)</h3>
                     <div class="cert-list" id="certGridUI"></div>
                 </div>
@@ -269,20 +285,20 @@
                 <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Tambah Sijil Baru</h2>
                 <p style="color: var(--text-light);">Pelajar: <strong id="scannerStudentLabel"></strong></p>
             </div>
-            
+
             <div id="status">⏳ Menyemak AI...</div>
             <input type="text" id="certName" style="margin-bottom: 15px;" placeholder="Nama Fail (Cth: Sijil_Catur)">
-            
+
             <video id="video" autoplay playsinline></video>
             <canvas id="canvas"></canvas>
-            
-            <input type="file" id="fileUploadInput" accept="image/*,application/pdf" style="display: none;">
-            
+
+            <input type="file" id="fileUploadInput" accept="image/*,application/pdf" multiple style="display: none;">
+
             <div class="btn-group">
                 <button id="btnCaptureCam" class="btn-primary"><i class="fa-solid fa-camera"></i> 1. Snap (Kamera)</button>
                 <button id="btnUploadFile" class="btn-primary" onclick="document.getElementById('fileUploadInput').click();"><i class="fa-solid fa-folder-open"></i> 1. Pilih Fail / PDF</button>
             </div>
-            
+
             <div class="btn-group" style="border-top: 1px solid var(--border); padding-top: 15px; margin-top: 5px;">
                 <button class="btn-warning" onclick="saveToDashboardLocal()"><i class="fa-solid fa-sd-card"></i> 2. Simpan Ke Editor</button>
                 <button class="btn-danger" onclick="closeScanner()"><i class="fa-solid fa-xmark"></i> Batal</button>
@@ -290,37 +306,84 @@
         </div>
     </div>
 
-    <input type="file" id="inlineAddFileInput" accept="image/*,application/pdf" style="display: none;">
+    <input type="file" id="inlineAddFileInput" accept="image/*,application/pdf" multiple style="display: none;">
 
-    <!-- Scripts CDN -->
     <script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvReady();"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <!-- KOD JAVASCRIPT UTAMA -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzqQts81trrJB0gYEtWzKwufYJKtkG5sEYj9Hm-pgKBvDYrsoabwLyyAqbpDvItYv4T/exec"; 
-        
-        let currentUserEmail = ""; 
-        let studentsList = []; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzqQts81trrJB0gYEtWzKwufYJKtkG5sEYj9Hm-pgKBvDYrsoabwLyyAqbpDvItYv4T/exec";
+
+        const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
+        const RENDER_MAX_W = 1400;      // resolusi page PDF untuk PDF akhir
+        const THUMB_W = 260;            // resolusi kecil untuk paparan thumbnail
+
+        let currentUserEmail = "";
+        let studentsList = [];          // hanya page yang telah dimuatkan
+        let studentTotal = 0;
+        let studentPage = 1;
+        let studentHasMore = true;
+        let studentLoading = false;
+        let searchTimer = null;
         let activeStudent = null;
-        let sessionCerts = []; 
-        let currentBatch = []; 
+        let sessionCerts = [];
+        let currentBatch = [];          // { full, thumb }
         let opencvReady = false;
         let loadingInterval;
-        
+
         let dragSourceCertIndex = -1, dragSourcePageIndex = -1, activeEditCertIndex = -1, activeEditPageIndex = -1, targetInlineCertIndex = -1;
+        let chosenPhotoBase64 = "";
 
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 
-        // ==========================================
-        // 1. SISTEM LOADING BERHIBUR & ALERT
-        // ==========================================
+        /* ==========================================
+         * 0. AVATAR DEFAULT MENGIKUT JANTINA
+         * ========================================== */
+        function svgAvatar(bg, skin, hair, isFemale) {
+            const hairPath = isFemale
+                ? `<path d="M50 18c-16 0-26 11-26 26 0 8 2 14 5 18l4-2c-2-5-3-10-3-16 0-13 8-20 20-20s20 7 20 20c0 6-1 11-3 16l4 2c3-4 5-10 5-18 0-15-10-26-26-26z" fill="${hair}"/>`
+                : `<path d="M28 42c0-14 9-23 22-23s22 9 22 23l-6 2c0-11-6-17-16-17s-16 6-16 17z" fill="${hair}"/>`;
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+<rect width="100" height="100" fill="${bg}"/>
+<circle cx="50" cy="43" r="19" fill="${skin}"/>
+${hairPath}
+<path d="M50 66c-16 0-28 9-31 22a2 2 0 0 0 2 2h58a2 2 0 0 0 2-2c-3-13-15-22-31-22z" fill="${skin}"/>
+</svg>`;
+            return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+        }
+        const AVATAR_LELAKI = svgAvatar("#dbeafe", "#f5c6a5", "#374151", false);
+        const AVATAR_PEREMPUAN = svgAvatar("#fce7f3", "#f7cfae", "#7c2d12", true);
+        const AVATAR_NEUTRAL = svgAvatar("#e5e7eb", "#e5c6ac", "#6b7280", false);
+
+        function defaultAvatar(jantina) {
+            let j = (jantina || "").toString().trim().toLowerCase();
+            if (j.indexOf("lelaki") === 0 || j === "l" || j === "male") return AVATAR_LELAKI;
+            if (j.indexOf("perempuan") === 0 || j === "p" || j === "female") return AVATAR_PEREMPUAN;
+            return AVATAR_NEUTRAL;
+        }
+
+        /** URL gambar profil pelajar (fail Drive) atau avatar default */
+        function studentPhoto(student, size) {
+            if (!student) return AVATAR_NEUTRAL;
+            if (student.gambarLocal) return student.gambarLocal;              // baru upload, belum sync
+            if (student.gambar && student.gambar.indexOf("data:") === 0) return student.gambar; // rekod lama
+            if (student.gambarId) return `https://drive.google.com/thumbnail?id=${student.gambarId}&sz=w${size || 200}`;
+            return defaultAvatar(student.jantina);
+        }
+
+        function attachAvatarFallback(imgEl, student) {
+            imgEl.onerror = function () { this.onerror = null; this.src = defaultAvatar(student ? student.jantina : ""); };
+        }
+
+        /* ==========================================
+         * 1. LOADING & ALERT
+         * ========================================== */
         const funnyMessages = [
             "Tengah bancuh kopi sambil tarik data...",
             "Memanaskan enjin server di belakang tadbir...",
@@ -331,15 +394,12 @@
         ];
         const funnyIcons = ["fa-mug-hot", "fa-gear", "fa-box-archive", "fa-face-smile-wink", "fa-rocket", "fa-gift"];
 
-        function showLoading(customMsg = null) { 
-            let txtEl = document.getElementById('loadingText');
-            let iconEl = document.getElementById('loadingIcon');
-            document.getElementById('globalLoading').style.display = 'flex'; 
-            
-            if(customMsg) {
-                txtEl.innerText = customMsg;
-                clearInterval(loadingInterval);
-            } else {
+        function showLoading(customMsg = null) {
+            let txtEl = document.getElementById('loadingText'), iconEl = document.getElementById('loadingIcon');
+            document.getElementById('globalLoading').style.display = 'flex';
+            clearInterval(loadingInterval);
+            if (customMsg) { txtEl.innerText = customMsg; }
+            else {
                 let idx = 0;
                 txtEl.innerText = funnyMessages[idx];
                 iconEl.className = "fa-solid funny-loading-icon " + funnyIcons[idx];
@@ -350,408 +410,846 @@
                 }, 3000);
             }
         }
-        
-        function hideLoading() { 
-            clearInterval(loadingInterval);
-            document.getElementById('globalLoading').style.display = 'none'; 
+        function setProgress(done, total) {
+            const wrap = document.getElementById('progressWrap'), bar = document.getElementById('progressBar');
+            if (!total) { wrap.style.display = 'none'; return; }
+            wrap.style.display = 'block';
+            bar.style.width = Math.round((done / total) * 100) + '%';
         }
-        
+        function hideLoading() {
+            clearInterval(loadingInterval);
+            document.getElementById('globalLoading').style.display = 'none';
+            document.getElementById('progressWrap').style.display = 'none';
+            document.getElementById('progressBar').style.width = '0%';
+        }
+
         function showAppAlert(title, message, type = "info") {
             const overlay = document.getElementById('customAlert'), icon = document.getElementById('alertIcon'), btn = document.getElementById('alertBtn');
             icon.className = 'fa-solid'; btn.style.backgroundColor = "var(--primary)";
-            if (type === "error") { icon.classList.add('fa-circle-xmark'); icon.style.color="var(--danger)"; btn.style.backgroundColor = "var(--danger)"; }
-            else if (type === "success") { icon.classList.add('fa-circle-check'); icon.style.color="var(--secondary)"; btn.style.backgroundColor = "var(--secondary)"; }
-            else if (type === "warning") { icon.classList.add('fa-triangle-exclamation'); icon.style.color="var(--warning)"; btn.style.backgroundColor = "var(--warning)"; }
-            else { icon.classList.add('fa-circle-info'); icon.style.color="var(--primary)"; }
-            document.getElementById('alertTitle').innerText = title; document.getElementById('alertMessage').innerText = message; overlay.style.display = 'flex';
+            if (type === "error") { icon.classList.add('fa-circle-xmark'); icon.style.color = "var(--danger)"; btn.style.backgroundColor = "var(--danger)"; }
+            else if (type === "success") { icon.classList.add('fa-circle-check'); icon.style.color = "var(--secondary)"; btn.style.backgroundColor = "var(--secondary)"; }
+            else if (type === "warning") { icon.classList.add('fa-triangle-exclamation'); icon.style.color = "var(--warning)"; btn.style.backgroundColor = "var(--warning)"; }
+            else { icon.classList.add('fa-circle-info'); icon.style.color = "var(--primary)"; }
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerText = message;
+            overlay.style.display = 'flex';
         }
         function closeAppAlert() { document.getElementById('customAlert').style.display = 'none'; }
         function switchScreen(screenId) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(screenId).classList.add('active-screen'); }
-        function setStatus(msg, type="info") { let el = document.getElementById('status'); el.innerHTML = msg; if(type==="info") {el.style.color="var(--primary)"; el.style.background="rgba(79,70,229,0.1)";} if(type==="success") {el.style.color="var(--secondary)"; el.style.background="rgba(16,185,129,0.1)";} }
+        function setStatus(msg, type = "info") { let el = document.getElementById('status'); el.innerHTML = msg; if (type === "info") { el.style.color = "var(--primary)"; el.style.background = "rgba(79,70,229,0.1)"; } if (type === "success") { el.style.color = "var(--secondary)"; el.style.background = "rgba(16,185,129,0.1)"; } }
 
-        // ==========================================
-        // 2. AUTH, CACHING & PENGURUSAN PELAJAR
-        // ==========================================
+        async function api(payload) {
+            const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
+            return await res.json();
+        }
+
+        /* ==========================================
+         * 2. AUTH & CACHE RINGAN
+         * ========================================== */
+        const CACHE_KEY = 'sijilProStudentsV2';
+
         document.addEventListener("DOMContentLoaded", () => {
+            refreshAvatarPreview();
             const savedUser = localStorage.getItem("sijilProUser");
-            if (savedUser) { 
-                currentUserEmail = savedUser; 
-                document.getElementById('userEmailDisplay').innerText = savedUser; 
-                
-                // SISTEM CACHE: Load serta merta jika ada
-                let cachedData = localStorage.getItem('sijilProStudents');
-                if(cachedData) {
-                    studentsList = JSON.parse(cachedData);
-                    renderStudentList();
+            if (savedUser) {
+                currentUserEmail = savedUser;
+                document.getElementById('userEmailDisplay').innerText = savedUser;
+                switchScreen('dashboardScreen');
+                const cached = localStorage.getItem(CACHE_KEY);
+                if (cached) {
+                    try {
+                        const parsed = JSON.parse(cached);
+                        studentsList = parsed.data || [];
+                        studentTotal = parsed.total || studentsList.length;
+                        renderStudentList();
+                    } catch (e) {}
+                } else {
+                    showSkeleton();
                 }
-                // Sync secara senyap di belakang
-                fetchStudentsBackground(); 
-                switchScreen('dashboardScreen'); 
+                reloadStudents(true);
             } else { switchScreen('loginScreen'); }
         });
 
         async function login() {
             let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value;
-            if(!email || !pass) return showAppAlert("Maklumat", "Sila isi email dan laluan.", "warning");
+            if (!email || !pass) return showAppAlert("Maklumat", "Sila isi email dan laluan.", "warning");
             showLoading("Menyemak log masuk...");
             try {
-                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "login", email, password: pass }) }); let data = await res.json(); hideLoading();
-                if(data.status === "success") { 
-                    currentUserEmail = email; localStorage.setItem("sijilProUser", email); document.getElementById('userEmailDisplay').innerText = email; 
-                    fetchStudentsBackground(); switchScreen('dashboardScreen'); 
+                let data = await api({ action: "login", email, password: pass });
+                hideLoading();
+                if (data.status === "success") {
+                    currentUserEmail = email; localStorage.setItem("sijilProUser", email);
+                    document.getElementById('userEmailDisplay').innerText = email;
+                    switchScreen('dashboardScreen');
+                    showSkeleton(); reloadStudents(true);
                 } else showAppAlert("Maaf", data.message, "error");
             } catch (err) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error"); }
         }
-        
-        function logout() { localStorage.removeItem("sijilProUser"); localStorage.removeItem("sijilProStudents"); sessionCerts = []; switchScreen('loginScreen'); }
 
-        async function fetchStudentsBackground() {
-            try { 
-                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "getStudents" }) }); 
-                let data = await res.json(); 
-                if (data.status === "success") { 
-                    studentsList = data.data; 
-                    localStorage.setItem('sijilProStudents', JSON.stringify(studentsList)); // Simpan ke Cache
-                    renderStudentList(); 
-                    // Update info jika ada aktif
-                    if(activeStudent) selectStudent(activeStudent.name, true);
-                } 
-            } catch (err) { console.error("Sync gagal", err); }
+        async function register() {
+            let email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value;
+            if (!email || !pass) return showAppAlert("Maklumat", "Sila isi email dan laluan.", "warning");
+            showLoading("Mendaftar akaun...");
+            try { let d = await api({ action: "register", email, password: pass }); hideLoading(); showAppAlert("Info", d.message, d.status === "success" ? "success" : "error"); }
+            catch (e) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error"); }
         }
 
-        // --- TAMBAH & EDIT PELAJAR ---
+        function logout() {
+            localStorage.removeItem("sijilProUser"); localStorage.removeItem(CACHE_KEY);
+            sessionCerts = []; studentsList = []; activeStudent = null; switchScreen('loginScreen');
+        }
+
+        /* ==========================================
+         * 3. SENARAI PELAJAR (PAGING + CARIAN SERVER)
+         * ========================================== */
+        function showSkeleton() {
+            const ul = document.getElementById('studentListUI');
+            ul.innerHTML = "";
+            for (let i = 0; i < 6; i++) { let li = document.createElement('li'); li.className = 'skeleton'; ul.appendChild(li); }
+        }
+
+        function onSearchInput() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => reloadStudents(), 350); // debounce
+        }
+
+        async function reloadStudents(silent) {
+            studentPage = 1; studentHasMore = true;
+            if (!silent) showSkeleton();
+            studentsList = [];
+            await loadStudentPage(true);
+        }
+
+        async function loadStudentPage(reset) {
+            if (studentLoading || (!reset && !studentHasMore)) return;
+            studentLoading = true;
+            document.getElementById('studentSyncLabel').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> memuatkan...';
+            try {
+                const search = document.getElementById('searchStudent').value.trim();
+                const sort = document.getElementById('sortStudent').value;
+                const data = await api({ action: "getStudents", search, sort, page: studentPage, limit: PAGE_SIZE });
+                if (data.status === "success") {
+                    const rows = data.data || [];
+                    studentsList = reset ? rows : studentsList.concat(rows);
+                    studentTotal = data.total || studentsList.length;
+                    studentHasMore = !!data.hasMore;
+                    studentPage++;
+                    renderStudentList();
+                    if (!search && studentPage === 2) {
+                        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data: rows, total: studentTotal })); } catch (e) {}
+                    }
+                    if (activeStudent) {
+                        const fresh = studentsList.find(s => s.name === activeStudent.name);
+                        if (fresh) { activeStudent = fresh; paintActiveStudent(); }
+                    }
+                }
+            } catch (e) { console.error("Sync gagal", e); }
+            finally { studentLoading = false; document.getElementById('studentSyncLabel').innerText = ""; }
+        }
+
+        function onStudentListScroll() {
+            const ul = document.getElementById('studentListUI');
+            if (ul.scrollTop + ul.clientHeight >= ul.scrollHeight - 80) loadStudentPage(false);
+        }
+
+        function renderStudentList() {
+            const ul = document.getElementById('studentListUI');
+            const frag = document.createDocumentFragment();
+            ul.innerHTML = "";
+
+            if (studentsList.length === 0) {
+                ul.innerHTML = `<li style="text-align:center; padding:10px; color:grey; font-size:13px;">Tiada padanan dijumpai.</li>`;
+            }
+
+            studentsList.forEach(student => {
+                const li = document.createElement('li');
+                li.className = `student-item ${(activeStudent && student.name === activeStudent.name) ? 'active' : ''}`;
+
+                const img = document.createElement('img');
+                img.loading = "lazy";
+                img.alt = "Gambar " + student.name;
+                attachAvatarFallback(img, student);
+                img.src = studentPhoto(student, 80);
+
+                const box = document.createElement('div');
+                box.innerHTML = `<span style="display:block;">${student.name}</span><span style="font-size:10px; color:var(--text-light);">${student.kelas || '-'}</span>`;
+
+                li.appendChild(img); li.appendChild(box);
+                li.onclick = () => selectStudent(student.name);
+                frag.appendChild(li);
+            });
+            ul.appendChild(frag);
+
+            document.getElementById('studentCountLabel').innerText =
+                `Papar ${studentsList.length} / ${studentTotal} pelajar` + (studentHasMore ? " (skrol untuk lagi)" : "");
+        }
+
+        function selectStudent(nameStr, skipFetch = false) {
+            const found = studentsList.find(s => s.name === nameStr);
+            if (!found) return;
+            activeStudent = found;
+            renderStudentList();
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('studentDetails').style.display = 'block';
+            paintActiveStudent();
+            renderCerts();
+            if (!skipFetch) fetchCertsFromDB(activeStudent.name);
+        }
+
+        function paintActiveStudent() {
+            document.getElementById('activeStudentTitle').innerText = activeStudent.name;
+            document.getElementById('activeStudentInfo').innerText = `Kelas: ${activeStudent.kelas || "-"} | IC: ${activeStudent.ic || "-"} | Jantina: ${activeStudent.jantina || "-"}`;
+            document.getElementById('activeStudentCat').innerText = activeStudent.kategori ? `Kategori: ${activeStudent.kategori}` : "";
+            const pic = document.getElementById('activeStudentPic');
+            attachAvatarFallback(pic, activeStudent);
+            pic.src = studentPhoto(activeStudent, 300);
+        }
+
+        /* ==========================================
+         * 4. TAMBAH / EDIT PELAJAR + GAMBAR PROFIL
+         * ========================================== */
+        function refreshAvatarPreview() {
+            const el = document.getElementById('regAvatarPreview');
+            if (!el) return;
+            el.src = chosenPhotoBase64 || defaultAvatar(document.getElementById('regJantina').value);
+        }
+        function clearChosenPhoto() { chosenPhotoBase64 = ""; document.getElementById('regGambar').value = ""; refreshAvatarPreview(); }
+        async function previewChosenPhoto() {
+            const f = document.getElementById('regGambar').files[0];
+            if (!f) { clearChosenPhoto(); return; }
+            chosenPhotoBase64 = await compressImage(f, 320, 0.8);
+            refreshAvatarPreview();
+        }
+
         function openAddStudent() {
             document.getElementById('studentModalTitle').innerHTML = '<i class="fa-solid fa-user-plus"></i> Pendaftaran Pelajar Baru';
-            document.getElementById('editOldName').value = "";
-            document.getElementById('regName').value = "";
-            document.getElementById('regKelas').value = "";
-            document.getElementById('regIc').value = "";
-            document.getElementById('regJantina').value = "";
-            document.getElementById('regKategori').value = "";
-            document.getElementById('studentModal').style.display='flex';
+            ['editOldName', 'regName', 'regKelas', 'regIc', 'regJantina', 'regKategori'].forEach(id => document.getElementById(id).value = "");
+            clearChosenPhoto();
+            document.getElementById('studentModal').style.display = 'flex';
         }
 
         function openEditStudent() {
-            if(!activeStudent) return;
+            if (!activeStudent) return;
             document.getElementById('studentModalTitle').innerHTML = '<i class="fa-solid fa-user-pen"></i> Kemaskini Profil Pelajar';
-            document.getElementById('editOldName').value = activeStudent.name; // Penting untuk backend cari
+            document.getElementById('editOldName').value = activeStudent.name;
             document.getElementById('regName').value = activeStudent.name;
             document.getElementById('regKelas').value = activeStudent.kelas || "";
             document.getElementById('regIc').value = activeStudent.ic || "";
             document.getElementById('regJantina').value = activeStudent.jantina || "";
             document.getElementById('regKategori').value = activeStudent.kategori || "";
-            document.getElementById('studentModal').style.display='flex';
+            chosenPhotoBase64 = "";
+            document.getElementById('regGambar').value = "";
+            const el = document.getElementById('regAvatarPreview');
+            attachAvatarFallback(el, activeStudent);
+            el.src = studentPhoto(activeStudent, 200);
+            document.getElementById('studentModal').style.display = 'flex';
         }
 
-        async function compressImage(file) {
+        function compressImage(file, maxSize = 320, quality = 0.8) {
             return new Promise((resolve) => {
-                let reader = new FileReader(); reader.onload = function(e) {
-                    let img = new Image(); img.onload = function() {
-                        let tempCanvas = document.createElement('canvas'); let MAX = 200; let w = img.width, h = img.height;
-                        if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } else { if (h > MAX) { w *= MAX / h; h = MAX; } }
-                        tempCanvas.width = w; tempCanvas.height = h; tempCanvas.getContext('2d').drawImage(img, 0, 0, w, h); resolve(tempCanvas.toDataURL('image/jpeg', 0.7));
-                    }
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        const c = document.createElement('canvas');
+                        let w = img.width, h = img.height;
+                        if (w > h) { if (w > maxSize) { h *= maxSize / w; w = maxSize; } }
+                        else { if (h > maxSize) { w *= maxSize / h; h = maxSize; } }
+                        c.width = w; c.height = h;
+                        c.getContext('2d').drawImage(img, 0, 0, w, h);
+                        resolve(c.toDataURL('image/jpeg', quality));
+                    };
                     img.src = e.target.result;
-                }
+                };
                 reader.readAsDataURL(file);
             });
         }
-        
+
         async function submitStudent() {
-            let oldName = document.getElementById('editOldName').value;
-            let newName = document.getElementById('regName').value.trim(); 
-            if(!newName) return showAppAlert("Perhatian", "Sila masukkan nama pelajar.", "warning");
-            
-            showLoading("Mengemaskini pangkalan data. Mohon bersabar..."); 
-            let picBase64 = ""; let fileInput = document.getElementById('regGambar').files[0];
-            if(fileInput) picBase64 = await compressImage(fileInput);
-            
-            let actionType = oldName ? "updateStudent" : "addStudent";
-            let payload = { action: actionType, oldName: oldName, studentName: newName, kelas: document.getElementById('regKelas').value, ic: document.getElementById('regIc').value, jantina: document.getElementById('regJantina').value, kategori: document.getElementById('regKategori').value, gambarBase64: picBase64, guruEmail: currentUserEmail };
-            
+            const oldName = document.getElementById('editOldName').value;
+            const newName = document.getElementById('regName').value.trim();
+            if (!newName) return showAppAlert("Perhatian", "Sila masukkan nama pelajar.", "warning");
+
+            showLoading("Menyimpan rekod pelajar...");
+            const actionType = oldName ? "updateStudent" : "addStudent";
+            const payload = {
+                action: actionType, oldName: oldName, studentName: newName,
+                kelas: document.getElementById('regKelas').value,
+                ic: document.getElementById('regIc').value,
+                jantina: document.getElementById('regJantina').value,
+                kategori: document.getElementById('regKategori').value,
+                gambarBase64: chosenPhotoBase64, guruEmail: currentUserEmail
+            };
+
             try {
-                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); 
-                let data = await res.json(); 
+                const data = await api(payload);
                 hideLoading();
-                
-                if(data.status === "success") { 
-                    document.getElementById('studentModal').style.display='none'; 
-                    showAppAlert("Berjaya", data.message, "success"); 
-                    // Update cache manually untuk kelajuan, kemudian sync
-                    if(oldName && actionType === "updateStudent") {
-                        let idx = studentsList.findIndex(s => s.name === oldName);
-                        if(idx !== -1) {
-                            studentsList[idx].name = newName; studentsList[idx].kelas = payload.kelas; studentsList[idx].ic = payload.ic; studentsList[idx].jantina = payload.jantina; studentsList[idx].kategori = payload.kategori;
-                            if(picBase64) studentsList[idx].gambar = picBase64;
-                            // Update nama di sessionCerts juga
-                            sessionCerts.forEach(c => { if(c.student === oldName) c.student = newName; });
-                        }
-                    } else {
-                        fetchStudentsBackground(); // Ambil dari server terus kalau baru
-                    }
-                    localStorage.setItem('sijilProStudents', JSON.stringify(studentsList));
-                    renderStudentList();
-                    selectStudent(newName); 
+                if (data.status === "success") {
+                    document.getElementById('studentModal').style.display = 'none';
+                    showAppAlert("Berjaya", data.message, "success");
+
+                    const record = {
+                        name: newName, kelas: payload.kelas, ic: payload.ic, jantina: payload.jantina,
+                        kategori: payload.kategori, gambarId: data.gambarId || "",
+                        gambarLocal: chosenPhotoBase64 || ""
+                    };
+                    const idx = studentsList.findIndex(s => s.name === (oldName || newName));
+                    if (idx !== -1) studentsList[idx] = record; else studentsList.unshift(record);
+                    if (oldName) sessionCerts.forEach(c => { if (c.student === oldName) c.student = newName; });
+
+                    activeStudent = record;
+                    renderStudentList(); paintActiveStudent();
+                    document.getElementById('emptyState').style.display = 'none';
+                    document.getElementById('studentDetails').style.display = 'block';
+                    renderCerts(); fetchCertsFromDB(newName);
+                    chosenPhotoBase64 = "";
                 } else showAppAlert("Gagal", data.message, "error");
-            } catch (err) { hideLoading(); showAppAlert("Ralat", "Pelayan Sibuk.", "error"); }
+            } catch (err) { hideLoading(); showAppAlert("Ralat", "Pelayan sibuk. Cuba lagi.", "error"); }
         }
 
-        // ==========================================
-        // 3. UI DASHBOARD, CARIAN (SEARCH) & SUSUNAN (SORT)
-        // ==========================================
-        function renderStudentList() {
-            const ul = document.getElementById('studentListUI'); 
-            ul.innerHTML = "";
-            
-            let query = document.getElementById('searchStudent').value.toLowerCase();
-            let sortType = document.getElementById('sortStudent').value;
-            
-            // Filter
-            let filtered = studentsList.filter(s => 
-                s.name.toLowerCase().includes(query) || 
-                (s.ic && s.ic.toLowerCase().includes(query)) ||
-                (s.kelas && s.kelas.toLowerCase().includes(query))
-            );
-
-            // Sort
-            if(sortType === 'za') {
-                filtered.sort((a,b) => b.name.localeCompare(a.name));
-            } else {
-                filtered.sort((a,b) => a.name.localeCompare(b.name));
-            }
-
-            if(filtered.length === 0) {
-                ul.innerHTML = `<li style="text-align:center; padding:10px; color:grey; font-size:13px;">Tiada padanan dijumpai.</li>`;
-            }
-
-            filtered.forEach(student => {
-                let li = document.createElement('li'); 
-                li.className = `student-item ${(activeStudent && student.name === activeStudent.name) ? 'active' : ''}`;
-                li.innerHTML = `<img src="${student.gambar || 'https://via.placeholder.com/40'}"> <div><span style="display:block;">${student.name}</span><span style="font-size:10px; color:var(--text-light);">${student.kelas||'-'}</span></div>`; 
-                li.onclick = () => selectStudent(student.name); 
-                ul.appendChild(li);
-            });
+        /* ==========================================
+         * 5. SIJIL CLOUD + THUMBNAIL SETIAP PAGE
+         * ========================================== */
+        function driveId(url) {
+            let m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            if (m) return m[1];
+            m = url.match(/id=([a-zA-Z0-9_-]+)/);
+            return m ? m[1] : null;
         }
-        
-        function selectStudent(nameStr, skipFetch = false) {
-            activeStudent = studentsList.find(s => s.name === nameStr); 
-            renderStudentList(); 
-            
-            document.getElementById('emptyState').style.display='none'; 
-            document.getElementById('studentDetails').style.display='block';
-            
-            document.getElementById('activeStudentTitle').innerText = activeStudent.name; 
-            document.getElementById('activeStudentInfo').innerText = `Kelas: ${activeStudent.kelas||"-"} | IC: ${activeStudent.ic||"-"}`; 
-            document.getElementById('activeStudentCat').innerText = activeStudent.kategori ? `Kategori: ${activeStudent.kategori}` : "";
-            document.getElementById('activeStudentPic').src = activeStudent.gambar || "https://via.placeholder.com/150";
-            
-            renderCerts(); 
-            if(!skipFetch) fetchCertsFromDB(activeStudent.name);
-        }
-
-        // FUNGSI TARIK PDF & DRIVE THUMBNAILS
-        async function pullFromCloudToEditor(url, certName) {
-            showLoading("Sistem sedang memuat turun dan mengekstrak fail PDF dari Cloud ke Editor. Proses ini berat sedikit, minum air dulu cikgu...");
-            try {
-                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "getRawPdf", fileUrl: url }) }); let data = await res.json();
-                if(data.status === "success") {
-                    let pdfData = atob(data.base64Data); let uint8Array = new Uint8Array(pdfData.length);
-                    for (let i = 0; i < pdfData.length; i++) uint8Array[i] = pdfData.charCodeAt(i);
-                    const pdf = await pdfjsLib.getDocument(uint8Array).promise; let extractedImages = [];
-                    for(let i = 1; i <= pdf.numPages; i++) {
-                        const page = await pdf.getPage(i); const viewport = page.getViewport({scale: 1.5});
-                        canvas.width = viewport.width; canvas.height = viewport.height; await page.render({canvasContext: ctx, viewport: viewport}).promise; extractedImages.push(canvas.toDataURL('image/jpeg', 0.9));
-                    }
-                    sessionCerts.push({ student: activeStudent.name, certName: certName + " (Edit)", images: extractedImages, needsSync: true });
-                    hideLoading(); showAppAlert("Sedia Diedit", "Fail dari Cloud berjaya diletakkan di Ruangan Editor.", "success"); renderCerts();
-                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-                } else { hideLoading(); showAppAlert("Ralat PDF Cloud", data.message, "error"); }
-            } catch(err) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan Cloud.", "error"); }
-        }
-
         function getDriveThumb(url) {
-            let match = url.match(/\/d\/([a-zA-Z0-9_-]+)/); let id = match ? match[1] : null;
-            if(!id) { match = url.match(/id=([a-zA-Z0-9_-]+)/); id = match ? match[1] : null; }
-            return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w400` : 'https://via.placeholder.com/150?text=Sijil+PDF';
+            const id = driveId(url);
+            return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w400` : "";
         }
 
         async function fetchCertsFromDB(studentName) {
-            const container = document.getElementById('dbCertsContainer'); container.innerHTML = "<p style='color:var(--text-light);'><i class='fa-solid fa-spinner fa-spin'></i> Menyemak sijil dari pangkalan data...</p>";
+            const container = document.getElementById('dbCertsContainer');
+            container.innerHTML = "<p style='color:var(--text-light);'><i class='fa-solid fa-spinner fa-spin'></i> Menyemak sijil dari pangkalan data...</p>";
             try {
-                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "getCerts", studentName: studentName }) }); let data = await res.json();
-                if(data.status === "success") {
-                    if(data.data.length === 0) container.innerHTML = "<p style='color:grey; font-size:13px;'>Tiada sijil terdahulu.</p>";
-                    else { 
-                        let html = '<div class="cloud-certs-grid">';
-                        data.data.forEach(c => { 
-                            let thumbUrl = getDriveThumb(c.url);
-                            html += `<div class="cloud-cert-card"><img src="${thumbUrl}" onerror="this.src='https://via.placeholder.com/150?text=Sijil+PDF'" onclick="window.open('${c.url}', '_blank')"><div class="cloud-cert-info"><div class="cloud-cert-name"><i class="fa-solid fa-file-pdf" style="color:var(--danger);"></i> ${c.certName}</div><div class="cloud-cert-date">Tarikh: ${new Date(c.date).toLocaleDateString('ms-MY')}</div><div style="display:flex; gap:8px; margin-top:10px;"><button class="btn-ghost" onclick="window.open('${c.url}', '_blank')" style="flex:1; padding:6px; font-size:12px; background:rgba(79,70,229,0.1);"><i class="fa-solid fa-eye"></i> Buka</button><button class="btn-warning" onclick="pullFromCloudToEditor('${c.url}', '${c.certName}')" style="flex:1; padding:6px; font-size:12px;"><i class="fa-solid fa-pen-to-square"></i> Edit</button></div></div></div>`; 
-                        }); html += '</div>'; container.innerHTML = html;
-                    }
-                }
-            } catch(e) { container.innerHTML = "<p style='color:red;'>Gagal menyambung.</p>"; }
+                const data = await api({ action: "getCerts", studentName });
+                container.innerHTML = "";
+                if (data.status !== "success") { container.innerHTML = "<p style='color:red;'>Gagal memuatkan.</p>"; return; }
+                if (!data.data.length) { container.innerHTML = "<p style='color:grey; font-size:13px;'>Tiada sijil terdahulu.</p>"; return; }
+
+                const grid = document.createElement('div');
+                grid.className = 'cloud-certs-grid';
+                data.data.forEach((c, i) => grid.appendChild(buildCloudCertCard(c, i)));
+                container.appendChild(grid);
+            } catch (e) { container.innerHTML = "<p style='color:red;'>Gagal menyambung.</p>"; }
         }
 
-        // ==========================================
-        // 4. EDITOR LOKAL & DRAG DROP
-        // ==========================================
-        function renderCerts() {
-            const listUI = document.getElementById('certGridUI'); listUI.innerHTML = ""; if(!activeStudent) return;
-            let myCerts = sessionCerts.filter(c => c.student === activeStudent.name);
-            if(myCerts.length === 0) { listUI.innerHTML = `<p style="font-size:14px; color:grey;">Belum ada deraf sijil pada sesi ini.</p>`; return; }
+        function buildCloudCertCard(cert, i) {
+            const card = document.createElement('div');
+            card.className = 'cloud-cert-card';
 
-            myCerts.forEach((cert, certIndex) => {
-                if (cert.student !== activeStudent.name || cert.images.length === 0) return;
-                let thumbsHTML = "";
-                cert.images.forEach((imgData, imgIndex) => {
-                    thumbsHTML += `<div class="thumb-item" draggable="true" ondragstart="dragStart(event, ${certIndex}, ${imgIndex})" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event, ${certIndex}, ${imgIndex})"><img src="${imgData}" onclick="openPowerEditor(${certIndex}, ${imgIndex})"><span class="img-overlay-text">✏️ Edit</span><div class="thumb-actions"><button class="btn-danger" onclick="deleteLocalThumbnail(${certIndex}, ${imgIndex})" style="background: var(--danger);">Buang</button></div></div>`;
-                });
-                thumbsHTML += `<div class="thumb-add-btn" onclick="triggerInlineAdd(${certIndex})"><i class="fa-solid fa-file-circle-plus"></i> Tambah Page</div>`;
-                
-                let statusLabel = cert.needsSync ? `<span class="cert-status unsynced"><i class="fa-solid fa-triangle-exclamation"></i> Belum dihantar ke Cloud!</span>` : `<span class="cert-status drive"><i class="fa-solid fa-cloud-check"></i> Tersimpan selari di Drive</span>`;
-                let syncBtnHtml = cert.needsSync ? `<button class="btn-warning" onclick="syncUpdateToCloud(${certIndex})" style="width:auto; padding: 10px; animation: pulseText 2s infinite;"><i class="fa-solid fa-cloud-arrow-up"></i> Kemaskini Cloud (PDF)</button>` : `<button class="btn-primary" onclick="downloadLocalPDF(${certIndex})" style="width:auto; padding: 10px;">Download Local PDF</button>`;
-                listUI.innerHTML += `<div class="cert-card" style="${cert.needsSync ? 'border-color: var(--warning); border-width: 2px;' : ''}"><div class="cert-header"><div><h4>${cert.certName}</h4>${statusLabel}</div><div style="display:flex; gap:10px;">${syncBtnHtml}</div></div><div class="cert-thumbnails" ondragover="dragOver(event)" ondrop="dropAtEnd(event, ${certIndex})">${thumbsHTML}</div></div>`;
+            const cover = document.createElement('img');
+            cover.className = 'cover'; cover.loading = 'lazy'; cover.alt = cert.certName;
+            cover.src = getDriveThumb(cert.url);
+            cover.onerror = function () { this.onerror = null; this.style.background = "#e5e7eb"; this.src = AVATAR_NEUTRAL; };
+            cover.onclick = () => window.open(cert.url, '_blank');
+
+            const info = document.createElement('div');
+            info.className = 'cloud-cert-info';
+            info.innerHTML = `<div class="cloud-cert-name"><i class="fa-solid fa-file-pdf" style="color:var(--danger);"></i> ${cert.certName}</div>
+                <div class="cloud-cert-date">Tarikh: ${cert.date}</div>`;
+
+            const btnRow = document.createElement('div');
+            btnRow.style.cssText = "display:flex; gap:8px; flex-wrap:wrap;";
+
+            const bPages = document.createElement('button');
+            bPages.className = 'btn-ghost';
+            bPages.style.cssText = "flex:1; padding:6px; font-size:12px; background:rgba(79,70,229,0.08);";
+            bPages.innerHTML = '<i class="fa-solid fa-images"></i> Semua Page';
+            bPages.onclick = () => loadAllPageThumbs(cert, card, bPages);
+
+            const bOpen = document.createElement('button');
+            bOpen.className = 'btn-ghost';
+            bOpen.style.cssText = "flex:1; padding:6px; font-size:12px; background:rgba(16,185,129,0.1); color:var(--secondary);";
+            bOpen.innerHTML = '<i class="fa-solid fa-eye"></i> Buka';
+            bOpen.onclick = () => window.open(cert.url, '_blank');
+
+            const bEdit = document.createElement('button');
+            bEdit.className = 'btn-warning';
+            bEdit.style.cssText = "flex:1; padding:6px; font-size:12px;";
+            bEdit.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit';
+            bEdit.onclick = () => pullFromCloudToEditor(cert.url, cert.certName);
+
+            btnRow.appendChild(bPages); btnRow.appendChild(bOpen); btnRow.appendChild(bEdit);
+            info.appendChild(btnRow);
+            card.appendChild(cover); card.appendChild(info);
+            return card;
+        }
+
+        /** Cache PDF yang telah dimuat turun supaya tak ulang muat turun */
+        const pdfCache = {};
+        async function getPdfDoc(url) {
+            const id = driveId(url) || url;
+            if (pdfCache[id]) return pdfCache[id];
+            const data = await api({ action: "getRawPdf", fileUrl: url });
+            if (data.status !== "success") throw new Error(data.message || "Gagal tarik PDF");
+            const bin = atob(data.base64Data);
+            const arr = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+            const doc = await pdfjsLib.getDocument({ data: arr }).promise;
+            pdfCache[id] = doc;
+            return doc;
+        }
+
+        /** Render satu page PDF ke dataURL pada lebar tertentu */
+        async function renderPdfPage(pdf, pageNo, targetWidth, quality) {
+            const page = await pdf.getPage(pageNo);
+            const base = page.getViewport({ scale: 1 });
+            const scale = Math.min(targetWidth / base.width, 3);
+            const viewport = page.getViewport({ scale });
+            const c = document.createElement('canvas');
+            c.width = Math.round(viewport.width); c.height = Math.round(viewport.height);
+            await page.render({ canvasContext: c.getContext('2d'), viewport }).promise;
+            return c.toDataURL('image/jpeg', quality);
+        }
+
+        /** Papar thumbnail SETIAP page PDF dari Cloud */
+        async function loadAllPageThumbs(cert, card, btn) {
+            const existing = card.querySelector('.page-strip');
+            if (existing) { existing.remove(); return; }
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memuat...';
+            try {
+                const pdf = await getPdfDoc(cert.url);
+                const strip = document.createElement('div');
+                strip.className = 'page-strip';
+                card.appendChild(strip);
+                for (let p = 1; p <= pdf.numPages; p++) {
+                    const dataUrl = await renderPdfPage(pdf, p, THUMB_W, 0.7);
+                    const im = document.createElement('img');
+                    im.src = dataUrl; im.alt = `Page ${p}`; im.title = `Page ${p} / ${pdf.numPages}`;
+                    im.onclick = () => window.open(cert.url, '_blank');
+                    strip.appendChild(im);
+                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${p}/${pdf.numPages}`;
+                }
+                btn.innerHTML = `<i class="fa-solid fa-images"></i> Sembunyi (${pdf.numPages} page)`;
+            } catch (e) {
+                showAppAlert("Ralat", "Gagal memuatkan page PDF: " + e.message, "error");
+                btn.innerHTML = '<i class="fa-solid fa-images"></i> Semua Page';
+            } finally { btn.disabled = false; }
+        }
+
+        async function pullFromCloudToEditor(url, certName) {
+            showLoading("Menarik fail PDF dari Cloud ke Editor...");
+            try {
+                const pdf = await getPdfDoc(url);
+                const images = [], thumbs = [];
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    images.push(await renderPdfPage(pdf, i, RENDER_MAX_W, 0.85));
+                    thumbs.push(await renderPdfPage(pdf, i, THUMB_W, 0.7));
+                    setProgress(i, pdf.numPages);
+                    document.getElementById('loadingText').innerText = `Memproses page ${i} daripada ${pdf.numPages}...`;
+                }
+                sessionCerts.push({ student: activeStudent.name, certName: certName, images, thumbs, needsSync: true });
+                hideLoading();
+                showAppAlert("Sedia Diedit", `${pdf.numPages} page dimasukkan ke Ruangan Editor.`, "success");
+                renderCerts();
+                document.getElementById('certGridUI').scrollIntoView({ behavior: 'smooth' });
+            } catch (err) { hideLoading(); showAppAlert("Ralat", "Gagal: " + err.message, "error"); }
+        }
+
+        /* ==========================================
+         * 6. EDITOR DERAF: THUMBNAIL SETIAP PAGE
+         * ========================================== */
+        function makeThumb(dataUrl, width = THUMB_W) {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.onload = function () {
+                    const c = document.createElement('canvas');
+                    const scale = Math.min(width / img.width, 1);
+                    c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+                    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                    resolve(c.toDataURL('image/jpeg', 0.7));
+                };
+                img.onerror = () => resolve(dataUrl);
+                img.src = dataUrl;
             });
         }
 
-        function dragStart(e, cIdx, pIdx) { dragSourceCertIndex = cIdx; dragSourcePageIndex = pIdx; e.dataTransfer.effectAllowed = 'move'; e.target.classList.add('dragging'); }
-        function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.add('drag-over'); }
-        function dragLeave(e) { if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over'); }
-        function drop(e, tCIdx, tPIdx) { e.preventDefault(); e.stopPropagation(); if(e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over'); if (dragSourceCertIndex !== tCIdx) return; if (dragSourcePageIndex === tPIdx) return; let cert = sessionCerts[tCIdx]; let item = cert.images.splice(dragSourcePageIndex, 1)[0]; cert.images.splice(tPIdx, 0, item); cert.needsSync = true; renderCerts(); }
-        function dropAtEnd(e, tCIdx) { e.preventDefault(); if (dragSourceCertIndex !== tCIdx || dragSourcePageIndex === sessionCerts[tCIdx].images.length -1) return; let cert = sessionCerts[tCIdx]; let item = cert.images.splice(dragSourcePageIndex, 1)[0]; cert.images.push(item); cert.needsSync = true; renderCerts(); }
+        function renderCerts() {
+            const listUI = document.getElementById('certGridUI');
+            listUI.innerHTML = "";
+            if (!activeStudent) return;
+
+            const myCerts = [];
+            sessionCerts.forEach((c, idx) => { if (c.student === activeStudent.name) myCerts.push({ cert: c, idx }); });
+            if (!myCerts.length) { listUI.innerHTML = `<p style="font-size:14px; color:grey;">Belum ada deraf sijil pada sesi ini.</p>`; return; }
+
+            myCerts.forEach(({ cert, idx }) => {
+                const card = document.createElement('div');
+                card.className = 'cert-card';
+                if (cert.needsSync) { card.style.borderColor = "var(--warning)"; card.style.borderWidth = "2px"; }
+
+                const header = document.createElement('div');
+                header.className = 'cert-header';
+                const left = document.createElement('div');
+                left.innerHTML = `<h4>${cert.certName}</h4>` + (cert.needsSync
+                    ? `<span class="cert-status unsynced"><i class="fa-solid fa-triangle-exclamation"></i> Belum dihantar ke Cloud!</span>`
+                    : `<span class="cert-status drive"><i class="fa-solid fa-cloud"></i> Tersimpan di Drive</span>`)
+                    + ` <span class="cert-status">• ${cert.images.length} page</span>`;
+                const right = document.createElement('div');
+                right.style.cssText = "display:flex; gap:10px;";
+                const mainBtn = document.createElement('button');
+                if (cert.needsSync) {
+                    mainBtn.className = 'btn-warning'; mainBtn.style.cssText = "width:auto; padding:10px;";
+                    mainBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Kemaskini Cloud (PDF)';
+                    mainBtn.onclick = () => syncUpdateToCloud(idx);
+                } else {
+                    mainBtn.className = 'btn-primary'; mainBtn.style.cssText = "width:auto; padding:10px;";
+                    mainBtn.innerHTML = '<i class="fa-solid fa-download"></i> Muat Turun PDF';
+                    mainBtn.onclick = () => downloadLocalPDF(idx);
+                }
+                right.appendChild(mainBtn);
+                header.appendChild(left); header.appendChild(right);
+
+                const strip = document.createElement('div');
+                strip.className = 'cert-thumbnails';
+                strip.ondragover = dragOver;
+                strip.ondrop = (e) => dropAtEnd(e, idx);
+
+                cert.images.forEach((imgData, pIdx) => {
+                    const item = document.createElement('div');
+                    item.className = 'thumb-item';
+                    item.draggable = true;
+                    item.ondragstart = (e) => dragStart(e, idx, pIdx);
+                    item.ondragover = dragOver;
+                    item.ondragleave = dragLeave;
+                    item.ondrop = (e) => drop(e, idx, pIdx);
+
+                    const im = document.createElement('img');
+                    im.loading = "lazy";
+                    im.alt = `Page ${pIdx + 1}`;
+                    im.src = (cert.thumbs && cert.thumbs[pIdx]) ? cert.thumbs[pIdx] : imgData; // src terus, bukan innerHTML
+                    im.onclick = () => openPowerEditor(idx, pIdx);
+
+                    const badge = document.createElement('span');
+                    badge.className = 'page-badge';
+                    badge.innerText = `Page ${pIdx + 1}`;
+
+                    const actions = document.createElement('div');
+                    actions.className = 'thumb-actions';
+                    const del = document.createElement('button');
+                    del.className = 'btn-danger'; del.innerText = "Buang";
+                    del.onclick = () => deleteLocalThumbnail(idx, pIdx);
+                    actions.appendChild(del);
+
+                    item.appendChild(im); item.appendChild(badge); item.appendChild(actions);
+                    strip.appendChild(item);
+                });
+
+                const add = document.createElement('div');
+                add.className = 'thumb-add-btn';
+                add.innerHTML = '<i class="fa-solid fa-file-circle-plus fa-2x"></i><span>Tambah Page</span>';
+                add.onclick = () => triggerInlineAdd(idx);
+                strip.appendChild(add);
+
+                card.appendChild(header); card.appendChild(strip);
+                listUI.appendChild(card);
+            });
+        }
+
+        function dragStart(e, cIdx, pIdx) { dragSourceCertIndex = cIdx; dragSourcePageIndex = pIdx; e.dataTransfer.effectAllowed = 'move'; e.currentTarget.classList.add('dragging'); }
+        function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.add('drag-over'); }
+        function dragLeave(e) { if (e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over'); }
+        function drop(e, tCIdx, tPIdx) {
+            e.preventDefault(); e.stopPropagation();
+            if (e.currentTarget.classList.contains('thumb-item')) e.currentTarget.classList.remove('drag-over');
+            if (dragSourceCertIndex !== tCIdx || dragSourcePageIndex === tPIdx) return;
+            const cert = sessionCerts[tCIdx];
+            cert.images.splice(tPIdx, 0, cert.images.splice(dragSourcePageIndex, 1)[0]);
+            if (cert.thumbs) cert.thumbs.splice(tPIdx, 0, cert.thumbs.splice(dragSourcePageIndex, 1)[0]);
+            cert.needsSync = true; renderCerts();
+        }
+        function dropAtEnd(e, tCIdx) {
+            e.preventDefault();
+            if (dragSourceCertIndex !== tCIdx) return;
+            const cert = sessionCerts[tCIdx];
+            if (dragSourcePageIndex === cert.images.length - 1) return;
+            cert.images.push(cert.images.splice(dragSourcePageIndex, 1)[0]);
+            if (cert.thumbs) cert.thumbs.push(cert.thumbs.splice(dragSourcePageIndex, 1)[0]);
+            cert.needsSync = true; renderCerts();
+        }
+        function deleteLocalThumbnail(certIdx, pageIdx) {
+            if (!confirm("Buang page ini?")) return;
+            sessionCerts[certIdx].images.splice(pageIdx, 1);
+            if (sessionCerts[certIdx].thumbs) sessionCerts[certIdx].thumbs.splice(pageIdx, 1);
+            sessionCerts[certIdx].needsSync = true; renderCerts();
+        }
+
+        /* Tambah page (imej atau PDF berbilang page) ke dalam deraf */
+        async function importFilesToPages(files, onPage) {
+            for (const file of files) {
+                if (file.type === "application/pdf") {
+                    const buf = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const full = await renderPdfPage(pdf, i, RENDER_MAX_W, 0.85);
+                        const thumb = await renderPdfPage(pdf, i, THUMB_W, 0.7);
+                        onPage(full, thumb);
+                        setProgress(i, pdf.numPages);
+                        document.getElementById('loadingText').innerText = `Memproses page ${i} / ${pdf.numPages}...`;
+                    }
+                } else {
+                    const full = await compressImage(file, RENDER_MAX_W, 0.85);
+                    const thumb = await makeThumb(full);
+                    onPage(full, thumb);
+                }
+            }
+        }
 
         document.getElementById('inlineAddFileInput').addEventListener('change', async (e) => {
-            if(targetInlineCertIndex === -1) return; const file = e.target.files[0]; if(!file) return; let cert = sessionCerts[targetInlineCertIndex]; showLoading();
-            if(file.type === "application/pdf") {
-                const fileReader = new FileReader(); fileReader.onload = async function() {
-                    try { const typedarray = new Uint8Array(this.result); const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                        for(let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const viewport = page.getViewport({scale: 1.5}); canvas.width = viewport.width; canvas.height = viewport.height; await page.render({canvasContext: ctx, viewport: viewport}).promise; cert.images.push(canvas.toDataURL('image/jpeg', 0.9)); }
-                        cert.needsSync = true; renderCerts(); hideLoading();
-                    } catch(err) { hideLoading(); showAppAlert("Maaf", "Gagal.", "error"); }
-                }; fileReader.readAsArrayBuffer(file);
-            } else {
-                const img = new Image(); img.onload = function() { canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); cert.images.push(canvas.toDataURL('image/jpeg', 0.9)); cert.needsSync = true; renderCerts(); hideLoading(); }
-                img.src = URL.createObjectURL(file);
-            } e.target.value = "";
+            if (targetInlineCertIndex === -1) return;
+            const files = Array.from(e.target.files || []); if (!files.length) return;
+            const cert = sessionCerts[targetInlineCertIndex];
+            showLoading("Menambah page...");
+            try {
+                await importFilesToPages(files, (full, thumb) => {
+                    cert.images.push(full);
+                    if (!cert.thumbs) cert.thumbs = [];
+                    cert.thumbs.push(thumb);
+                });
+                cert.needsSync = true; renderCerts();
+            } catch (err) { showAppAlert("Maaf", "Gagal memproses fail.", "error"); }
+            finally { hideLoading(); e.target.value = ""; }
         });
         function triggerInlineAdd(certIdx) { targetInlineCertIndex = certIdx; document.getElementById('inlineAddFileInput').click(); }
-        function deleteLocalThumbnail(certIdx, pageIdx) { if(confirm("Buang page ini?")) { sessionCerts[certIdx].images.splice(pageIdx, 1); sessionCerts[certIdx].needsSync = true; renderCerts(); } }
 
-        // ==========================================
-        // 5. EDITOR POWER (CANVAS CUSTOM)
-        // ==========================================
-        const editorCanvas = document.getElementById('editorCanvas'); const edCtx = editorCanvas.getContext('2d', { willReadFrequently: true });
+        /* ==========================================
+         * 7. EDITOR POWER
+         * ========================================== */
+        const editorCanvas = document.getElementById('editorCanvas');
+        const edCtx = editorCanvas.getContext('2d', { willReadFrequently: true });
         let editorImg = new Image(), edTool = '', isDrawing = false, cropStartX, cropStartY, cropEndX, cropEndY, editHistory = [], tempImgDataForCrop = null;
 
         function openPowerEditor(cIdx, pIdx) {
-            activeEditCertIndex = cIdx; activeEditPageIndex = pIdx; document.getElementById('powerEditorModal').style.display = 'flex';
-            editorImg.onload = () => { editorCanvas.width = editorImg.naturalWidth; editorCanvas.height = editorImg.naturalHeight; edCtx.drawImage(editorImg, 0, 0); saveHistory(); setTool(''); };
+            activeEditCertIndex = cIdx; activeEditPageIndex = pIdx;
+            document.getElementById('powerEditorModal').style.display = 'flex';
+            editHistory = [];
+            editorImg = new Image();
+            editorImg.onload = () => {
+                editorCanvas.width = editorImg.naturalWidth; editorCanvas.height = editorImg.naturalHeight;
+                edCtx.drawImage(editorImg, 0, 0); saveHistory(); setTool('');
+            };
             editorImg.src = sessionCerts[cIdx].images[pIdx];
         }
-        function closeEditor() { document.getElementById('powerEditorModal').style.display = 'none'; }
-        function saveEditor() { let newImgData = editorCanvas.toDataURL('image/jpeg', 0.9); sessionCerts[activeEditCertIndex].images[activeEditPageIndex] = newImgData; sessionCerts[activeEditCertIndex].needsSync = true; renderCerts(); closeEditor(); }
-        function saveHistory() { editHistory.push(editorCanvas.toDataURL('image/jpeg', 1.0)); }
-        function undoEditor() { if (editHistory.length > 1) { editHistory.pop(); let prevImg = new Image(); prevImg.onload = () => { editorCanvas.width = prevImg.width; editorCanvas.height = prevImg.height; edCtx.drawImage(prevImg, 0, 0); }; prevImg.src = editHistory[editHistory.length - 1]; } }
-        
+        function closeEditor() { document.getElementById('powerEditorModal').style.display = 'none'; setTool(''); }
+        function saveHistory() { if (editHistory.length > 12) editHistory.shift(); editHistory.push(editorCanvas.toDataURL('image/jpeg', 0.9)); }
+        function undoEditor() {
+            if (editHistory.length < 2) return;
+            editHistory.pop();
+            const prev = editHistory[editHistory.length - 1];
+            const im = new Image();
+            im.onload = () => { editorCanvas.width = im.width; editorCanvas.height = im.height; edCtx.drawImage(im, 0, 0); };
+            im.src = prev;
+        }
+        async function saveEditor() {
+            const full = editorCanvas.toDataURL('image/jpeg', 0.85);
+            const cert = sessionCerts[activeEditCertIndex];
+            cert.images[activeEditPageIndex] = full;
+            if (!cert.thumbs) cert.thumbs = [];
+            cert.thumbs[activeEditPageIndex] = await makeThumb(full);
+            cert.needsSync = true;
+            closeEditor(); renderCerts();
+        }
+
         function setTool(toolName) {
-            edTool = toolName; document.querySelectorAll('.editor-toolbar button').forEach(b => b.classList.remove('active-tool'));
-            if(toolName) document.getElementById('tool' + toolName.charAt(0).toUpperCase() + toolName.slice(1))?.classList.add('active-tool');
-            document.getElementById('textOptions').style.display = toolName === 'text' ? 'block' : 'none'; document.getElementById('cropOptions').style.display = toolName === 'crop' ? 'block' : 'none';
+            edTool = toolName;
+            document.querySelectorAll('.editor-toolbar button').forEach(b => b.classList.remove('active-tool'));
+            if (toolName) document.getElementById('tool' + toolName.charAt(0).toUpperCase() + toolName.slice(1))?.classList.add('active-tool');
+            document.getElementById('textOptions').style.display = toolName === 'text' ? 'block' : 'none';
+            document.getElementById('cropOptions').style.display = toolName === 'crop' ? 'block' : 'none';
             editorCanvas.style.cursor = toolName === 'text' ? 'text' : toolName === 'erase' ? 'cell' : toolName === 'crop' ? 'crosshair' : 'default';
         }
-
         function getEdPos(evt) {
-            let rect = editorCanvas.getBoundingClientRect(), scaleX = editorCanvas.width / rect.width, scaleY = editorCanvas.height / rect.height;
-            let clientX = evt.touches ? evt.touches[0].clientX : evt.clientX, clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+            const rect = editorCanvas.getBoundingClientRect(), scaleX = editorCanvas.width / rect.width, scaleY = editorCanvas.height / rect.height;
+            const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX, clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
             return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
         }
-
-        editorCanvas.addEventListener('mousedown', startAction); editorCanvas.addEventListener('touchstart', startAction, {passive: false});
-        editorCanvas.addEventListener('mousemove', moveAction); editorCanvas.addEventListener('touchmove', moveAction, {passive: false});
+        editorCanvas.addEventListener('mousedown', startAction); editorCanvas.addEventListener('touchstart', startAction, { passive: false });
+        editorCanvas.addEventListener('mousemove', moveAction); editorCanvas.addEventListener('touchmove', moveAction, { passive: false });
         editorCanvas.addEventListener('mouseup', endAction); editorCanvas.addEventListener('touchend', endAction);
-        
+
         function startAction(e) {
-            if(!edTool) return; e.preventDefault(); isDrawing = true; let pos = getEdPos(e);
-            if (edTool === 'erase') { edCtx.beginPath(); edCtx.moveTo(pos.x, pos.y); edCtx.strokeStyle = "white"; edCtx.lineWidth = 30; edCtx.lineCap = "round"; } 
-            else if (edTool === 'crop') { cropStartX = pos.x; cropStartY = pos.y; tempImgDataForCrop = edCtx.getImageData(0, 0, editorCanvas.width, editorCanvas.height); } 
-            else if (edTool === 'text') { isDrawing = false; let txt = prompt("Teks:"); if(txt) { let size = document.getElementById('txtSize').value || 30; let color = document.getElementById('txtColor').value || "#000000"; edCtx.font = `${size}px Arial`; edCtx.fillStyle = color; edCtx.fillText(txt, pos.x, pos.y); saveHistory(); } }
+            if (!edTool) return; e.preventDefault(); isDrawing = true; const pos = getEdPos(e);
+            if (edTool === 'erase') { edCtx.beginPath(); edCtx.moveTo(pos.x, pos.y); edCtx.strokeStyle = "white"; edCtx.lineWidth = 30; edCtx.lineCap = "round"; }
+            else if (edTool === 'crop') { cropStartX = pos.x; cropStartY = pos.y; tempImgDataForCrop = edCtx.getImageData(0, 0, editorCanvas.width, editorCanvas.height); }
+            else if (edTool === 'text') {
+                isDrawing = false;
+                const txt = prompt("Teks:");
+                if (txt) { const size = document.getElementById('txtSize').value || 30; const color = document.getElementById('txtColor').value || "#000000"; edCtx.font = `${size}px Arial`; edCtx.fillStyle = color; edCtx.fillText(txt, pos.x, pos.y); saveHistory(); }
+            }
         }
         function moveAction(e) {
-            if(!isDrawing || !edTool) return; e.preventDefault(); let pos = getEdPos(e);
-            if (edTool === 'erase') { edCtx.lineTo(pos.x, pos.y); edCtx.stroke(); } 
+            if (!isDrawing || !edTool) return; e.preventDefault(); const pos = getEdPos(e);
+            if (edTool === 'erase') { edCtx.lineTo(pos.x, pos.y); edCtx.stroke(); }
             else if (edTool === 'crop') { edCtx.putImageData(tempImgDataForCrop, 0, 0); cropEndX = pos.x; cropEndY = pos.y; edCtx.strokeStyle = "red"; edCtx.lineWidth = 5; edCtx.setLineDash([15, 15]); edCtx.strokeRect(cropStartX, cropStartY, cropEndX - cropStartX, cropEndY - cropStartY); edCtx.setLineDash([]); }
         }
-        function endAction(e) { if(!isDrawing) return; isDrawing = false; if (edTool === 'erase') saveHistory(); }
+        function endAction() { if (!isDrawing) return; isDrawing = false; if (edTool === 'erase') saveHistory(); }
         function executeCrop() {
             if (edTool !== 'crop' || !tempImgDataForCrop) return;
-            let w = Math.abs(cropEndX - cropStartX), h = Math.abs(cropEndY - cropStartY), x = Math.min(cropStartX, cropEndX), y = Math.min(cropStartY, cropEndY);
-            if (w < 20 || h < 20) return; let tempCanv = document.createElement('canvas'); tempCanv.width = editorCanvas.width; tempCanv.height = editorCanvas.height; tempCanv.getContext('2d').putImageData(tempImgDataForCrop, 0, 0);
-            editorCanvas.width = w; editorCanvas.height = h; edCtx.drawImage(tempCanv, x, y, w, h, 0, 0, w, h); setTool(''); saveHistory();
+            const w = Math.abs(cropEndX - cropStartX), h = Math.abs(cropEndY - cropStartY), x = Math.min(cropStartX, cropEndX), y = Math.min(cropStartY, cropEndY);
+            if (w < 20 || h < 20) return;
+            const tempCanv = document.createElement('canvas');
+            tempCanv.width = editorCanvas.width; tempCanv.height = editorCanvas.height;
+            tempCanv.getContext('2d').putImageData(tempImgDataForCrop, 0, 0);
+            editorCanvas.width = w; editorCanvas.height = h;
+            edCtx.drawImage(tempCanv, x, y, w, h, 0, 0, w, h);
+            setTool(''); saveHistory();
         }
-        function applyAiFilter() { if(!opencvReady) return; showLoading(); setTimeout(() => { let mat = cv.imread(editorCanvas); cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY, 0); cv.adaptiveThreshold(mat, mat, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15); cv.imshow(editorCanvas, mat); mat.delete(); saveHistory(); hideLoading(); }, 100); }
+        function applyAiFilter() {
+            if (!opencvReady) return showAppAlert("Info", "Enjin AI belum siap. Cuba sebentar lagi.", "warning");
+            showLoading("Menapis imej...");
+            setTimeout(() => {
+                const mat = cv.imread(editorCanvas);
+                cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY, 0);
+                cv.adaptiveThreshold(mat, mat, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, 15);
+                cv.imshow(editorCanvas, mat); mat.delete(); saveHistory(); hideLoading();
+            }, 100);
+        }
 
-        // ==========================================
-        // 6. SYNC CLOUD & PDF
-        // ==========================================
+        /* ==========================================
+         * 8. SYNC CLOUD & PDF
+         * ========================================== */
+        async function buildPdf(cert) {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            pdf.deletePage(1);
+            for (let i = 0; i < cert.images.length; i++) {
+                const imgData = cert.images[i];
+                const img = new Image(); img.src = imgData;
+                await new Promise(r => { img.onload = r; img.onerror = r; });
+                const orientation = img.width > img.height ? 'l' : 'p';
+                pdf.addPage([img.width, img.height], orientation);
+                pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
+                setProgress(i + 1, cert.images.length);
+            }
+            return pdf;
+        }
+
         async function syncUpdateToCloud(certIndex) {
-            let cert = sessionCerts[certIndex]; if(cert.images.length === 0) return; showLoading();
-            let btnList = document.querySelectorAll('.cert-card')[certIndex].querySelectorAll('button'); btnList.forEach(b => b.disabled = true);
+            const cert = sessionCerts[certIndex];
+            if (!cert.images.length) return;
+            showLoading("Menyusun PDF & menghantar ke Cloud...");
             try {
-                const { jsPDF } = window.jspdf; const pdf = new jsPDF(); pdf.deletePage(1);
-                for(let i = 0; i < cert.images.length; i++) {
-                    let imgData = cert.images[i]; let img = new Image(); img.src = imgData; await new Promise(r => img.onload = r);
-                    let orientation = img.width > img.height ? 'l' : 'p'; pdf.addPage([img.width, img.height], orientation); pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height);
-                }
+                const pdf = await buildPdf(cert);
                 const pdfBase64 = pdf.output('datauristring');
-                let res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: "updateFile", pdfData: pdfBase64, fileName: `${activeStudent.name} - ${cert.certName}`, studentName: activeStudent.name, certName: cert.certName, guruEmail: currentUserEmail }) });
-                let result = await res.json(); hideLoading();
-                if (result.status === "success") { cert.needsSync = false; showAppAlert("Berjaya", "Tersimpan", "success"); renderCerts(); fetchCertsFromDB(activeStudent.name); } else showAppAlert("Maaf", result.message, "error");
-            } catch (err) { hideLoading(); } finally { btnList.forEach(b => b.disabled = false); }
+                const result = await api({
+                    action: "updateFile", pdfData: pdfBase64,
+                    fileName: `${activeStudent.name} - ${cert.certName}`,
+                    studentName: activeStudent.name, certName: cert.certName, guruEmail: currentUserEmail
+                });
+                hideLoading();
+                if (result.status === "success") {
+                    cert.needsSync = false;
+                    showAppAlert("Berjaya", "Sijil tersimpan di Cloud.", "success");
+                    renderCerts(); fetchCertsFromDB(activeStudent.name);
+                } else showAppAlert("Maaf", result.message, "error");
+            } catch (err) { hideLoading(); showAppAlert("Ralat", "Gagal menghantar ke Cloud.", "error"); }
         }
+
         async function downloadLocalPDF(certIndex) {
-            let cert = sessionCerts[certIndex];
-            try { const { jsPDF } = window.jspdf; const pdf = new jsPDF(); pdf.deletePage(1);
-                for(let i = 0; i < cert.images.length; i++) { let imgData = cert.images[i]; let img = new Image(); img.src = imgData; await new Promise(r => img.onload = r); let orientation = img.width > img.height ? 'l' : 'p'; pdf.addPage([img.width, img.height], orientation); pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height); }
-                pdf.save(`${cert.certName}.pdf`); } catch (err) {}
+            const cert = sessionCerts[certIndex];
+            showLoading("Menyediakan PDF...");
+            try { const pdf = await buildPdf(cert); pdf.save(`${cert.certName}.pdf`); }
+            catch (e) { showAppAlert("Ralat", "Gagal menjana PDF.", "error"); }
+            finally { hideLoading(); }
         }
 
-        // ==========================================
-        // 7. SCANNER UTAMA
-        // ==========================================
+        /* ==========================================
+         * 9. SCANNER
+         * ========================================== */
         function onOpenCvReady() { opencvReady = true; setStatus("<i class='fa-solid fa-check'></i> AI Sedia!", "success"); }
-        function openScanner() { if(!activeStudent) return; document.getElementById('scannerStudentLabel').innerText = activeStudent.name; let dateStr = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14); document.getElementById('certName').value = `Sijil_${dateStr}`; currentBatch = []; switchScreen('scannerScreen'); startCamera(); }
+        function openScanner() {
+            if (!activeStudent) return;
+            document.getElementById('scannerStudentLabel').innerText = activeStudent.name;
+            const dateStr = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14);
+            document.getElementById('certName').value = `Sijil_${dateStr}`;
+            currentBatch = []; switchScreen('scannerScreen'); startCamera();
+        }
         function closeScanner() { stopCamera(); switchScreen('dashboardScreen'); }
-        function startCamera() { navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(stream => video.srcObject = stream).catch(e => setStatus("Kamera tiada.", "warning")); video.style.display = 'block'; canvas.style.display = 'none'; }
-        function stopCamera() { if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop()); }
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(stream => video.srcObject = stream)
+                .catch(() => setStatus("Kamera tiada.", "warning"));
+            video.style.display = 'block'; canvas.style.display = 'none';
+        }
+        function stopCamera() { if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop()); }
 
-        document.getElementById('btnCaptureCam').addEventListener('click', () => {
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight; ctx.drawImage(video, 0, 0, canvas.width, canvas.height); setStatus("Memproses...", "info");
-            setTimeout(() => { let processedImg = (!opencvReady) ? canvas.toDataURL('image/jpeg', 0.9) : detectAndWarpDocument(canvas); currentBatch.push(processedImg); setStatus("Gambar disnap.", "success"); }, 100);
+        document.getElementById('btnCaptureCam').addEventListener('click', async () => {
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            setStatus("Memproses...", "info");
+            setTimeout(async () => {
+                const full = (!opencvReady) ? canvas.toDataURL('image/jpeg', 0.85) : detectAndWarpDocument(canvas);
+                currentBatch.push({ full, thumb: await makeThumb(full) });
+                setStatus(`Gambar disnap. (${currentBatch.length} page sedia)`, "success");
+            }, 100);
         });
 
         document.getElementById('fileUploadInput').addEventListener('change', async (e) => {
-            const file = e.target.files[0]; if(!file) return; showLoading();
-            if(file.type === "application/pdf") {
-                const fileReader = new FileReader(); fileReader.onload = async function() {
-                    try { const typedarray = new Uint8Array(this.result); const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                        for(let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const viewport = page.getViewport({scale: 1.5}); canvas.width = viewport.width; canvas.height = viewport.height; await page.render({canvasContext: ctx, viewport: viewport}).promise; currentBatch.push(canvas.toDataURL('image/jpeg', 0.9)); }
-                        hideLoading(); setStatus("PDF dikesan!", "success"); } catch(err) { hideLoading(); }
-                }; fileReader.readAsArrayBuffer(file);
-            } else {
-                const img = new Image(); img.onload = function() { canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); let processedImg = (!opencvReady) ? canvas.toDataURL('image/jpeg', 0.9) : detectAndWarpDocument(canvas); currentBatch.push(processedImg); hideLoading(); setStatus("Gambar dikesan!", "success"); }
-                img.src = URL.createObjectURL(file);
-            } e.target.value = ""; 
+            const files = Array.from(e.target.files || []); if (!files.length) return;
+            showLoading("Memproses fail...");
+            try {
+                await importFilesToPages(files, (full, thumb) => currentBatch.push({ full, thumb }));
+                setStatus(`${currentBatch.length} page sedia untuk disimpan.`, "success");
+            } catch (err) { showAppAlert("Maaf", "Gagal memproses fail.", "error"); }
+            finally { hideLoading(); e.target.value = ""; }
         });
 
-        function detectAndWarpDocument(srcCanvas) {
-            try { let src = cv.imread(srcCanvas); let dst = new cv.Mat(); cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0); cv.GaussianBlur(dst, dst, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT); cv.Canny(dst, dst, 75, 200); let contours = new cv.MatVector(), hierarchy = new cv.Mat(); cv.findContours(dst, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE); let maxArea = 0, maxContour = null; for (let i = 0; i < contours.size(); ++i) { let cnt = contours.get(i), area = cv.contourArea(cnt), approx = new cv.Mat(); cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true); if (approx.rows === 4 && area > maxArea && area > 50000) { maxArea = area; if (maxContour) maxContour.delete(); maxContour = approx.clone(); } approx.delete(); } if (maxContour) { let pts = []; for (let j = 0; j < 4; j++) pts.push({ x: maxContour.data32S[j*2], y: maxContour.data32S[j*2+1] }); pts.sort((a, b) => a.y - b.y); let top = pts.slice(0, 2).sort((a, b) => a.x - b.x), bottom = pts.slice(2, 4).sort((a, b) => a.x - b.x); let orderedPts = [top[0], top[1], bottom[1], bottom[0]]; let maxWidth = Math.max(Math.hypot(orderedPts[2].x - orderedPts[3].x, orderedPts[2].y - orderedPts[3].y), Math.hypot(orderedPts[1].x - orderedPts[0].x, orderedPts[1].y - orderedPts[0].y)); let maxHeight = Math.max(Math.hypot(orderedPts[1].x - orderedPts[2].x, orderedPts[1].y - orderedPts[2].y), Math.hypot(orderedPts[0].x - orderedPts[3].x, orderedPts[0].y - orderedPts[3].y)); let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [orderedPts[0].x, orderedPts[0].y, orderedPts[1].x, orderedPts[1].y, orderedPts[2].x, orderedPts[2].y, orderedPts[3].x, orderedPts[3].y]); let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, maxWidth, 0, maxWidth, maxHeight, 0, maxHeight]); let M = cv.getPerspectiveTransform(srcTri, dstTri); let warped = new cv.Mat(); cv.warpPerspective(src, warped, M, new cv.Size(maxWidth, maxHeight), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar()); cv.imshow(srcCanvas, warped); srcTri.delete(); dstTri.delete(); M.delete(); warped.delete(); } src.delete(); dst.delete(); contours.delete(); hierarchy.delete(); if (maxContour) maxContour.delete(); return srcCanvas.toDataURL('image/jpeg', 0.9); } catch (err) { return srcCanvas.toDataURL('image/jpeg', 0.9); }
+        function saveToDashboardLocal() {
+            if (!currentBatch.length) return showAppAlert("Perhatian", "Tiada gambar/page lagi.", "warning");
+            const certName = document.getElementById('certName').value.trim() || ("Sijil_" + Date.now());
+            sessionCerts.push({
+                student: activeStudent.name, certName,
+                images: currentBatch.map(b => b.full),
+                thumbs: currentBatch.map(b => b.thumb),
+                needsSync: true
+            });
+            currentBatch = []; stopCamera(); switchScreen('dashboardScreen'); renderCerts();
+            showAppAlert("Berjaya", "Deraf disimpan ke Ruangan Editor.", "success");
         }
 
-        function saveToDashboardLocal() {
-            if(currentBatch.length === 0) return showAppAlert("Maaf", "Sila tambah gambar terlebih dahulu.", "warning");
-            let cName = document.getElementById('certName').value.trim(); if(!cName) return;
-            sessionCerts.push({ student: activeStudent.name, certName: cName, images: [...currentBatch], needsSync: true });
-            currentBatch = []; closeScanner(); renderCerts();
+        function detectAndWarpDocument(srcCanvas) {
+            try {
+                let src = cv.imread(srcCanvas); let dst = new cv.Mat();
+                cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0);
+                cv.GaussianBlur(dst, dst, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT);
+                cv.Canny(dst, dst, 75, 200);
+                let contours = new cv.MatVector(), hierarchy = new cv.Mat();
+                cv.findContours(dst, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
+                let maxArea = 0, maxContour = null;
+                for (let i = 0; i < contours.size(); ++i) {
+                    let cnt = contours.get(i), area = cv.contourArea(cnt), approx = new cv.Mat();
+                    cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
+                    if (approx.rows === 4 && area > maxArea && area > 50000) { maxArea = area; if (maxContour) maxContour.delete(); maxContour = approx; }
+                    else approx.delete();
+                    cnt.delete();
+                }
+                let result;
+                if (maxContour) {
+                    let pts = [];
+                    for (let i = 0; i < 4; i++) pts.push({ x: maxContour.data32S[i * 2], y: maxContour.data32S[i * 2 + 1] });
+                    pts.sort((a, b) => a.y - b.y);
+                    let top = pts.slice(0, 2).sort((a, b) => a.x - b.x), bot = pts.slice(2, 4).sort((a, b) => a.x - b.x);
+                    let ordered = [top[0], top[1], bot[1], bot[0]];
+                    let w = Math.max(Math.hypot(ordered[1].x - ordered[0].x, ordered[1].y - ordered[0].y), Math.hypot(ordered[2].x - ordered[3].x, ordered[2].y - ordered[3].y));
+                    let h = Math.max(Math.hypot(ordered[3].x - ordered[0].x, ordered[3].y - ordered[0].y), Math.hypot(ordered[2].x - ordered[1].x, ordered[2].y - ordered[1].y));
+                    let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [ordered[0].x, ordered[0].y, ordered[1].x, ordered[1].y, ordered[2].x, ordered[2].y, ordered[3].x, ordered[3].y]);
+                    let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, w, 0, w, h, 0, h]);
+                    let M = cv.getPerspectiveTransform(srcTri, dstTri), warped = new cv.Mat();
+                    cv.warpPerspective(src, warped, M, new cv.Size(w, h));
+                    let out = document.createElement('canvas');
+                    cv.imshow(out, warped);
+                    result = out.toDataURL('image/jpeg', 0.85);
+                    srcTri.delete(); dstTri.delete(); M.delete(); warped.delete(); maxContour.delete();
+                } else {
+                    result = srcCanvas.toDataURL('image/jpeg', 0.85);
+                }
+                src.delete(); dst.delete(); contours.delete(); hierarchy.delete();
+                return result;
+            } catch (e) { return srcCanvas.toDataURL('image/jpeg', 0.85); }
         }
     </script>
 </body>
