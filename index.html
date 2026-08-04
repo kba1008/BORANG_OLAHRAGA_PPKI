@@ -692,7 +692,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyfNOuXkiZvhLBdNFzjncabefmbd7sKxbYgvrnTs-q0Qwq6QQprzluabzjXGSL564DE/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6ctqKJB2XLa9eRFdXXQVzR6deoK4auu-hS6W1Yqah61q6twG7EIKfOYhjmPWsgZ6o/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -915,12 +915,19 @@ ${hairPath}
 
         async function api(payload, attempt = 0) {
             let res, text;
+            const controller = new AbortController();
+            const timeoutMs = payload && payload.action === "getRawPdf" ? 15000 : 20000;
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
             try {
-                res = await fetch(WEB_APP_URL, { method: 'POST', redirect: 'follow', body: JSON.stringify(payload) });
+                res = await fetch(WEB_APP_URL, { method: 'POST', redirect: 'follow', body: JSON.stringify(payload), signal: controller.signal });
                 text = await res.text();
             } catch (netErr) {
-                if (attempt < 2) { await new Promise(r => setTimeout(r, 800 * (attempt + 1))); return api(payload, attempt + 1); }
+                const maxRetries = payload && payload.action === "getRawPdf" ? 0 : 1;
+                if (attempt < maxRetries) { await new Promise(r => setTimeout(r, 800 * (attempt + 1))); return api(payload, attempt + 1); }
+                if (netErr && netErr.name === 'AbortError') throw new Error("Server mengambil masa terlalu lama. Cuba buka fail terus atau cuba semula.");
                 throw new Error("Gagal menyambung ke server. Sila semak talian internet anda.");
+            } finally {
+                clearTimeout(timeoutId);
             }
             const trimmed = (text || "").trim();
             // Apps Script kadang pulangkan halaman HTML (log masuk / kuota / ralat sementara)
@@ -1302,12 +1309,17 @@ ${hairPath}
             return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w400` : "";
         }
 
-        let autoPreviewLatest = true;
+        // Jangan muat turun keseluruhan PDF setiap kali pelajar dipilih.
+        // Kad/thumbnail muncul dahulu; PDF penuh hanya dimuat atas permintaan pengguna.
+        let autoPreviewLatest = false;
+        let certRequestToken = 0;
         async function fetchCertsFromDB(studentName) {
+            const token = ++certRequestToken;
             const container = document.getElementById('dbCertsContainer');
             container.innerHTML = "<p style='color:var(--text-light);'><i class='fa-solid fa-spinner fa-spin'></i> Menyemak sijil dari pangkalan data...</p>";
             try {
                 const data = await api({ action: "getCerts", studentName });
+                if (token !== certRequestToken || !activeStudent || activeStudent.name !== studentName) return;
                 container.innerHTML = "";
                 if (data.status !== "success") { container.innerHTML = "<p style='color:red;'>Gagal memuatkan.</p>"; return; }
                 if (!data.data.length) { container.innerHTML = "<p style='color:grey; font-size:13px;'>Tiada sijil terdahulu.</p>"; return; }
@@ -1317,9 +1329,33 @@ ${hairPath}
                 data.data.forEach((c, i) => grid.appendChild(buildCloudCertCard(c, i)));
                 container.appendChild(grid);
 
-                // Papar HANYA sijil PDF paling terkini sebagai pratonton (semua page)
+                // Kad terkini muncul serta-merta; PDF berat diproses di latar belakang.
+                renderLatestCloudQuick(data.data[0]);
                 if (autoPreviewLatest) previewLatestCert(data.data[0]);
-            } catch (e) { container.innerHTML = "<p style='color:red;'>Gagal menyambung.</p>"; }
+            } catch (e) {
+                if (token !== certRequestToken) return;
+                container.innerHTML = "<p style='color:red;'>Gagal menyambung. Cuba semula.</p>";
+                const listUI = document.getElementById('certGridUI');
+                if (listUI && !listUI.children.length) listUI.innerHTML = `<p style="font-size:13px; color:var(--danger);">Sijil mengambil masa terlalu lama untuk disemak. Pilih pelajar ini semula untuk cuba lagi.</p>`;
+            }
+        }
+
+        function renderLatestCloudQuick(cert) {
+            if (!cert || !activeStudent) return;
+            const mine = sessionCerts.filter(c => c.student === activeStudent.name);
+            if (mine.some(c => c.needsSync || c.sourceUrl === cert.url)) return;
+            const listUI = document.getElementById('certGridUI');
+            if (!listUI) return;
+            listUI.innerHTML = '';
+            const card = document.createElement('div');
+            card.className = 'cert-card';
+            const thumb = getDriveThumb(cert.url);
+            card.innerHTML = `<div class="cert-header"><div><h4>${cert.certName || 'Sijil Terkini'}</h4><span class="cert-status drive"><i class="fa-solid fa-cloud"></i> Tersimpan di Drive</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn-primary quick-open" style="width:auto;padding:9px 12px;"><i class="fa-solid fa-eye"></i> Buka PDF</button><button class="btn-ghost quick-load" style="width:auto;padding:9px 12px;"><i class="fa-solid fa-rotate"></i> Muat Pratonton</button></div></div><div style="margin-top:10px;display:flex;align-items:center;gap:12px;"><img class="cover" alt="Pratonton ${cert.certName || 'sijil'}" src="${thumb}" style="width:92px;height:120px;object-fit:cover;border:1px solid var(--border);border-radius:6px;"><p style="font-size:13px;color:var(--text-light);">Fail sudah ditemui. Pratonton penuh sedang dimuatkan di latar dan paparan ini boleh terus digunakan.</p></div>`;
+            card.querySelector('.quick-open').onclick = () => window.open(cert.url, '_blank');
+            card.querySelector('.quick-load').onclick = () => previewLatestCert(cert);
+            const img = card.querySelector('img');
+            img.onerror = function () { this.onerror = null; this.src = AVATAR_NEUTRAL; };
+            listUI.appendChild(card);
         }
 
         /** Butang sejarah: tunjuk/sembunyi senarai sijil terdahulu */
@@ -1441,7 +1477,7 @@ ${hairPath}
             // Kadangkala Drive belum siap sepenuhnya sebaik sahaja PDF disimpan.
             // Cuba beberapa kali sebelum menyerah.
             let data = null, bytes = null, lastErr = null;
-            for (let attempt = 1; attempt <= 3; attempt++) {
+            for (let attempt = 1; attempt <= 2; attempt++) {
                 try {
                     data = await api({ action: "getRawPdf", fileUrl: url });
                     if (!data || data.status !== "success") throw new Error((data && data.message) || "Gagal tarik fail dari Cloud.");
@@ -1451,10 +1487,10 @@ ${hairPath}
                     break;
                 } catch (e) {
                     lastErr = e; bytes = null;
-                    if (attempt < 3) {
+                    if (attempt < 2) {
                         const t = document.getElementById('loadingText');
-                        if (t) t.innerText = `Fail belum sedia di Cloud... cuba lagi (${attempt}/2)`;
-                        await new Promise(r => setTimeout(r, 1500 * attempt));
+                        if (t) t.innerText = `Fail belum sedia... cuba sekali lagi`;
+                        await new Promise(r => setTimeout(r, 1000));
                     }
                 }
             }
@@ -1575,8 +1611,8 @@ ${hairPath}
                 const lazy = [];
                 for (let i = 1; i <= n; i++) lazy.push({ url, pageNo: i, key: `${Date.now()}_${i}_${Math.random().toString(36).slice(2, 7)}` });
 
-                // Hanya beberapa page pertama dirender sebelum editor dibuka - selebihnya di latar belakang.
-                const firstBatch = Math.min(n, 4);
+                // Satu page dahulu supaya kad muncul cepat; selebihnya di latar belakang.
+                const firstBatch = Math.min(n, 1);
                 for (let i = 0; i < firstBatch; i++) {
                     thumbs[i] = await renderPdfPage(pdf, i + 1, THUMB_W, 0.65);
                     setProgress(i + 1, firstBatch);

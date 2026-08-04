@@ -247,6 +247,7 @@ function kemaskiniSijil(data) {
 
 
 function dapatkanSijil(studentName) {
+  studentName = (studentName || "").toString().trim();
   var cache = CacheService.getScriptCache();
   var key = "certs_" + studentName;
   var hit = cache.get(key);
@@ -256,14 +257,17 @@ function dapatkanSijil(studentName) {
   var lastRow = sheet.getLastRow();
   var certs = [];
   if (lastRow > 1) {
-    var records = sheet.getRange(2, 1, lastRow - 1, 5).getValues();
-    for (var i = 0; i < records.length; i++) {
-      if (records[i][1] && records[i][1].toString().trim() === studentName.trim()) {
-        certs.push({ date: records[i][0], certName: records[i][2], url: records[i][4] });
-      }
+    // Cari terus pada lajur nama; elak memindahkan semua rekod sijil ke memori.
+    var matches = sheet.getRange(2, 2, lastRow - 1, 1)
+      .createTextFinder(studentName)
+      .matchEntireCell(true)
+      .matchCase(true)
+      .findAll();
+    for (var i = matches.length - 1; i >= 0; i--) {
+      var row = sheet.getRange(matches[i].getRow(), 1, 1, 5).getValues()[0];
+      certs.push({ date: row[0], certName: row[2], url: row[4] });
     }
   }
-  certs.reverse();
   var res = { status: "success", data: certs };
   try { cache.put(key, JSON.stringify(res), CACHE_SEC); } catch (e) {}
   return res;
