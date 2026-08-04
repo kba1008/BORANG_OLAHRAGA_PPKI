@@ -383,6 +383,7 @@
             object-fit: cover; 
             border-bottom: 1px solid var(--border); 
             background: #f3f4f6;
+            cursor: pointer;
         }
 
         .cloud-cert-info { 
@@ -410,8 +411,18 @@
         /* Scanner Screen */
         #scannerScreen { text-align: center; }
         #scannerScreen .card { max-width: 800px; margin: auto; }
-        video, canvas { width: 100%; max-height: 45vh; border-radius: 8px; background: #000; object-fit: contain; margin-bottom: 15px; }
-        canvas { display: none; }
+        
+        /* PENTING: Kanvas default disembunyikan HANYA untuk Scanner, bukan Editor */
+        video, #canvas { 
+            width: 100%; 
+            max-height: 45vh; 
+            border-radius: 8px; 
+            background: #000; 
+            object-fit: contain; 
+            margin-bottom: 15px; 
+        }
+        #canvas { display: none; }
+        
         .btn-group { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;}
         .btn-group button { width: auto; min-width: 140px; }
 
@@ -449,8 +460,15 @@
         @keyframes popIn { to { transform: scale(1); } }
         .hidden { display: none !important; }
 
-        /* EDITOR POWER UI */
-        #editorModalBox { max-width: 950px; width: 98%; height: 96vh; padding: 15px; }
+        /* ==================================== */
+        /* EDITOR POWER UI (DIPERBAIKI)        */
+        /* ==================================== */
+        #editorModalBox { 
+            max-width: 950px; 
+            width: 98%; 
+            height: 96vh; 
+            padding: 15px; 
+        }
         
         .editor-toolbar { 
             display: flex; 
@@ -488,14 +506,18 @@
             display: flex; 
             justify-content: center; 
             align-items: center;
+            min-height: 300px;
         }
 
+        /* INI PENYELESAIAN UTAMA KANVAS KOSONG */
         #editorCanvas { 
+            display: block !important; 
             max-width: 100%; 
             object-fit: contain; 
             cursor: crosshair; 
             touch-action: none; 
             background: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
         .editor-footer { 
@@ -704,7 +726,7 @@
 
     <!-- KOD JAVASCRIPT UTAMA -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz0jovH5DlVP-SStMW6tB4CMGgrXJaM-CH08QVIG5wZHhyYx4g1hcM8AYJm3AB6yk2K/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxOrI7Q-Rpk8xtBe7Ol6TyiWzmSx2Mg5PUpc-YOuMadiKEPXeBzNpBkk79qk-nDrvtB/exec"; 
         
         let currentUserEmail = ""; 
         let studentsList = []; 
@@ -966,13 +988,14 @@
                     for(let i = 1; i <= pdf.numPages; i++) {
                         const page = await pdf.getPage(i);
                         const viewport = page.getViewport({scale: 1.5});
+                        
+                        // Gunakan canvas scanner (hidden) untuk lukis PDF sementara
                         canvas.width = viewport.width;
                         canvas.height = viewport.height;
                         await page.render({canvasContext: ctx, viewport: viewport}).promise;
                         extractedImages.push(canvas.toDataURL('image/jpeg', 0.9));
                     }
 
-                    // Push ke Ruangan Editor
                     sessionCerts.push({
                         student: activeStudent.name,
                         certName: certName + " (Edit)",
@@ -981,10 +1004,9 @@
                     });
 
                     hideLoading();
-                    showAppAlert("Sedia Diedit", "Fail dari Cloud telah berjaya dimasukkan ke dalam Ruangan Editor di bawah. Anda boleh mula menyusun atau mengeditnya sekarang.", "success");
+                    showAppAlert("Sedia Diedit", "Fail dari Cloud telah berjaya dimasukkan ke dalam Ruangan Editor di bawah.", "success");
                     renderCerts();
                     
-                    // Skrol pengguna ke bawah perlahan-lahan
                     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                 } else {
                     hideLoading();
