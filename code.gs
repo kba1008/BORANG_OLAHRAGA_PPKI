@@ -59,7 +59,7 @@ function getOrCreateSheet(ss, sheetName) {
     var headers = [];
     if (sheetName === SHEET_PENGGUNA) headers = ["Email", "Kata Laluan", "Peranan", "Status"];
     else if (sheetName === SHEET_SIJIL) headers = ["Tarikh & Masa", "Nama Pelajar", "Nama Sijil", "Email Guru", "Pautan Fail Drive (PDF)"];
-    else if (sheetName === SHEET_PELAJAR) headers = ["Nama Pelajar", "Kelas", "No IC", "Jantina", "Kategori", "ID Gambar Drive", "Didaftar Oleh", "Tarikh Daftar"];
+    else if (sheetName === SHEET_PELAJAR) headers = ["Nama Pelajar", "Kelas", "No IC", "Jantina", "Kategori", "ID Gambar Drive", "Didaftar Oleh", "Tarikh Daftar", "Nama Sekolah"];
     if (headers.length > 0) {
       sheet.appendRow(headers);
       sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#4f46e5").setFontColor("white");
@@ -97,10 +97,18 @@ function simpanGambarProfil(base64DataUri, namaPelajar) {
 }
 
 /** Baca hanya lajur ringan (nama/kelas/ic/jantina/kategori/idGambar) - tanpa base64 berat */
+/** Pastikan lajur 9 = Nama Sekolah wujud (rekod lama hanya 8 lajur) */
+function pastikanLajurSekolah(sheet) {
+  if (sheet.getMaxColumns() < 9) sheet.insertColumnsAfter(sheet.getMaxColumns(), 9 - sheet.getMaxColumns());
+  var head = sheet.getRange(1, 9).getValue();
+  if (!head) sheet.getRange(1, 9).setValue("Nama Sekolah");
+}
+
 function bacaSemuaPelajarRingkas(sheet) {
+  pastikanLajurSekolah(sheet);
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
-  var values = sheet.getRange(2, 1, lastRow - 1, 6).getValues();
+  var values = sheet.getRange(2, 1, lastRow - 1, 9).getValues();
   var out = [];
   for (var i = 0; i < values.length; i++) {
     var r = values[i];
@@ -115,6 +123,7 @@ function bacaSemuaPelajarRingkas(sheet) {
       ic: r[2] ? r[2].toString() : "",
       jantina: r[3] || "",
       kategori: r[4] || "",
+      sekolah: r[8] || "",
       gambarId: gambar
     });
   }
@@ -273,7 +282,8 @@ function dapatkanPelajar(data) {
     all = all.filter(function (s) {
       return s.name.toLowerCase().indexOf(search) > -1 ||
         s.ic.toString().toLowerCase().indexOf(search) > -1 ||
-        s.kelas.toString().toLowerCase().indexOf(search) > -1;
+        s.kelas.toString().toLowerCase().indexOf(search) > -1 ||
+        (s.sekolah || "").toString().toLowerCase().indexOf(search) > -1;
     });
   }
 
@@ -312,7 +322,8 @@ function tambahPelajar(data) {
 
   var gambarId = simpanGambarProfil(data.gambarBase64, nameTrimmed);
   var tarikh = Utilities.formatDate(new Date(), "Asia/Kuala_Lumpur", "dd-MM-yyyy HH:mm");
-  sheet.appendRow([nameTrimmed, data.kelas || "-", data.ic || "-", data.jantina || "-", data.kategori || "-", gambarId, data.guruEmail, tarikh]);
+  pastikanLajurSekolah(sheet);
+  sheet.appendRow([nameTrimmed, data.kelas || "-", data.ic || "-", data.jantina || "-", data.kategori || "-", gambarId, data.guruEmail, tarikh, data.sekolah || "-"]);
   return { status: "success", message: "Pelajar berjaya didaftarkan.", gambarId: gambarId };
 }
 
@@ -338,6 +349,8 @@ function kemaskiniMaklumatPelajar(data) {
     if (names[i][0] && names[i][0].toString().trim() === oldName) {
       var rowNum = i + 2;
       sheet.getRange(rowNum, 1, 1, 5).setValues([[newName, data.kelas || "-", data.ic || "-", data.jantina || "-", data.kategori || "-"]]);
+      pastikanLajurSekolah(sheet);
+      sheet.getRange(rowNum, 9).setValue(data.sekolah || "-");
 
       var gambarId = "";
       if (data.gambarBase64) {
