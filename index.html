@@ -119,6 +119,7 @@
         .mstudent-picker select option { padding:12px; font-size:15px; color:var(--text-main); }
         .mstudent-picker select option:disabled { color:var(--text-light); font-weight:700; }
         #studentModal input#regName, #studentModal input#regSekolah, #studentModal input#regKelas, #studentModal input#regIc, #studentModal input#regKategori { text-transform: uppercase; }
+        #registerModal input#regNama, #registerModal input#regUserSekolah, #registerModal input#regJawatan { text-transform: uppercase; }
         .thumb-add-btn { min-width: 150px; max-width: 150px; border: 2px dashed var(--primary); border-radius: var(--radius); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; color: var(--primary); font-weight: bold; background: rgba(79, 70, 229, 0.05); gap:6px; }
 
         .cloud-certs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 15px; }
@@ -352,7 +353,7 @@
             <input type="hidden" id="editOldName" value="">
             <input type="text" id="regName" placeholder="Nama Penuh Pelajar (Cth: ALI BIN ABU)">
             <input type="text" id="regSekolah" placeholder="Nama Sekolah (Cth: SK SELAMA)">
-            <input type="text" id="regKelas" placeholder="Kelas/Umur (Cth: 5 CERDIK)">
+            <input type="text" id="regKelas" placeholder="Kelas (Cth: 5 CERDIK)">
             <input type="text" id="regIc" placeholder="No. Kad Pengenalan (Cth: 940101025601)">
             <select id="regJantina" onchange="refreshAvatarPreview()"><option value="">Pilih Jantina...</option><option value="Lelaki">Lelaki</option><option value="Perempuan">Perempuan</option></select>
             <input type="text" id="regKategori" placeholder="Kategori (Cth: BPL15)">
@@ -380,7 +381,7 @@
             <h3 style="margin-bottom:5px;"><i class="fa-solid fa-user-plus"></i> Daftar Akaun Baharu</h3>
             <p style="font-size:12px; color:var(--text-light); margin-bottom:12px;">Semua maklumat wajib diisi. Akaun anda hanya boleh digunakan selepas diluluskan oleh Master Admin.</p>
             <input type="text" id="regNama" placeholder="Nama Penuh">
-            <input type="text" id="regSekolah" placeholder="Nama Sekolah">
+            <input type="text" id="regUserSekolah" placeholder="Nama Sekolah">
             <input type="tel" id="regTelefon" placeholder="No Telefon (Cth: 0123456789)">
             <input type="text" id="regJawatan" placeholder="Jawatan (Cth: Guru Kelas)">
             <input type="email" id="regEmail" placeholder="Emel" autocomplete="email">
@@ -727,7 +728,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxCrPlk2teqrm05ubJie-OI241OyRKA-5m4-TGgZiT004pmVjWJHlr5UgjdWNv_O968/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6ctqKJB2XLa9eRFdXXQVzR6deoK4auu-hS6W1Yqah61q6twG7EIKfOYhjmPWsgZ6o/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -892,8 +893,10 @@ ${hairPath}
             document.getElementById('progressBar').style.width = '0%';
         }
 
-        function showAppAlert(title, message, type = "info") {
+        let _alertAction = null;
+        function showAppAlert(title, message, type = "info", action = null, btnLabel = "Tutup") {
             const overlay = document.getElementById('customAlert'), icon = document.getElementById('alertIcon'), btn = document.getElementById('alertBtn');
+            _alertAction = action; btn.innerText = btnLabel;
             icon.className = 'fa-solid'; btn.style.backgroundColor = "var(--primary)";
             if (type === "error") { icon.classList.add('fa-circle-xmark'); icon.style.color = "var(--danger)"; btn.style.backgroundColor = "var(--danger)"; }
             else if (type === "success") { icon.classList.add('fa-circle-check'); icon.style.color = "var(--secondary)"; btn.style.backgroundColor = "var(--secondary)"; }
@@ -903,7 +906,19 @@ ${hairPath}
             document.getElementById('alertMessage').innerText = message;
             overlay.style.display = 'flex';
         }
-        function closeAppAlert() { document.getElementById('customAlert').style.display = 'none'; }
+        function closeAppAlert() {
+            document.getElementById('customAlert').style.display = 'none';
+            const act = _alertAction; _alertAction = null;
+            if (typeof act === 'function') act();
+        }
+
+        /* Hubungi Master Admin melalui WhatsApp */
+        const MASTER_ADMIN_WA = "601110661077";
+        function openWhatsAppAdmin(text) {
+            const url = "https://wa.me/" + MASTER_ADMIN_WA + "?text=" + encodeURIComponent(text || "");
+            const w = window.open(url, "_blank");
+            if (!w) window.location.href = url;
+        }
 
         /* Dialog input & pengesahan tersuai (tiada popup pelayar / tiada paparan domain) */
         let _promptResolver = null, _confirmResolver = null;
@@ -1059,14 +1074,15 @@ ${hairPath}
         }
 
         function register() {
-            ["regNama","regSekolah","regTelefon","regJawatan","regEmail","regPassword"].forEach(id => document.getElementById(id).value = "");
+            ["regNama","regUserSekolah","regTelefon","regJawatan","regEmail","regPassword"].forEach(id => document.getElementById(id).value = "");
             document.getElementById('registerModal').style.display = 'flex';
         }
 
         async function submitRegister() {
             const v = id => document.getElementById(id).value.trim();
-            const namaPenuh = v('regNama'), sekolah = v('regSekolah'), telefon = v('regTelefon'),
-                  jawatan = v('regJawatan'), email = v('regEmail'), pass = document.getElementById('regPassword').value;
+            const UPv = id => document.getElementById(id).value.trim().toUpperCase();
+            const namaPenuh = UPv('regNama'), sekolah = UPv('regUserSekolah'), telefon = v('regTelefon'),
+                  jawatan = UPv('regJawatan'), email = v('regEmail'), pass = document.getElementById('regPassword').value;
             if (!namaPenuh || !sekolah || !telefon || !jawatan || !email || !pass)
                 return showAppAlert("Maklumat", "Sila lengkapkan semua maklumat.", "warning");
             if (!/^[0-9+\-\s]{8,20}$/.test(telefon)) return showAppAlert("Maklumat", "No telefon tidak sah.", "warning");
@@ -1076,8 +1092,18 @@ ${hairPath}
             try {
                 let d = await api({ action: "register", email, password: pass, namaPenuh, sekolah, telefon, jawatan });
                 hideLoading();
-                if (d.status === "success") document.getElementById('registerModal').style.display = 'none';
-                showAppAlert(d.status === "success" ? "Berjaya" : "Ralat", d.message, d.status === "success" ? "success" : "error");
+                if (d.status === "success") {
+                    document.getElementById('registerModal').style.display = 'none';
+                    const msg = "Assalamualaikum / Salam sejahtera Master Admin.\n\n" +
+                        "Saya baru mendaftar akaun Sistem Sijil Pro dan mohon kelulusan akaun.\n\n" +
+                        "Nama: " + namaPenuh + "\n" +
+                        "Sekolah: " + sekolah + "\n" +
+                        "Jawatan: " + jawatan + "\n" +
+                        "No Telefon: " + telefon + "\n" +
+                        "Emel: " + email + "\n\nTerima kasih.";
+                    showAppAlert("Berjaya", (d.message || "Pendaftaran berjaya.") + " Sila hubungi Master Admin di WhatsApp untuk kelulusan akaun.",
+                        "success", () => openWhatsAppAdmin(msg), "Hubungi Admin (WhatsApp)");
+                } else showAppAlert("Ralat", d.message, "error");
             } catch (e) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error"); }
         }
 
