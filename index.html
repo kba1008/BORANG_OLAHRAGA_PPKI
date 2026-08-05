@@ -171,8 +171,10 @@
 
         #editorModalBox { max-width: 1000px; width: 98%; height: calc(100dvh - 24px); padding: 14px; }
         .editor-toolbar { display: flex; gap: 8px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--border); }
-        .editor-toolbar button { flex: 0 0 auto; width: auto; padding: 8px 14px; font-size: 13px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border); border-radius: 10px; }
+        .editor-toolbar button { flex: 0 0 auto; width: auto; padding: 8px 14px; font-size: 13px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border); border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
         .editor-toolbar button.active-tool { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .editor-toolbar.editor-toolbar-2 button { background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.45); color: #b45309; }
+
         .editor-canvas-container { flex: 1; overflow: auto; background: #e5e7eb; border-radius: 10px; border: 1px solid #ccc; position: relative; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; min-height: 240px; padding: 10px; }
         .editor-canvas-container.tool-active { touch-action: none; }
         .canvas-stage { display: inline-block; margin: 0 auto; }
@@ -220,7 +222,10 @@
         .dialog-actions button { width: auto; min-width: 110px; border-radius: 10px; }
         @media (max-width: 600px) {
             #editorModalBox { padding: 10px; }
-            .editor-toolbar button { padding: 8px 12px; font-size: 12px; }
+            .editor-toolbar { gap: 6px; padding-bottom: 8px; margin-bottom: 8px; }
+            .editor-toolbar button { padding: 0; font-size: 15px; width: 42px; height: 40px; flex: 0 0 auto; }
+            .editor-toolbar .btn-lbl { display: none; }
+
             .dialog-actions button { flex: 1; min-width: 0; }
             .tool-options { max-height: 33vh; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px; }
             .txt-panel { gap: 8px; }
@@ -549,13 +554,23 @@
         <div class="modal-box" id="editorModalBox">
             <h3 style="margin-bottom: 10px; text-align: left; font-size: 18px;"><i class="fa-solid fa-pen-ruler"></i> Editor Power</h3>
             <div class="editor-toolbar">
-                <button id="toolPan" class="active-tool" onclick="setTool('')"><i class="fa-solid fa-up-down-left-right"></i> Gerak / Skrol</button>
-                <button id="toolText" onclick="setTool('text')"><i class="fa-solid fa-font"></i> Teks</button>
-                <button id="toolErase" onclick="setTool('erase')"><i class="fa-solid fa-eraser"></i> Padam</button>
-                <button id="toolCrop" onclick="setTool('crop')"><i class="fa-solid fa-crop-simple"></i> Crop</button>
-                <button onclick="applyAiFilter()"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Filter</button>
-                <button onclick="undoEditor()"><i class="fa-solid fa-rotate-left"></i> Undo</button>
+                <button id="toolPan" class="active-tool" onclick="setTool('')" title="Gerak / Skrol" aria-label="Gerak / Skrol"><i class="fa-solid fa-up-down-left-right"></i><span class="btn-lbl">Gerak / Skrol</span></button>
+                <button id="toolText" onclick="setTool('text')" title="Teks" aria-label="Teks"><i class="fa-solid fa-font"></i><span class="btn-lbl">Teks</span></button>
+                <button id="toolErase" onclick="setTool('erase')" title="Padam" aria-label="Padam"><i class="fa-solid fa-eraser"></i><span class="btn-lbl">Padam</span></button>
+                <button id="toolCrop" onclick="setTool('crop')" title="Crop" aria-label="Crop"><i class="fa-solid fa-crop-simple"></i><span class="btn-lbl">Crop</span></button>
+                <button onclick="applyAiFilter()" title="AI Filter" aria-label="AI Filter"><i class="fa-solid fa-wand-magic-sparkles"></i><span class="btn-lbl">AI Filter</span></button>
+                <button onclick="undoEditor()" title="Undo" aria-label="Undo"><i class="fa-solid fa-rotate-left"></i><span class="btn-lbl">Undo</span></button>
             </div>
+            <div class="editor-toolbar editor-toolbar-2">
+                <button onclick="editorAutoCrop()" title="Crop Auto Kesan" aria-label="Crop Auto Kesan"><i class="fa-solid fa-wand-magic-sparkles"></i><span class="btn-lbl">Auto Kesan</span></button>
+                <button onclick="editorFullCrop()" title="Crop Penuh" aria-label="Crop Penuh"><i class="fa-solid fa-expand"></i><span class="btn-lbl">Crop Penuh</span></button>
+                <button onclick="rotateEditorImage()" title="Putar 90&deg;" aria-label="Putar"><i class="fa-solid fa-rotate-right"></i><span class="btn-lbl">Putar</span></button>
+                <button onclick="editorRetake()" title="Ambil Semula (kamera)" aria-label="Ambil Semula"><i class="fa-solid fa-camera-rotate"></i><span class="btn-lbl">Ambil Semula</span></button>
+                <button onclick="editorReupload()" title="Upload Semula (fail)" aria-label="Upload Semula"><i class="fa-solid fa-cloud-arrow-up"></i><span class="btn-lbl">Upload Semula</span></button>
+                <input type="file" id="edRetakeInput" accept="image/*" capture="environment" style="display:none;">
+                <input type="file" id="edUploadInput" accept="image/*" style="display:none;">
+            </div>
+
             <div id="textOptions" class="tool-options">
                 <div class="txt-panel">
                     <textarea id="txtContent" rows="2" placeholder="Taip teks di sini..." oninput="updateActiveLayer('text', this.value)"></textarea>
@@ -862,7 +877,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyd_fRW3KgWkJ_y0593QZ0VbN-vpC63kCB53qtLagXdObtJxz5ErTN3KQn1DLSIXofX/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby45McW2RA2wngleYLw05yE4KSseVVuN3gvXRpajgsTxJcyNOnCzSzBCAQZnMn0pl6S/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -2860,6 +2875,64 @@ ${hairPath}
             editHistory.pop();
             restoreState(editHistory[editHistory.length - 1]);
         }
+
+        /* ---------- Alat sumber (auto kesan / penuh / putar / ambil semula / upload semula) ---------- */
+        function editorAutoCrop() {
+            if (!baseCanvas.width) return;
+            setTool('crop');
+            cropQuadAuto();
+        }
+        function editorFullCrop() {
+            if (!baseCanvas.width) return;
+            setTool('crop');
+            cropQuadReset();
+            renderEditor();
+        }
+        /** Putar gambar 90 darjah ikut jam */
+        function rotateEditorImage() {
+            if (!baseCanvas.width) return;
+            flattenLayers();
+            const c = document.createElement('canvas');
+            c.width = baseCanvas.height; c.height = baseCanvas.width;
+            const cx = c.getContext('2d', { willReadFrequently: true });
+            cx.translate(c.width / 2, c.height / 2);
+            cx.rotate(Math.PI / 2);
+            cx.drawImage(baseCanvas, -baseCanvas.width / 2, -baseCanvas.height / 2);
+            baseCanvas.width = c.width; baseCanvas.height = c.height;
+            baseCtx.clearRect(0, 0, c.width, c.height);
+            baseCtx.drawImage(c, 0, 0);
+            edQuad = null;
+            if (edTool === 'crop') cropQuadReset(true);
+            renderEditor(); fitEditor(); saveHistory();
+        }
+        /** Ganti gambar page dalam editor dengan imej baru */
+        function replaceEditorImage(dataUrl) {
+            const im = new Image();
+            im.onload = () => {
+                textLayers = []; activeLayerId = null; edQuad = null;
+                baseCanvas.width = im.naturalWidth; baseCanvas.height = im.naturalHeight;
+                baseCtx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
+                baseCtx.drawImage(im, 0, 0);
+                setTool('');
+                renderEditor(); fitEditor(); saveHistory();
+            };
+            im.src = dataUrl;
+        }
+        function editorRetake() { const i = document.getElementById('edRetakeInput'); i.value = ""; i.click(); }
+        function editorReupload() { const i = document.getElementById('edUploadInput'); i.value = ""; i.click(); }
+        ['edRetakeInput', 'edUploadInput'].forEach(id => {
+            const inp = document.getElementById(id);
+            if (!inp) return;
+            inp.addEventListener('change', (e) => {
+                const f = e.target.files && e.target.files[0];
+                if (!f) return;
+                const r = new FileReader();
+                r.onload = () => replaceEditorImage(r.result);
+                r.readAsDataURL(f);
+            });
+        });
+
+
 
         /* ---------- Buka / tutup ---------- */
         async function openPowerEditor(cIdx, pIdx) {
