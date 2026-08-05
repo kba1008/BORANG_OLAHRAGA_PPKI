@@ -812,7 +812,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbytIWKUFZl3bvhhupbHXhAS16jHIiOkuElOIioJlomEhwEjway7LKFXmjNgr9id6jB-/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6ctqKJB2XLa9eRFdXXQVzR6deoK4auu-hS6W1Yqah61q6twG7EIKfOYhjmPWsgZ6o/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -1095,10 +1095,24 @@ ${hairPath}
             if (btn) btn.style.display = (currentUserRole === "Admin") ? "inline-flex" : "none";
         }
 
+        /* Sesi kekal: simpan kata laluan dalam localStorage supaya pengguna
+           tidak perlu log masuk semula setiap kali buka app (hanya logout manual). */
+        function savedPassGet() {
+            return localStorage.getItem("sijilProPass") || sessionStorage.getItem("sijilProPass") || "";
+        }
+        function savedPassSet(p) {
+            try { localStorage.setItem("sijilProPass", p); } catch (e) {}
+            try { sessionStorage.setItem("sijilProPass", p); } catch (e) {}
+        }
+        function savedPassClear() {
+            localStorage.removeItem("sijilProPass");
+            savedPassClear();
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             refreshAvatarPreview();
             const savedUser = localStorage.getItem("sijilProUser");
-            const savedPass = sessionStorage.getItem("sijilProPass");
+            const savedPass = savedPassGet();
             // Skrin log masuk sahaja sehingga sesi disahkan sebagai "Approved"
             switchScreen('loginScreen');
             if (savedUser && savedPass) {
@@ -1130,7 +1144,25 @@ ${hairPath}
                         showSkeleton();
                     }
                     reloadStudents(true);
-                }).catch(() => { hideLoading(); logout(); });
+                }).catch(() => {
+                    // Gagal hubungi pelayan (offline) - kekalkan sesi, jangan paksa log masuk semula
+                    hideLoading();
+                    currentUserEmail = savedUser;
+                    currentUserRole = localStorage.getItem("sijilProRole") || "User";
+                    currentUserName = localStorage.getItem("sijilProNama") || savedUser;
+                    document.getElementById('userEmailDisplay').innerText = currentUserName;
+                    applyRoleUI();
+                    switchScreen('dashboardScreen');
+                    const cachedOff = localStorage.getItem(CACHE_KEY);
+                    if (cachedOff) {
+                        try {
+                            const p = JSON.parse(cachedOff);
+                            studentsList = p.data || [];
+                            studentTotal = p.total || studentsList.length;
+                            renderStudentList();
+                        } catch (e) {}
+                    }
+                });
             } else { logout(); }
         });
 
@@ -1148,7 +1180,7 @@ ${hairPath}
                     localStorage.setItem("sijilProUser", currentUserEmail);
                     localStorage.setItem("sijilProRole", currentUserRole);
                     localStorage.setItem("sijilProNama", currentUserName);
-                    sessionStorage.setItem("sijilProPass", pass);
+                    savedPassSet(pass);
                     document.getElementById('userEmailDisplay').innerText = currentUserName;
                     applyRoleUI();
                     switchScreen('dashboardScreen');
@@ -1178,6 +1210,25 @@ ${hairPath}
                 hideLoading();
                 if (d.status === "success") {
                     document.getElementById('registerModal').style.display = 'none';
+                    // Auto log masuk selepas daftar (jika akaun sudah diluluskan)
+                    document.getElementById('loginEmail').value = email;
+                    document.getElementById('loginPassword').value = pass;
+                    try {
+                        const auto = await api({ action: "login", email, password: pass });
+                        if (auto && auto.status === "success") {
+                            currentUserEmail = auto.email || email;
+                            currentUserRole = auto.role || "User";
+                            currentUserName = auto.namaPenuh || currentUserEmail;
+                            localStorage.setItem("sijilProUser", currentUserEmail);
+                            localStorage.setItem("sijilProRole", currentUserRole);
+                            localStorage.setItem("sijilProNama", currentUserName);
+                            savedPassSet(pass);
+                            document.getElementById('userEmailDisplay').innerText = currentUserName;
+                            applyRoleUI();
+                            switchScreen('dashboardScreen');
+                            showSkeleton(); reloadStudents(true);
+                        }
+                    } catch (e) {}
                     const msg = "Assalamualaikum / Salam sejahtera Master Admin.\n\n" +
                         "Saya baru mendaftar akaun Sistem Sijil Pro dan mohon kelulusan akaun.\n\n" +
                         "Nama: " + namaPenuh + "\n" +
@@ -1194,7 +1245,7 @@ ${hairPath}
         function logout() {
             localStorage.removeItem("sijilProUser"); localStorage.removeItem("sijilProRole"); localStorage.removeItem("sijilProNama"); localStorage.removeItem(CACHE_KEY);
             currentUserEmail = ""; currentUserName = ""; setUpdatedByLabel(null);
-            sessionStorage.removeItem("sijilProPass");
+            savedPassClear();
             currentUserRole = "User"; applyRoleUI();
             sessionCerts = []; studentsList = []; activeStudent = null; switchScreen('loginScreen');
         }
@@ -1203,12 +1254,12 @@ ${hairPath}
          * 2b. PENGURUSAN PENGGUNA (MASTER ADMIN)
          * ========================================== */
         function adminCreds() {
-            return { adminEmail: currentUserEmail, adminPassword: sessionStorage.getItem("sijilProPass") || "" };
+            return { adminEmail: currentUserEmail, adminPassword: savedPassGet() };
         }
 
         function openUserAdmin() {
             if (currentUserRole !== "Admin") return showAppAlert("Akses", "Admin sahaja.", "warning");
-            if (!sessionStorage.getItem("sijilProPass")) {
+            if (!savedPassGet()) {
                 return showAppAlert("Sesi", "Sila log masuk semula untuk mengurus pengguna.", "warning");
             }
             document.getElementById('userAdminModal').style.display = 'flex';
@@ -1350,7 +1401,7 @@ ${hairPath}
                         if (fresh) { activeStudent = fresh; paintActiveStudent(); }
                     }
                 }
-            } catch (e) { console.error("Sync gagal", e); renderStudentList(); }
+            } catch (e) { console.error("Sync gagal", e); renderStudentList(true); }
             finally { studentLoading = false; document.getElementById('studentSyncLabel').innerText = ""; }
         }
 
@@ -1392,11 +1443,22 @@ ${hairPath}
             return hits.join(" • ");
         }
 
-        function renderStudentList() {
+        let lastListSig = null;
+        function studentListSignature(list) {
+            return (activeStudent ? activeStudent.name : "") + "||" +
+                list.map(s => `${s.name}~${s.semakan || ''}~${s.catatan || ''}~${s.gambar || ''}`).join("|");
+        }
+
+        function renderStudentList(force) {
             const ul = document.getElementById('studentListUI');
+            const list = visibleStudents();
+            const sig = studentListSignature(list);
+            // Elak bina semula senarai bila tiada perubahan - re-render semasa
+            // pengguna sedang menekan nama menyebabkan klik "hilang" / tak buka.
+            if (!force && sig === lastListSig && ul.children.length) return;
+            lastListSig = sig;
             const frag = document.createDocumentFragment();
             ul.innerHTML = "";
-            const list = visibleStudents();
             renderStudentDropdown(list);
 
             if (list.length === 0) {
@@ -1424,7 +1486,7 @@ ${hairPath}
                 box.innerHTML = nameHtml + noteLine + (hint ? `<span style="font-size:10px; color:var(--text-light);">${hint}</span>` : "");
 
                 li.appendChild(img); li.appendChild(box);
-                li.onclick = () => selectStudent(student.name);
+                li.onclick = () => selectStudent(student.name, false, student);
                 frag.appendChild(li);
             });
             ul.appendChild(frag);
@@ -1433,12 +1495,19 @@ ${hairPath}
                 `Papar ${list.length} / ${studentTotal} pelajar` + (studentHasMore ? " (skrol untuk lagi)" : "");
         }
 
-        function selectStudent(nameStr, skipFetch = false) {
-            const found = studentsList.find(s => s.name === nameStr);
-            if (found) { const d = document.getElementById('studentDetails'); if (d) setTimeout(() => d.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80); }
+        function selectStudent(nameStr, skipFetch = false, studentObj = null) {
+            const norm = v => String(v || "").trim().toLowerCase();
+            const found = studentObj
+                || studentsList.find(s => s.name === nameStr)
+                || studentsList.find(s => norm(s.name) === norm(nameStr));
             if (!found) return;
+            // Hentikan carian tertunda supaya senarai tidak dibina semula
+            // sebaik sahaja pengguna memilih pelajar.
+            clearTimeout(searchTimer);
+            const d = document.getElementById('studentDetails');
+            if (d) setTimeout(() => d.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
             activeStudent = found;
-            renderStudentList();
+            renderStudentList(true);
             document.getElementById('emptyState').style.display = 'none';
             document.getElementById('studentDetails').style.display = 'block';
             paintActiveStudent();
@@ -1476,7 +1545,7 @@ ${hairPath}
             badge.innerText = st === 'lengkap' ? 'LENGKAP' : (st === 'belum' ? 'BELUM LENGKAP' : 'BELUM DISEMAK');
             if (title) title.style.color = st === 'lengkap' ? '#2563eb' : (st === 'belum' ? '#dc2626' : '');
             meta.innerText = st && activeStudent.semakOleh
-                ? `Disemak oleh ${activeStudent.semakOleh}${activeStudent.semakTarikh ? ' • ' + activeStudent.semakTarikh : ''}` : "";
+                ? `Disemak oleh ${activeStudent.semakOleh}${activeStudent.semakTarikh ? ' • ' + fmtMY(activeStudent.semakTarikh) : ''}` : "";
             if (st === 'belum' && activeStudent.catatan) {
                 note.style.display = 'block';
                 note.innerHTML = `<strong><i class="fa-solid fa-note-sticky"></i> Catatan:</strong> ${activeStudent.catatan}`;
@@ -1845,13 +1914,39 @@ ${hairPath}
             const id = driveId(url);
             return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w400` : "";
         }
+        /** Muat turun terus fail PDF sijil dari Google Drive */
+        function downloadDriveCert(cert) {
+            if (!cert || !cert.url) return;
+            const id = driveId(cert.url);
+            const link = id ? `https://drive.google.com/uc?export=download&id=${id}` : cert.url;
+            const a = document.createElement('a');
+            a.href = link; a.target = '_blank'; a.rel = 'noopener';
+            a.download = (cert.certName || 'sijil') + '.pdf';
+            document.body.appendChild(a); a.click(); a.remove();
+        }
 
         // Jangan muat turun keseluruhan PDF setiap kali pelajar dipilih.
         // Kad/thumbnail muncul dahulu; PDF penuh hanya dimuat atas permintaan pengguna.
-        function nowStamp() {
-            const d = new Date(), p = n => String(n).padStart(2, '0');
-            return `${p(d.getDate())}-${p(d.getMonth() + 1)}-${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+        /** Format tarikh/masa mengikut Waktu Malaysia (Asia/Kuala_Lumpur) */
+        const MY_TZ = 'Asia/Kuala_Lumpur';
+        function toDateSafe(v) {
+            if (!v) return null;
+            if (v instanceof Date) return isNaN(v) ? null : v;
+            const d = new Date(v);
+            return isNaN(d) ? null : d;
         }
+        function fmtMY(v) {
+            const d = toDateSafe(v);
+            if (!d) return v ? String(v) : "";
+            const parts = {};
+            new Intl.DateTimeFormat('en-US', {
+                timeZone: MY_TZ, day: 'numeric', month: 'numeric', year: 'numeric',
+                hour: 'numeric', minute: '2-digit', hour12: true
+            }).formatToParts(d).forEach(p => { parts[p.type] = p.value; });
+            const ampm = (parts.dayPeriod || '').toUpperCase().replace(/\./g, '');
+            return `TARIKH : ${parts.day}/${parts.month}/${parts.year} MASA : ${parts.hour}:${parts.minute} ${ampm}`;
+        }
+        function nowStamp() { return fmtMY(new Date()); }
         /** Papar log "Dikemaskini oleh" di bawah paparan Sijil Terkini */
         function setUpdatedByLabel(meta) {
             const el = document.getElementById('certUpdatedBy');
@@ -1860,7 +1955,7 @@ ${hairPath}
             if (!nama) { el.style.display = 'none'; el.innerHTML = ''; return; }
             el.style.display = 'block';
             el.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> Dikemaskini oleh: <strong>${nama}</strong>` +
-                (meta.date ? ` &middot; ${meta.date}` : '');
+                (meta.date ? ` &middot; ${fmtMY(meta.date)}` : '');
         }
 
         let autoPreviewLatest = false;
@@ -1903,8 +1998,9 @@ ${hairPath}
             const card = document.createElement('div');
             card.className = 'cert-card';
             const thumb = getDriveThumb(cert.url);
-            card.innerHTML = `<div class="cert-header"><div><h4>${cert.certName || 'Sijil Terkini'}</h4><span class="cert-status drive"><i class="fa-solid fa-cloud"></i> Tersimpan di Drive</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn-primary quick-open" style="width:auto;padding:9px 12px;"><i class="fa-solid fa-eye"></i> Buka PDF</button><button class="btn-ghost quick-load" style="width:auto;padding:9px 12px;"><i class="fa-solid fa-rotate"></i> Muat Pratonton</button></div></div><div style="margin-top:10px;display:flex;align-items:center;gap:12px;"><img class="cover" alt="Pratonton ${cert.certName || 'sijil'}" src="${thumb}" style="width:92px;height:120px;object-fit:cover;border:1px solid var(--border);border-radius:6px;"><p style="font-size:13px;color:var(--text-light);">Fail sudah ditemui. Pratonton penuh sedang dimuatkan di latar dan paparan ini boleh terus digunakan.</p></div>`;
+            card.innerHTML = `<div class="cert-header"><div><h4>${cert.certName || 'Sijil Terkini'}</h4><span class="cert-status drive"><i class="fa-solid fa-cloud"></i> Tersimpan di Drive</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn-primary quick-open" style="width:auto;padding:9px 12px;"><i class="fa-solid fa-eye"></i> Buka PDF</button><button class="btn-ghost quick-dl" title="Muat Turun PDF" aria-label="Muat Turun PDF" style="width:auto;padding:9px 12px;background:rgba(16,185,129,0.12);color:var(--secondary);"><i class="fa-solid fa-download"></i> Muat Turun</button><button class="btn-ghost quick-load" style="width:auto;padding:9px 12px;"><i class="fa-solid fa-rotate"></i> Muat Pratonton</button></div></div><div style="margin-top:10px;display:flex;align-items:center;gap:12px;"><img class="cover" alt="Pratonton ${cert.certName || 'sijil'}" src="${thumb}" style="width:92px;height:120px;object-fit:cover;border:1px solid var(--border);border-radius:6px;"><p style="font-size:13px;color:var(--text-light);">Fail sudah ditemui. Pratonton penuh sedang dimuatkan di latar dan paparan ini boleh terus digunakan.</p></div>`;
             card.querySelector('.quick-open').onclick = () => window.open(cert.url, '_blank');
+            card.querySelector('.quick-dl').onclick = () => downloadDriveCert(cert);
             card.querySelector('.quick-load').onclick = () => previewLatestCert(cert);
             const img = card.querySelector('img');
             img.onerror = function () { this.onerror = null; this.src = AVATAR_NEUTRAL; };
@@ -1955,7 +2051,7 @@ ${hairPath}
             const info = document.createElement('div');
             info.className = 'cloud-cert-info';
             info.innerHTML = `<div class="cloud-cert-name"><i class="fa-solid fa-file-pdf" style="color:var(--danger);"></i> ${cert.certName}</div>
-                <div class="cloud-cert-date">Tarikh: ${cert.date}</div>
+                <div class="cloud-cert-date">${fmtMY(cert.date)}</div>
                 ${cert.updatedBy ? `<div class="cloud-cert-date">Dikemaskini oleh: ${cert.updatedBy}</div>` : ''}`;
 
             const btnRow = document.createElement('div');
@@ -1973,13 +2069,19 @@ ${hairPath}
             bOpen.innerHTML = '<i class="fa-solid fa-eye"></i> Buka';
             bOpen.onclick = () => window.open(cert.url, '_blank');
 
+            const bDl = document.createElement('button');
+            bDl.className = 'btn-ghost';
+            bDl.style.cssText = "flex:1; padding:6px; font-size:12px; background:rgba(37,99,235,0.1); color:#2563eb;";
+            bDl.innerHTML = '<i class="fa-solid fa-download"></i> Muat Turun';
+            bDl.onclick = () => downloadDriveCert(cert);
+
             const bEdit = document.createElement('button');
             bEdit.className = 'btn-warning';
             bEdit.style.cssText = "flex:1; padding:6px; font-size:12px;";
             bEdit.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit';
             bEdit.onclick = () => { const c = document.getElementById('dbCertsContainer'); if (c.style.display !== 'none') toggleHistory(); pullFromCloudToEditor(cert.url, cert.certName); };
 
-            btnRow.appendChild(bPages); btnRow.appendChild(bOpen); btnRow.appendChild(bEdit);
+            btnRow.appendChild(bPages); btnRow.appendChild(bOpen); btnRow.appendChild(bDl); btnRow.appendChild(bEdit);
             info.appendChild(btnRow);
             card.appendChild(cover); card.appendChild(info);
             return card;
@@ -3901,10 +4003,14 @@ ${hairPath}
         /* ==========================================================
          * 11. PAPARAN TELEFON: DROPDOWN SENARAI PELAJAR
          * ========================================================== */
+        let lastDropdownSig = null;
         function renderStudentDropdown(list) {
             const sel = document.getElementById('studentSelectMobile');
             if (!sel) return;
             const current = activeStudent ? activeStudent.name : "";
+            const sig = current + "||" + list.map(s => `${s.name}~${s.semakan || ''}`).join("|");
+            if (sig === lastDropdownSig && sel.options.length) return;
+            lastDropdownSig = sig;
             sel.innerHTML = "";
             const ph = document.createElement('option');
             ph.value = ""; ph.disabled = true; ph.selected = !current;
@@ -3925,7 +4031,13 @@ ${hairPath}
             const more = document.getElementById('btnLoadMoreMobile');
             if (more) more.style.display = studentHasMore ? 'flex' : 'none';
         }
-        function onMobileStudentPick(val) { if (val) selectStudent(val); }
+        function onMobileStudentPick(val) {
+            if (!val) return;
+            const sel = document.getElementById('studentSelectMobile');
+            const obj = visibleStudents().find(s => s.name === val) || null;
+            selectStudent(val, false, obj);
+            if (sel) sel.value = activeStudent ? activeStudent.name : val;
+        }
     </script>
 </body>
 </html>
