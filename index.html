@@ -306,6 +306,15 @@
             .top-bar h2 { font-size: 16px; }
             .student-header { flex-direction: column; align-items: stretch; }
             .student-header button { width: 100%; }
+            /* Susunan kemas: gambar kecil di kiri, nama melintang penuh */
+            .student-profile-info { align-items: flex-start; gap: 12px; }
+            .student-profile-info > div { flex: 1 1 auto; min-width: 0; }
+            .student-profile-info img { width: 52px; height: 52px; }
+            .student-profile-info h2 { font-size: 17px; line-height: 1.25; word-break: break-word; }
+            .student-title-row { flex-wrap: wrap; gap: 8px; }
+            .student-title-row h2 { flex: 1 0 100%; }
+            .student-title-row button { flex: 1 1 0; width: auto !important; min-width: 0; justify-content: center; white-space: nowrap; }
+
             .btn-group button { width: 100%; min-width: 0; }
             .cloud-certs-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
             .thumb-item, .thumb-add-btn { min-width: 120px; max-width: 120px; }
@@ -740,7 +749,8 @@
                         <div class="student-profile-info">
                             <img id="activeStudentPic" alt="Gambar profil pelajar" title="Klik untuk paparan penuh" onclick="openPhotoViewer()">
                             <div>
-                                <div style="display:flex; align-items:center; gap:10px;">
+                                <div class="student-title-row" style="display:flex; align-items:center; gap:10px;">
+
                                     <h2 id="activeStudentTitle">Nama Pelajar</h2>
                                     <button class="btn-ghost" onclick="openEditStudent()" style="padding: 4px 8px; font-size: 12px; width:auto;"><i class="fa-solid fa-pen"></i> Edit Profil</button>
                                     <button class="btn-ghost" onclick="deleteActiveStudent()" style="padding: 4px 8px; font-size: 12px; width:auto; color:var(--danger); border-color:var(--danger);"><i class="fa-solid fa-trash"></i> Padam Pelajar</button>
@@ -812,7 +822,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby45McW2RA2wngleYLw05yE4KSseVVuN3gvXRpajgsTxJcyNOnCzSzBCAQZnMn0pl6S/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6ctqKJB2XLa9eRFdXXQVzR6deoK4auu-hS6W1Yqah61q6twG7EIKfOYhjmPWsgZ6o/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -4013,7 +4023,7 @@ ${hairPath}
             lastDropdownSig = sig;
             sel.innerHTML = "";
             const ph = document.createElement('option');
-            ph.value = ""; ph.disabled = true; ph.selected = !current;
+            ph.value = ""; ph.selected = true;
             ph.innerText = list.length ? `Pilih pelajar (${list.length} rekod)` : "Tiada padanan ditemui";
             sel.appendChild(ph);
 
@@ -4028,13 +4038,21 @@ ${hairPath}
                     if (s2.name === current) o.selected = true;
                     sel.appendChild(o);
                 });
+            // PENTING: pastikan nilai dropdown benar-benar padan dengan pelajar aktif.
+            // Jika pelajar aktif tiada dalam senarai tapisan/carian, dropdown mesti
+            // kembali ke placeholder - bukan "kelihatan" memilih nama pertama.
+            const inList = list.some(s3 => s3.name === current);
+            sel.value = inList ? current : "";
+
             const more = document.getElementById('btnLoadMoreMobile');
             if (more) more.style.display = studentHasMore ? 'flex' : 'none';
         }
         function onMobileStudentPick(val) {
             if (!val) return;
             const sel = document.getElementById('studentSelectMobile');
-            const obj = visibleStudents().find(s => s.name === val) || null;
+            const obj = visibleStudents().find(s => s.name === val)
+                || studentsList.find(s => s.name === val) || null;
+            if (!obj) { alert("Rekod pelajar tidak ditemui. Sila muat semula senarai."); return; }
             selectStudent(val, false, obj);
             if (sel) sel.value = activeStudent ? activeStudent.name : val;
         }
