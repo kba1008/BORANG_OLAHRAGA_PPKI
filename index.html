@@ -823,7 +823,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby45McW2RA2wngleYLw05yE4KSseVVuN3gvXRpajgsTxJcyNOnCzSzBCAQZnMn0pl6S/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6ctqKJB2XLa9eRFdXXQVzR6deoK4auu-hS6W1Yqah61q6twG7EIKfOYhjmPWsgZ6o/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -2052,7 +2052,7 @@ ${hairPath}
             const card = document.createElement('div');
             card.className = 'cert-card';
             const thumb = getDriveThumb(cert.url);
-            card.innerHTML = `<div class="cert-header"><div><h4>${cert.certName || 'Sijil Terkini'}</h4><span class="cert-status drive"><i class="fa-solid fa-cloud"></i> Tersimpan di Drive</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn-primary quick-open" style="width:auto;padding:9px 12px;"><i class="fa-solid fa-eye"></i> Buka PDF</button><button class="btn-ghost quick-dl" title="Muat Turun PDF" aria-label="Muat Turun PDF" style="width:auto;padding:9px 12px;background:rgba(16,185,129,0.12);color:var(--secondary);"><i class="fa-solid fa-download"></i> Muat Turun</button><button class="btn-ghost quick-load" style="width:auto;padding:9px 12px;"><i class="fa-solid fa-rotate"></i> Muat Pratonton</button></div></div><div style="margin-top:10px;display:flex;align-items:center;gap:12px;"><img class="cover" alt="Pratonton ${cert.certName || 'sijil'}" src="${thumb}" style="width:92px;height:120px;object-fit:cover;border:1px solid var(--border);border-radius:6px;"><p style="font-size:13px;color:var(--text-light);">Fail sudah ditemui. Pratonton penuh sedang dimuatkan di latar dan paparan ini boleh terus digunakan.</p></div>`;
+            card.innerHTML = `<div class="cert-header"><div><h4>${cert.certName || 'Sijil Terkini'}</h4><span class="cert-status drive"><i class="fa-solid fa-cloud"></i> Tersimpan di Drive</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn-primary quick-open" style="width:auto;padding:9px 12px;"><i class="fa-solid fa-eye"></i> Buka PDF</button><button class="btn-ghost quick-dl" title="Muat Turun PDF" aria-label="Muat Turun PDF" style="width:auto;padding:9px 12px;background:rgba(16,185,129,0.12);color:var(--secondary);"><i class="fa-solid fa-download"></i> Muat Turun</button><button class="btn-ghost quick-load" style="width:auto;padding:9px 12px;"><i class="fa-solid fa-pen-to-square"></i> EDITOR</button></div></div><div style="margin-top:10px;display:flex;align-items:center;gap:12px;"><img class="cover" alt="Pratonton ${cert.certName || 'sijil'}" src="${thumb}" style="width:92px;height:120px;object-fit:cover;border:1px solid var(--border);border-radius:6px;"><p style="font-size:13px;color:var(--text-light);">Fail sudah ditemui. Pratonton penuh sedang dimuatkan di latar dan paparan ini boleh terus digunakan.</p></div>`;
             card.querySelector('.quick-open').onclick = () => window.open(cert.url, '_blank');
             card.querySelector('.quick-dl').onclick = () => downloadDriveCert(cert);
             card.querySelector('.quick-load').onclick = () => previewLatestCert(cert);
