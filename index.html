@@ -861,7 +861,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxPJyq4eoRNL8qxUGcKfMhdQ5jd5rdNQJT0RiQnJIpHotHyBunfmt1026NkYhJj7o90/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby45McW2RA2wngleYLw05yE4KSseVVuN3gvXRpajgsTxJcyNOnCzSzBCAQZnMn0pl6S/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -1158,85 +1158,63 @@ ${hairPath}
             try { sessionStorage.removeItem("sijilProPass"); } catch (e) {}
         }
 
+        function loadCachedStudents() {
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (!cached) return false;
+            try {
+                const p = JSON.parse(cached);
+                studentsList = p.data || [];
+                studentTotal = p.total || studentsList.length;
+                renderStudentList();
+                return true;
+            } catch (e) { return false; }
+        }
+
+        function enterSessionFromCache(savedUser) {
+            currentUserEmail = savedUser;
+            currentUserRole = localStorage.getItem("sijilProRole") || "User";
+            currentUserName = localStorage.getItem("sijilProNama") || savedUser;
+            document.getElementById('userEmailDisplay').innerText = currentUserName;
+            applyRoleUI();
+            switchScreen('dashboardScreen');
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             refreshAvatarPreview();
             const savedUser = localStorage.getItem("sijilProUser");
             const savedPass = savedPassGet();
-            // Skrin log masuk sahaja sehingga sesi disahkan sebagai "Approved"
-            switchScreen('loginScreen');
-            if (savedUser && savedPass) {
-                showLoading("Mengesahkan sesi...");
-                api({ action: "login", email: savedUser, password: savedPass }).then(d => {
-                    hideLoading();
-                    if (!d || d.status !== "success") {
-                        // Hanya log keluar jika kata laluan/akaun memang tidak sah.
-                        // Ralat sementara (pelayan sibuk, kuota, rangkaian) TIDAK boleh
-                        // memaksa pengguna log masuk semula setiap kali app di-refresh.
-                        const msg = String((d && d.message) || "");
-                        const invalid = /salah|tidak sah|invalid|tidak dijumpai|tidak ditemui|belum diluluskan|tidak aktif|dinyahaktif|password/i.test(msg);
-                        if (invalid) {
-                            logout();
-                            showAppAlert("Sesi", msg || "Sesi tamat. Sila log masuk semula.", "warning");
-                            return;
-                        }
-                        currentUserEmail = savedUser;
-                        currentUserRole = localStorage.getItem("sijilProRole") || "User";
-                        currentUserName = localStorage.getItem("sijilProNama") || savedUser;
-                        document.getElementById('userEmailDisplay').innerText = currentUserName;
-                        applyRoleUI();
-                        switchScreen('dashboardScreen');
-                        const cachedTmp = localStorage.getItem(CACHE_KEY);
-                        if (cachedTmp) {
-                            try {
-                                const pt = JSON.parse(cachedTmp);
-                                studentsList = pt.data || [];
-                                studentTotal = pt.total || studentsList.length;
-                                renderStudentList();
-                            } catch (e) {}
-                        }
-                        setStatus("Sesi dikekalkan. Pelayan tidak dapat dihubungi sekarang.", "warning");
+            if (!savedUser || !savedPass) { switchScreen('loginScreen'); return; }
+
+            /* Sesi tersimpan: terus masuk dashboard tanpa tunggu pelayan.
+               Pengesahan dibuat di latar belakang - hanya log keluar jika
+               akaun memang tidak sah (bukan kerana rangkaian/pelayan sibuk). */
+            enterSessionFromCache(savedUser);
+            if (!loadCachedStudents()) showSkeleton();
+
+            api({ action: "login", email: savedUser, password: savedPass }).then(d => {
+                if (!d || d.status !== "success") {
+                    const msg = String((d && d.message) || "");
+                    const invalid = /salah|tidak sah|invalid|tidak dijumpai|tidak ditemui|belum diluluskan|tidak aktif|dinyahaktif|password/i.test(msg);
+                    if (invalid) {
+                        logout();
+                        showAppAlert("Sesi", msg || "Sesi tamat. Sila log masuk semula.", "warning");
                         return;
                     }
-                    currentUserEmail = d.email || savedUser;
-                    currentUserRole = d.role || "User";
-                    currentUserName = d.namaPenuh || currentUserEmail;
-                    localStorage.setItem("sijilProRole", currentUserRole);
-                    localStorage.setItem("sijilProNama", currentUserName);
-                    document.getElementById('userEmailDisplay').innerText = currentUserName;
-                    applyRoleUI();
-                    switchScreen('dashboardScreen');
-                    const cached = localStorage.getItem(CACHE_KEY);
-                    if (cached) {
-                        try {
-                            const parsed = JSON.parse(cached);
-                            studentsList = parsed.data || [];
-                            studentTotal = parsed.total || studentsList.length;
-                            renderStudentList();
-                        } catch (e) {}
-                    } else {
-                        showSkeleton();
-                    }
-                    reloadStudents(true);
-                }).catch(() => {
-                    // Gagal hubungi pelayan (offline) - kekalkan sesi, jangan paksa log masuk semula
-                    hideLoading();
-                    currentUserEmail = savedUser;
-                    currentUserRole = localStorage.getItem("sijilProRole") || "User";
-                    currentUserName = localStorage.getItem("sijilProNama") || savedUser;
-                    document.getElementById('userEmailDisplay').innerText = currentUserName;
-                    applyRoleUI();
-                    switchScreen('dashboardScreen');
-                    const cachedOff = localStorage.getItem(CACHE_KEY);
-                    if (cachedOff) {
-                        try {
-                            const p = JSON.parse(cachedOff);
-                            studentsList = p.data || [];
-                            studentTotal = p.total || studentsList.length;
-                            renderStudentList();
-                        } catch (e) {}
-                    }
-                });
-            } else { logout(); }
+                    setStatus("Sesi dikekalkan. Pelayan sibuk - cuba lagi sebentar.", "warning");
+                    return;
+                }
+                currentUserEmail = d.email || savedUser;
+                currentUserRole = d.role || "User";
+                currentUserName = d.namaPenuh || currentUserEmail;
+                localStorage.setItem("sijilProRole", currentUserRole);
+                localStorage.setItem("sijilProNama", currentUserName);
+                document.getElementById('userEmailDisplay').innerText = currentUserName;
+                applyRoleUI();
+                reloadStudents(true);
+            }).catch(() => {
+                // Offline / gagal hubungi pelayan - kekalkan sesi
+                setStatus("Mod luar talian. Data dipaparkan dari cache.", "warning");
+            });
         });
 
         async function login() {
