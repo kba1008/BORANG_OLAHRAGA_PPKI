@@ -16,7 +16,7 @@ const SHEET_PENGGUNA = "Pengguna";
 const SHEET_SIJIL = "SijilPelajar";
 const SHEET_PELAJAR = "SenaraiPelajar";
 const FOLDER_GAMBAR_NAME = "Gambar Profil Pelajar";
-const CACHE_SEC = 120;
+const CACHE_SEC = 300;
 
 function doPost(e) {
   var output = ContentService.createTextOutput();

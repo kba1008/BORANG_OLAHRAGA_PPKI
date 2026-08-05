@@ -29,7 +29,7 @@
         textarea { width: 100%; padding: 12px 14px; margin: 6px 0; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; outline: none; background: #fff; resize: vertical; font-family: 'Inter', sans-serif; }
         textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.12); }
 
-        .screen { display: none; width: 100%; max-width: 1560px; margin: 0 auto; padding: 24px 28px; padding-bottom: calc(40px + env(safe-area-inset-bottom)); animation: fadeIn 0.3s ease; }
+        .screen { display: none; width: 100%; max-width: 1760px; margin: 0 auto; padding: 24px 28px; padding-bottom: calc(40px + env(safe-area-inset-bottom)); animation: fadeIn 0.3s ease; }
         .active-screen { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -48,11 +48,12 @@
         .btn-ghost { background: transparent; color: var(--primary); box-shadow: none; } .btn-ghost:hover { background: rgba(79, 70, 229, 0.05); }
 
         #loginScreen .card { max-width: 400px; margin: 10vh auto; text-align: center; }
-        .dashboard-container { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; align-items: stretch; }
+        .dashboard-container { display: grid; grid-template-columns: minmax(340px, 26%) minmax(0, 1fr); gap: 20px; align-items: stretch; }
+        @media (min-width: 1400px) { .dashboard-container { grid-template-columns: minmax(400px, 24%) minmax(0, 1fr); } }
         .sidebar, .main-panel { min-width: 0; }
         .main-panel { min-height: calc(100vh - 200px); }
         .sidebar { position: sticky; top: 20px; align-self: start; max-height: calc(100vh - 40px); overflow-y: auto; }
-        @media (max-width: 1100px) { .dashboard-container { grid-template-columns: 260px minmax(0, 1fr); } }
+        @media (max-width: 1100px) { .dashboard-container { grid-template-columns: minmax(260px, 32%) minmax(0, 1fr); } }
         @media (max-width: 768px) {
             .dashboard-container { grid-template-columns: minmax(0, 1fr); }
             .sidebar { position: static; max-height: none; overflow: visible; }
@@ -67,8 +68,8 @@
         .search-sort-box select { margin: 0; width: auto; padding: 10px; cursor: pointer;}
         .list-meta { font-size: 11px; color: var(--text-light); margin-bottom: 6px; display:flex; justify-content:space-between; align-items:center;}
 
-        .student-list { list-style: none; max-height: 55vh; overflow-y: auto; margin-top: 5px; }
-        .student-item { padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: background 0.15s; border: 1px solid transparent; display: flex; align-items: center; gap: 12px; }
+        .student-list { list-style: none; max-height: 62vh; overflow-y: auto; margin-top: 5px; }
+        .student-item { padding: 10px 12px; line-height: 1.35; word-break: break-word; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: background 0.15s; border: 1px solid transparent; display: flex; align-items: center; gap: 12px; }
         .student-item:hover { background: #f9fafb; }
         .student-item img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background: #e5e7eb; border: 1px solid #d1d5db; flex-shrink:0;}
         .student-item.active { background: rgba(79, 70, 229, 0.1); border-color: var(--primary); font-weight: 600; color: var(--primary); }
@@ -861,7 +862,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxPJyq4eoRNL8qxUGcKfMhdQ5jd5rdNQJT0RiQnJIpHotHyBunfmt1026NkYhJj7o90/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby45McW2RA2wngleYLw05yE4KSseVVuN3gvXRpajgsTxJcyNOnCzSzBCAQZnMn0pl6S/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -1097,21 +1098,62 @@ ${hairPath}
         function switchScreen(screenId) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(screenId).classList.add('active-screen'); }
         function setStatus(msg, type = "info") { let el = document.getElementById('status'); el.innerHTML = msg; if (type === "info") { el.style.color = "var(--primary)"; el.style.background = "rgba(79,70,229,0.1)"; } if (type === "success") { el.style.color = "var(--secondary)"; el.style.background = "rgba(16,185,129,0.1)"; } }
 
-        async function api(payload, attempt = 0) {
+        /* ==== PENGURUS TRAFIK: had serentak, gabung permintaan sama, cuba semula pintar ====
+           Apps Script hanya layan sedikit permintaan serentak. Bila ramai guru guna
+           serentak, permintaan berlebihan menyebabkan "Gagal Muat". Kita hadkan
+           permintaan serentak per pengguna, gabungkan permintaan baca yang sama,
+           dan ulang cuba dengan jeda rawak (jitter) supaya tidak semua guru
+           menghentam pelayan pada saat yang sama. */
+        const API_MAX_CONCURRENT = 2;
+        let _apiActive = 0;
+        const _apiQueue = [];
+        const _apiInflight = new Map();
+        const READ_ACTIONS = ["getStudents", "getCerts", "login", "listUsers", "getStudent"];
+
+        function _apiNext() {
+            if (_apiActive >= API_MAX_CONCURRENT || !_apiQueue.length) return;
+            const job = _apiQueue.shift();
+            _apiActive++;
+            job.run().then(job.resolve, job.reject).finally(() => { _apiActive--; _apiNext(); });
+        }
+        function _apiSchedule(run, priority) {
+            return new Promise((resolve, reject) => {
+                const job = { run, resolve, reject };
+                if (priority) _apiQueue.unshift(job); else _apiQueue.push(job);
+                _apiNext();
+            });
+        }
+
+        async function api(payload) {
+            const act = payload && payload.action;
+            const isRead = READ_ACTIONS.indexOf(act) !== -1;
+            if (isRead) {
+                const key = JSON.stringify(payload);
+                if (_apiInflight.has(key)) return _apiInflight.get(key);
+                const p = _apiSchedule(() => apiRaw(payload), false)
+                    .finally(() => _apiInflight.delete(key));
+                _apiInflight.set(key, p);
+                return p;
+            }
+            return _apiSchedule(() => apiRaw(payload), true);
+        }
+
+        async function apiRaw(payload, attempt = 0) {
             let res, text;
             const controller = new AbortController();
             const act = payload && payload.action;
             const isUpload = act === "updateFile" || act === "upload";
             // Muat naik PDF besar perlukan masa lebih panjang
-            const timeoutMs = act === "getRawPdf" ? 15000 : (isUpload ? 180000 : 20000);
+            const timeoutMs = act === "getRawPdf" ? 25000 : (isUpload ? 240000 : 45000);
             const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
             try {
                 res = await fetch(WEB_APP_URL, { method: 'POST', redirect: 'follow', body: JSON.stringify(payload), signal: controller.signal });
                 text = await res.text();
             } catch (netErr) {
                 // Jangan ulang hantar fail (elak simpan berganda di Drive)
-                const maxRetries = (act === "getRawPdf" || isUpload) ? 0 : 1;
-                if (attempt < maxRetries) { await new Promise(r => setTimeout(r, 800 * (attempt + 1))); return api(payload, attempt + 1); }
+                const maxRetries = (act === "getRawPdf" || isUpload) ? 0 : 3;
+                if (attempt < maxRetries) { await new Promise(r => setTimeout(r, (700 * Math.pow(2, attempt)) + Math.random() * 600)); return apiRaw(payload, attempt + 1); }
+                if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new Error("Talian internet terputus. Sila sambung semula dan cuba lagi.");
                 if (netErr && netErr.name === 'AbortError') throw new Error("Server mengambil masa terlalu lama. Cuba buka fail terus atau cuba semula.");
                 throw new Error("Gagal menyambung ke server. Sila semak talian internet anda.");
             } finally {
@@ -1120,7 +1162,7 @@ ${hairPath}
             const trimmed = (text || "").trim();
             // Apps Script kadang pulangkan halaman HTML (log masuk / kuota / ralat sementara)
             if (!trimmed || trimmed.startsWith("<")) {
-                if (attempt < 2 && !isUpload) { await new Promise(r => setTimeout(r, 900 * (attempt + 1))); return api(payload, attempt + 1); }
+                if (attempt < 4 && !isUpload) { await new Promise(r => setTimeout(r, (800 * Math.pow(2, attempt)) + Math.random() * 700)); return apiRaw(payload, attempt + 1); }
                 const looksLogin = /accounts\.google\.com|sign in|log masuk|authoriz/i.test(trimmed);
                 throw new Error(looksLogin
                     ? "Sesi Google tamat. Sila buka pautan Web App sekali dalam pelayar dan benarkan akses, kemudian cuba semula."
