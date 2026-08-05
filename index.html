@@ -281,6 +281,11 @@
         .filter-chip span { display: block; font-size: 11px; margin-top: 4px; color: #e5e7eb; }
         .scan-tools { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
         .scan-tools button { width: auto; padding: 9px 14px; font-size: 13px; background: rgba(255,255,255,.1); }
+        .scan-target-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; color: #fff; font-size: 12px; }
+        .scan-target-row label { white-space: nowrap; opacity: .85; }
+        .scan-target-row select { flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.25);
+            background: rgba(255,255,255,.12); color: #fff; font-size: 13px; }
+        .scan-target-row select option { color: #111; }
         .scan-footer { display: flex; gap: 10px; }
         .scan-footer button { flex: 1; }
         .scan-range { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #d1d5db; }
@@ -653,6 +658,14 @@
                     <button onclick="resetCornersFull()"><i class="fa-solid fa-expand"></i> Gambar Penuh</button>
                     <button onclick="rotateScanSource()"><i class="fa-solid fa-rotate-right"></i> Putar</button>
                 </div>
+                <div class="scan-tools" style="margin-top:6px;">
+                    <button onclick="retakeScanShot()" style="background:rgba(56,189,248,.22);"><i class="fa-solid fa-camera-rotate"></i> Ambil Semula</button>
+                    <button onclick="uploadScanReplacement()" style="background:rgba(56,189,248,.22);"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Semula</button>
+                </div>
+                <div class="scan-target-row" id="scanTargetRow" style="display:none;">
+                    <label for="scanReplaceTarget"><i class="fa-solid fa-file-pen"></i> Gantikan page</label>
+                    <select id="scanReplaceTarget"></select>
+                </div>
                 <div class="scan-footer">
                     <button class="btn-danger" onclick="skipScanPage()"><i class="fa-solid fa-trash"></i> Buang</button>
                     <button class="btn-primary" onclick="goToFilterStage()"><i class="fa-solid fa-crop-simple"></i> Crop &amp; Tapis</button>
@@ -816,6 +829,7 @@
     </div>
 
     <input type="file" id="inlineAddFileInput" accept="image/*,application/pdf" multiple style="display: none;">
+    <input type="file" id="scanReplaceInput" accept="image/*" capture="environment" style="display: none;">
 
     <script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvReady();"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
@@ -823,7 +837,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby45McW2RA2wngleYLw05yE4KSseVVuN3gvXRpajgsTxJcyNOnCzSzBCAQZnMn0pl6S/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6ctqKJB2XLa9eRFdXXQVzR6deoK4auu-hS6W1Yqah61q6twG7EIKfOYhjmPWsgZ6o/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -1116,8 +1130,8 @@ ${hairPath}
             try { sessionStorage.setItem("sijilProPass", p); } catch (e) {}
         }
         function savedPassClear() {
-            localStorage.removeItem("sijilProPass");
-            savedPassClear();
+            try { localStorage.removeItem("sijilProPass"); } catch (e) {}
+            try { sessionStorage.removeItem("sijilProPass"); } catch (e) {}
         }
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -1131,8 +1145,32 @@ ${hairPath}
                 api({ action: "login", email: savedUser, password: savedPass }).then(d => {
                     hideLoading();
                     if (!d || d.status !== "success") {
-                        logout();
-                        if (d && d.message) showAppAlert("Sesi", d.message, "warning");
+                        // Hanya log keluar jika kata laluan/akaun memang tidak sah.
+                        // Ralat sementara (pelayan sibuk, kuota, rangkaian) TIDAK boleh
+                        // memaksa pengguna log masuk semula setiap kali app di-refresh.
+                        const msg = String((d && d.message) || "");
+                        const invalid = /salah|tidak sah|invalid|tidak dijumpai|tidak ditemui|belum diluluskan|tidak aktif|dinyahaktif|password/i.test(msg);
+                        if (invalid) {
+                            logout();
+                            showAppAlert("Sesi", msg || "Sesi tamat. Sila log masuk semula.", "warning");
+                            return;
+                        }
+                        currentUserEmail = savedUser;
+                        currentUserRole = localStorage.getItem("sijilProRole") || "User";
+                        currentUserName = localStorage.getItem("sijilProNama") || savedUser;
+                        document.getElementById('userEmailDisplay').innerText = currentUserName;
+                        applyRoleUI();
+                        switchScreen('dashboardScreen');
+                        const cachedTmp = localStorage.getItem(CACHE_KEY);
+                        if (cachedTmp) {
+                            try {
+                                const pt = JSON.parse(cachedTmp);
+                                studentsList = pt.data || [];
+                                studentTotal = pt.total || studentsList.length;
+                                renderStudentList();
+                            } catch (e) {}
+                        }
+                        setStatus("Sesi dikekalkan. Pelayan tidak dapat dihubungi sekarang.", "warning");
                         return;
                     }
                     currentUserEmail = d.email || savedUser;
@@ -3588,6 +3626,16 @@ ${hairPath}
             c.width = v.videoWidth; c.height = v.videoHeight;
             c.getContext('2d', { willReadFrequently: true }).drawImage(v, 0, 0, c.width, c.height);
             const url = c.toDataURL('image/jpeg', 0.95);
+            if (scanRetakeMode) {
+                scanRetakeMode = false;
+                stopScanCamera();
+                if (!scanQueue.length) { scanQueue = [url]; scanIdx = 0; }
+                else scanQueue[scanIdx] = url;
+                scanCorners = [];
+                showScanStage('Crop');
+                loadScanPage();
+                return;
+            }
             scanCamShots.push(url);
             const im = new Image(); im.src = url; im.alt = "Gambar " + scanCamShots.length;
             document.getElementById('scanShots').appendChild(im);
@@ -3615,6 +3663,9 @@ ${hairPath}
             document.getElementById('scanStudioModal').style.display = 'none';
             document.body.classList.remove('scan-open');
             scanQueue = []; scanIdx = 0; scanSrcCanvas = null; scanWarpedCanvas = null;
+            scanRetakeMode = false;
+            const trow = document.getElementById('scanTargetRow');
+            if (trow) trow.style.display = 'none';
         }
 
         function loadScanPage() {
@@ -3627,7 +3678,9 @@ ${hairPath}
                 c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
                 c.getContext('2d', { willReadFrequently: true }).drawImage(img, 0, 0, c.width, c.height);
                 scanSrcCanvas = c;
+                scanCorners = [];
                 showScanStage('Crop');
+                populateScanTargetRow();
                 drawCropStage();
                 autoDetectCorners(true);
             };
@@ -3641,6 +3694,65 @@ ${hairPath}
         });
 
         function skipScanPage() { scanIdx++; loadScanPage(); }
+
+        /* ---------- Ambil / Upload semula gambar untuk page terpilih ---------- */
+        let scanRetakeMode = false;
+
+        /** Senarai page dalam PDF/sijil semasa supaya pengguna boleh pilih page mana untuk diganti. */
+        function populateScanTargetRow() {
+            const row = document.getElementById('scanTargetRow');
+            const sel = document.getElementById('scanReplaceTarget');
+            if (!row || !sel) return;
+            const cIdx = (scanTarget && (scanTarget.type === 'replace' || scanTarget.type === 'cert')) ? scanTarget.idx : -1;
+            const cert = (cIdx >= 0) ? sessionCerts[cIdx] : null;
+            if (!cert) { row.style.display = 'none'; return; }
+            const total = (cert.images || []).length;
+            const preferred = (scanTarget.type === 'replace') ? String(scanTarget.page) : 'new';
+            sel.innerHTML = "";
+            for (let i = 0; i < total; i++) {
+                const o = document.createElement('option');
+                o.value = String(i);
+                o.innerText = `Ganti Page ${i + 1}`;
+                sel.appendChild(o);
+            }
+            const on = document.createElement('option');
+            on.value = 'new'; on.innerText = 'Tambah sebagai page baru';
+            sel.appendChild(on);
+            sel.value = preferred;
+            row.style.display = 'flex';
+        }
+
+        /** Buka kamera untuk ganti gambar page yang sedang diproses. */
+        async function retakeScanShot() {
+            scanRetakeMode = true;
+            scanCamShots = [];
+            document.getElementById('scanShots').innerHTML = "";
+            updateCamContinue();
+            showScanStage('Camera');
+            await startScanCamera();
+            setStatus && setStatus("Ambil gambar baru untuk menggantikan page ini.", "info");
+        }
+
+        /** Pilih fail imej baru untuk ganti gambar page yang sedang diproses. */
+        function uploadScanReplacement() {
+            const inp = document.getElementById('scanReplaceInput');
+            inp.value = "";
+            inp.click();
+        }
+
+        document.getElementById('scanReplaceInput').addEventListener('change', (e) => {
+            const f = e.target.files && e.target.files[0];
+            if (!f) return;
+            const r = new FileReader();
+            r.onload = () => {
+                if (!scanQueue.length) { scanQueue = [r.result]; scanIdx = 0; }
+                else scanQueue[scanIdx] = r.result;
+                scanCorners = [];
+                showScanStage('Crop');
+                loadScanPage();
+            };
+            r.readAsDataURL(f);
+        });
 
         function afterScanFinished() {
             renderCerts();
@@ -4027,17 +4139,23 @@ ${hairPath}
                 const finalCanvas = applyScanFilter(scanWarpedCanvas, scanFilterName, b, ct);
                 const full = finalCanvas.toDataURL('image/jpeg', SCAN_QUALITY);
                 const thumb = await makeThumb(full);
-                if (scanTarget && scanTarget.type === 'replace') {
+                // Pilihan pengguna dalam Scan Studio: page mana hendak diganti (atau page baru)
+                const trow = document.getElementById('scanTargetRow');
+                const tsel = document.getElementById('scanReplaceTarget');
+                const chosen = (trow && trow.style.display !== 'none' && tsel) ? tsel.value : null;
+                const hasCert = scanTarget && (scanTarget.type === 'replace' || scanTarget.type === 'cert');
+                if (hasCert && chosen !== null && chosen !== 'new') {
                     const cert = sessionCerts[scanTarget.idx];
-                    if (cert) {
-                        pushCertUndo(scanTarget.idx, `Imbas Page ${scanTarget.page + 1}`);
-                        cert.images[scanTarget.page] = full;
+                    const pIdx = parseInt(chosen, 10);
+                    if (cert && pIdx >= 0) {
+                        pushCertUndo(scanTarget.idx, `Ganti Page ${pIdx + 1}`);
+                        cert.images[pIdx] = full;
                         if (!cert.thumbs) cert.thumbs = [];
-                        cert.thumbs[scanTarget.page] = thumb;
-                        if (cert.lazy) cert.lazy[scanTarget.page] = null;
+                        cert.thumbs[pIdx] = thumb;
+                        if (cert.lazy) cert.lazy[pIdx] = null;
                         cert.needsSync = true;
                     }
-                } else if (scanTarget && scanTarget.type === 'cert') {
+                } else if (hasCert) {
                     const cert = sessionCerts[scanTarget.idx];
                     if (cert) { pushCertUndo(scanTarget.idx, 'Tambah Page'); certPush(cert, full, thumb); cert.needsSync = true; }
                 } else {
