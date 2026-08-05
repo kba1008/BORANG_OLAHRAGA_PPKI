@@ -326,6 +326,30 @@
             .thumb-item img { height: 145px; }
             #studentSelectMobile { font-size: 15px; padding: 14px 12px; }
         }
+
+        /* Butang Buka PDF / Muat Turun / EDITOR - satu baris pada telefon */
+        .cert-quick-actions { display:flex; flex-wrap:nowrap; gap:6px; width:100%; }
+        .cert-quick-actions button { flex:1 1 0; width:auto; min-width:0; padding:9px 6px; font-size:13px; white-space:nowrap; display:inline-flex; align-items:center; justify-content:center; gap:5px; }
+        @media (max-width: 480px) {
+            .cert-quick-actions button { font-size:11px; padding:8px 4px; gap:4px; }
+            .cert-quick-actions button i { font-size:11px; }
+        }
+
+        /* ===== Pengimbas: semua butang nampak pada telefon ===== */
+        .scan-tools button, .scan-footer button { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
+        @media (max-width: 640px) {
+            #scanStudioModal .modal-box { overflow-y: auto; }
+            .scan-stage { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+            .crop-wrap, .filter-preview-wrap { min-height: 38vh; max-height: 46vh; flex: 0 0 auto; }
+            .scan-tools { flex-wrap: nowrap; gap: 6px; }
+            .scan-tools button, .scan-footer button { flex: 1 1 0; min-width: 0; padding: 12px 4px; font-size: 16px; border-radius: 12px; }
+            .scan-tools .btn-lbl, .scan-footer .btn-lbl { display: none; }
+            .scan-tools button i, .scan-footer button i { font-size: 17px; }
+            .scan-footer { position: sticky; bottom: 0; z-index: 5; padding: 8px 0 calc(4px + env(safe-area-inset-bottom));
+                background: linear-gradient(to top, #111827 65%, rgba(17,24,39,0)); }
+            .scan-target-row { flex-wrap: nowrap; }
+            .scan-target-row label .lbl-txt { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -654,21 +678,21 @@
                 </div>
                 <div class="crop-hint">Tarik setiap bucu supaya tepat pada tepi dokumen.</div>
                 <div class="scan-tools">
-                    <button onclick="autoDetectCorners()"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto Kesan</button>
-                    <button onclick="resetCornersFull()"><i class="fa-solid fa-expand"></i> Gambar Penuh</button>
-                    <button onclick="rotateScanSource()"><i class="fa-solid fa-rotate-right"></i> Putar</button>
+                    <button onclick="autoDetectCorners()" title="Auto Kesan" aria-label="Auto Kesan"><i class="fa-solid fa-wand-magic-sparkles"></i><span class="btn-lbl">Auto Kesan</span></button>
+                    <button onclick="resetCornersFull()" title="Gambar Penuh" aria-label="Gambar Penuh"><i class="fa-solid fa-expand"></i><span class="btn-lbl">Gambar Penuh</span></button>
+                    <button onclick="rotateScanSource()" title="Putar" aria-label="Putar"><i class="fa-solid fa-rotate-right"></i><span class="btn-lbl">Putar</span></button>
                 </div>
                 <div class="scan-tools" style="margin-top:6px;">
-                    <button onclick="retakeScanShot()" style="background:rgba(56,189,248,.22);"><i class="fa-solid fa-camera-rotate"></i> Ambil Semula</button>
-                    <button onclick="uploadScanReplacement()" style="background:rgba(56,189,248,.22);"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Semula</button>
+                    <button onclick="retakeScanShot()" title="Ambil Semula" aria-label="Ambil Semula" style="background:rgba(56,189,248,.22);"><i class="fa-solid fa-camera-rotate"></i><span class="btn-lbl">Ambil Semula</span></button>
+                    <button onclick="uploadScanReplacement()" title="Upload Semula" aria-label="Upload Semula" style="background:rgba(56,189,248,.22);"><i class="fa-solid fa-cloud-arrow-up"></i><span class="btn-lbl">Upload Semula</span></button>
                 </div>
                 <div class="scan-target-row" id="scanTargetRow" style="display:none;">
-                    <label for="scanReplaceTarget"><i class="fa-solid fa-file-pen"></i> Gantikan page</label>
+                    <label for="scanReplaceTarget"><i class="fa-solid fa-file-pen"></i> <span class="lbl-txt">Gantikan page</span></label>
                     <select id="scanReplaceTarget"></select>
                 </div>
                 <div class="scan-footer">
-                    <button class="btn-danger" onclick="skipScanPage()"><i class="fa-solid fa-trash"></i> Buang</button>
-                    <button class="btn-primary" onclick="goToFilterStage()"><i class="fa-solid fa-crop-simple"></i> Crop &amp; Tapis</button>
+                    <button class="btn-danger" onclick="skipScanPage()" title="Buang" aria-label="Buang"><i class="fa-solid fa-trash"></i><span class="btn-lbl">Buang</span></button>
+                    <button class="btn-primary" onclick="goToFilterStage()" title="Crop &amp; Tapis" aria-label="Crop dan Tapis"><i class="fa-solid fa-crop-simple"></i><span class="btn-lbl">Crop &amp; Tapis</span></button>
                 </div>
             </div>
 
@@ -683,12 +707,12 @@
                     <input type="range" id="scanContrast" min="-50" max="80" value="0" oninput="renderFilterPreview()">
                 </div>
                 <div class="scan-tools">
-                    <button onclick="rotateFiltered()"><i class="fa-solid fa-rotate-right"></i> Putar</button>
-                    <button onclick="backToCropStage()"><i class="fa-solid fa-arrow-left"></i> Crop Semula</button>
+                    <button onclick="rotateFiltered()" title="Putar" aria-label="Putar"><i class="fa-solid fa-rotate-right"></i><span class="btn-lbl">Putar</span></button>
+                    <button onclick="backToCropStage()" title="Crop Semula" aria-label="Crop Semula"><i class="fa-solid fa-arrow-left"></i><span class="btn-lbl">Crop Semula</span></button>
                 </div>
                 <div class="scan-footer">
-                    <button class="btn-danger" onclick="closeScanStudio()"><i class="fa-solid fa-xmark"></i> Batal</button>
-                    <button class="btn-success" id="btnScanSave" onclick="commitScanPage()"><i class="fa-solid fa-check"></i> Simpan Page</button>
+                    <button class="btn-danger" onclick="closeScanStudio()" title="Batal" aria-label="Batal"><i class="fa-solid fa-xmark"></i><span class="btn-lbl">Batal</span></button>
+                    <button class="btn-success" id="btnScanSave" onclick="commitScanPage()" title="Simpan Page" aria-label="Simpan Page"><i class="fa-solid fa-check"></i><span class="btn-lbl">Simpan Page</span></button>
                 </div>
             </div>
         </div>
@@ -2090,7 +2114,7 @@ ${hairPath}
             const card = document.createElement('div');
             card.className = 'cert-card';
             const thumb = getDriveThumb(cert.url);
-            card.innerHTML = `<div class="cert-header"><div><h4>${cert.certName || 'Sijil Terkini'}</h4><span class="cert-status drive"><i class="fa-solid fa-cloud"></i> Tersimpan di Drive</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn-primary quick-open" style="width:auto;padding:9px 12px;"><i class="fa-solid fa-eye"></i> Buka PDF</button><button class="btn-ghost quick-dl" title="Muat Turun PDF" aria-label="Muat Turun PDF" style="width:auto;padding:9px 12px;background:rgba(16,185,129,0.12);color:var(--secondary);"><i class="fa-solid fa-download"></i> Muat Turun</button><button class="btn-ghost quick-load" style="width:auto;padding:9px 12px;"><i class="fa-solid fa-pen-to-square"></i> EDITOR</button></div></div><div style="margin-top:10px;display:flex;align-items:center;gap:12px;"><img class="cover" alt="Pratonton ${cert.certName || 'sijil'}" src="${thumb}" style="width:92px;height:120px;object-fit:cover;border:1px solid var(--border);border-radius:6px;"><p style="font-size:13px;color:var(--text-light);">Fail sudah ditemui. Pratonton penuh sedang dimuatkan di latar dan paparan ini boleh terus digunakan.</p></div>`;
+            card.innerHTML = `<div class="cert-header"><div><h4>${cert.certName || 'Sijil Terkini'}</h4><span class="cert-status drive"><i class="fa-solid fa-cloud"></i> Tersimpan di Drive</span></div><div class="cert-quick-actions"><button class="btn-primary quick-open"><i class="fa-solid fa-eye"></i> Buka PDF</button><button class="btn-ghost quick-dl" title="Muat Turun PDF" aria-label="Muat Turun PDF" style="background:rgba(16,185,129,0.12);color:var(--secondary);"><i class="fa-solid fa-download"></i> Muat Turun</button><button class="btn-ghost quick-load" style="background:rgba(245,158,11,0.15);color:var(--warning);border:1px solid rgba(245,158,11,0.35);"><i class="fa-solid fa-pen-to-square"></i> EDITOR</button></div></div><div style="margin-top:10px;display:flex;align-items:center;gap:12px;"><img class="cover" alt="Pratonton ${cert.certName || 'sijil'}" src="${thumb}" style="width:92px;height:120px;object-fit:cover;border:1px solid var(--border);border-radius:6px;"><p style="font-size:13px;color:var(--text-light);">Fail sudah ditemui. Pratonton penuh sedang dimuatkan di latar dan paparan ini boleh terus digunakan.</p></div>`;
             card.querySelector('.quick-open').onclick = () => window.open(cert.url, '_blank');
             card.querySelector('.quick-dl').onclick = () => downloadDriveCert(cert);
             card.querySelector('.quick-load').onclick = () => previewLatestCert(cert);
