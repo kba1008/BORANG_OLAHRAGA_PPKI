@@ -773,7 +773,8 @@
                         <div id="semakNote" class="semak-note" style="display:none;"></div>
                     </div>
 
-                    <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+                    <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+                        <button id="btnRefreshCerts" class="btn-ghost" onclick="refreshCerts()" style="width:auto; padding:8px 14px; background:rgba(16,185,129,0.12); color:var(--secondary);" title="Cari semula fail PDF pelajar ini dalam pangkalan data"><i class="fa-solid fa-rotate"></i> Muat Semula</button>
                         <button id="btnHistoryToggle" class="btn-ghost" onclick="toggleHistory()" style="width:auto; padding:8px 14px; background:rgba(79,70,229,0.08); color:var(--primary);" title="Sejarah sijil terdahulu"><i class="fa-solid fa-clock-rotate-left"></i> Sejarah</button>
                     </div>
                     <div id="dbCertsContainer" style="display:none; margin-bottom: 25px; padding:15px; background: #eef2ff; border-radius: 8px; border: 1px dashed var(--primary);"></div>
@@ -822,7 +823,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby45McW2RA2wngleYLw05yE4KSseVVuN3gvXRpajgsTxJcyNOnCzSzBCAQZnMn0pl6S/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6ctqKJB2XLa9eRFdXXQVzR6deoK4auu-hS6W1Yqah61q6twG7EIKfOYhjmPWsgZ6o/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -1976,11 +1977,11 @@ ${hairPath}
             container.innerHTML = "<p style='color:var(--text-light);'><i class='fa-solid fa-spinner fa-spin'></i> Menyemak sijil dari pangkalan data...</p>";
             try {
                 const data = await api({ action: "getCerts", studentName });
-                if (token !== certRequestToken || !activeStudent || activeStudent.name !== studentName) return;
+                if (token !== certRequestToken || !activeStudent || activeStudent.name !== studentName) return -2;
                 container.innerHTML = "";
                 setUpdatedByLabel(data.data && data.data.length ? data.data[0] : null);
-                if (data.status !== "success") { container.innerHTML = "<p style='color:red;'>Gagal memuatkan.</p>"; return; }
-                if (!data.data.length) { container.innerHTML = "<p style='color:grey; font-size:13px;'>Tiada sijil terdahulu.</p>"; return; }
+                if (data.status !== "success") { container.innerHTML = "<p style='color:red;'>Gagal memuatkan.</p>"; return -1; }
+                if (!data.data.length) { container.innerHTML = "<p style='color:grey; font-size:13px;'>Tiada sijil terdahulu.</p>"; return 0; }
 
                 const grid = document.createElement('div');
                 grid.className = 'cloud-certs-grid';
@@ -1990,12 +1991,55 @@ ${hairPath}
                 // Kad terkini muncul serta-merta; PDF berat diproses di latar belakang.
                 renderLatestCloudQuick(data.data[0]);
                 if (autoPreviewLatest) previewLatestCert(data.data[0]);
+                return data.data.length;
             } catch (e) {
-                if (token !== certRequestToken) return;
+                if (token !== certRequestToken) return -2;
                 container.innerHTML = "<p style='color:red;'>Gagal menyambung. Cuba semula.</p>";
                 const listUI = document.getElementById('certGridUI');
-                if (listUI && !listUI.children.length) listUI.innerHTML = `<p style="font-size:13px; color:var(--danger);">Sijil mengambil masa terlalu lama untuk disemak. Pilih pelajar ini semula untuk cuba lagi.</p>`;
+                if (listUI && !listUI.children.length) listUI.innerHTML = `<p style="font-size:13px; color:var(--danger);">Sijil belum ditemui. Tekan butang <strong>Muat Semula</strong> untuk cuba cari semula.</p>`;
+                return -1;
             }
+        }
+
+        /** Butang "Muat Semula": paksa sistem cari semula fail PDF pelajar aktif
+         *  dalam pangkalan data (buang cache sesi, cuba beberapa kali). */
+        async function refreshCerts() {
+            if (!activeStudent) { showAppAlert("Maklumat", "Sila pilih nama pelajar dahulu.", "warning"); return; }
+            const btn = document.getElementById('btnRefreshCerts');
+            if (btn && btn.dataset.busy === '1') return;
+            const nama = activeStudent.name;
+            const original = btn ? btn.innerHTML : '';
+            if (btn) { btn.dataset.busy = '1'; btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-rotate fa-spin"></i> Mencari...'; }
+
+            // Buang salinan lama dalam sesi (kekalkan deraf yang belum disimpan)
+            const adaDeraf = sessionCerts.some(c => c.student === nama && c.needsSync);
+            if (!adaDeraf) {
+                for (let i = sessionCerts.length - 1; i >= 0; i--) {
+                    if (sessionCerts[i].student === nama) sessionCerts.splice(i, 1);
+                }
+                undoStack = [];
+                renderCerts();
+                const listUI = document.getElementById('certGridUI');
+                if (listUI) listUI.innerHTML = "<p style='font-size:13px;color:var(--text-light);'><i class='fa-solid fa-spinner fa-spin'></i> Sistem sedang mencari fail PDF dalam pangkalan data...</p>";
+            }
+
+            const prevAuto = autoPreviewLatest;
+            autoPreviewLatest = true;
+            let hasil = -1;
+            try {
+                for (let attempt = 0; attempt < 3; attempt++) {
+                    hasil = await fetchCertsFromDB(nama);
+                    if (hasil === -2) return;               // pelajar lain dipilih - berhenti
+                    if (hasil > 0 || hasil === 0) break;    // berjaya (ada / tiada sijil)
+                    await new Promise(r => setTimeout(r, 900 * (attempt + 1)));
+                }
+            } finally {
+                autoPreviewLatest = prevAuto;
+                if (btn) { btn.dataset.busy = '0'; btn.disabled = false; btn.innerHTML = original; }
+            }
+
+            if (hasil === 0) showAppAlert("Tiada Sijil", `Tiada fail PDF direkodkan untuk ${nama} dalam pangkalan data.`, "warning");
+            else if (hasil < 0) showAppAlert("Gagal Muat", "Pelayan sibuk atau talian terputus. Sila tekan Muat Semula sekali lagi.", "error");
         }
 
         function renderLatestCloudQuick(cert) {
