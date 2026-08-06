@@ -5,7 +5,7 @@
  *  - Library CDN: cache-first (laju & boleh offline)
  *  - Panggilan API Apps Script: SENTIASA rangkaian (jangan cache data pelajar)
  */
-const CACHE_NAME = 'sijilpro-v27';
+const CACHE_NAME = 'sijilpro-v29';
 const SHELL = ['./', './index.html', './manifest.json'];
 const CDN_HOSTS = ['cdnjs.cloudflare.com', 'docs.opencv.org', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
@@ -19,6 +19,11 @@ self.addEventListener('activate', event => {
       .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
+});
+
+// Benarkan halaman minta SW baharu ambil alih serta-merta
+self.addEventListener('message', event => {
+  if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('fetch', event => {
@@ -41,7 +46,28 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // App shell: stale-while-revalidate
+  // HTML / navigasi: SENTIASA cuba rangkaian dahulu supaya pengguna
+  // terus dapat kod terkini tanpa perlu refresh berkali-kali.
+  const isHTML = req.mode === 'navigate' ||
+    (req.headers.get('accept') || '').indexOf('text/html') > -1 ||
+    url.pathname.endsWith('/') || url.pathname.endsWith('.html');
+
+  if (isHTML) {
+    event.respondWith(
+      fetch(req, { cache: 'no-store' })
+        .then(res => {
+          if (res && res.status === 200) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then(c => c.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req).then(hit => hit || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Aset lain: stale-while-revalidate
   event.respondWith(
     caches.match(req).then(hit => {
       const network = fetch(req).then(res => {
