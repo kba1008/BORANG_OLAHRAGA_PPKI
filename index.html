@@ -431,7 +431,7 @@
                 </div>
             </div>
             <div class="dialog-actions">
-                <button class="btn-ghost" onclick="resolveAppConfirm(false)">Batal</button>
+                <button class="btn-ghost" id="confirmCancelBtn" onclick="resolveAppConfirm(false)">Batal</button>
                 <button class="btn-danger" id="confirmOkBtn" onclick="resolveAppConfirm(true)">Teruskan</button>
             </div>
         </div>
@@ -905,7 +905,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxuADKb3SqM5RI1HhFjn23M5Ykvm1Aa3PFYMpM2zgySFxXmagKFRHRbjzpS9CV5yAQr/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby45McW2RA2wngleYLw05yE4KSseVVuN3gvXRpajgsTxJcyNOnCzSzBCAQZnMn0pl6S/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -984,6 +984,17 @@
             // Bila SW baharu ambil alih, muat semula sekali sahaja -> pengguna terus dapat versi terkini
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (swReloading) return;
+                // Jangan muat semula kalau ada draf belum dikemas kini ke Cloud
+                if (typeof hasUnsavedCerts === 'function' && hasUnsavedCerts()) {
+                    const wait = setInterval(() => {
+                        if (hasUnsavedCerts()) return;
+                        clearInterval(wait);
+                        if (swReloading) return;
+                        swReloading = true;
+                        location.reload();
+                    }, 5000);
+                    return;
+                }
                 swReloading = true;
                 location.reload();
             });
@@ -1146,7 +1157,7 @@ ${hairPath}
             const r = _promptResolver; _promptResolver = null;
             if (r) r(ok ? val : null);
         }
-        function appConfirm(title, sub, okLabel = "Teruskan", danger = true) {
+        function appConfirm(title, sub, okLabel = "Teruskan", danger = true, cancelLabel = "Batal") {
             return new Promise(resolve => {
                 _confirmResolver = resolve;
                 document.getElementById('confirmTitle').innerText = title;
@@ -1154,6 +1165,8 @@ ${hairPath}
                 const btn = document.getElementById('confirmOkBtn');
                 btn.innerText = okLabel;
                 btn.className = danger ? 'btn-danger' : 'btn-primary';
+                const cbtn = document.getElementById('confirmCancelBtn');
+                if (cbtn) cbtn.innerText = cancelLabel;
                 document.getElementById('confirmIcoWrap').className = 'dialog-ico' + (danger ? ' danger' : '');
                 document.getElementById('customConfirm').style.display = 'flex';
             });
@@ -1407,7 +1420,11 @@ ${hairPath}
             } catch (e) { hideLoading(); showAppAlert("Ralat", "Gagal menghubungi pelayan.", "error"); }
         }
 
-        function logout() {
+        async function logout() {
+            if (typeof hasUnsavedCerts === 'function' && hasUnsavedCerts()) {
+                const cont = await guardUnsaved("log keluar");
+                if (!cont) return;
+            }
             localStorage.removeItem("sijilProUser"); localStorage.removeItem("sijilProRole"); localStorage.removeItem("sijilProNama"); localStorage.removeItem(CACHE_KEY);
             currentUserEmail = ""; currentUserName = ""; setUpdatedByLabel(null);
             savedPassClear();
@@ -1660,12 +1677,17 @@ ${hairPath}
                 `Papar ${list.length} / ${studentTotal} pelajar` + (studentHasMore ? " (skrol untuk lagi)" : "");
         }
 
-        function selectStudent(nameStr, skipFetch = false, studentObj = null) {
+        async function selectStudent(nameStr, skipFetch = false, studentObj = null) {
             const norm = v => String(v || "").trim().toLowerCase();
             const found = studentObj
                 || studentsList.find(s => s.name === nameStr)
                 || studentsList.find(s => norm(s.name) === norm(nameStr));
             if (!found) return;
+            // Kalau guru terlupa kemas kini ke Cloud, tanya dahulu sebelum tukar pelajar
+            if (activeStudent && activeStudent.name !== found.name && typeof hasUnsavedCerts === 'function' && hasUnsavedCerts(activeStudent.name)) {
+                const cont = await guardUnsaved("tukar pelajar");
+                if (!cont) return;
+            }
             // Hentikan carian tertunda supaya senarai tidak dibina semula
             // sebaik sahaja pengguna memilih pelajar.
             clearTimeout(searchTimer);
@@ -2569,6 +2591,60 @@ ${hairPath}
             renderCerts();
             showAppAlert("Undo", `Dibatalkan: ${snap.label}.`, "success");
         }
+
+        /* ---------- Peringatan: draf belum dikemas kini ke Cloud ---------- */
+        let _unsavedGuardBusy = false, _lastUnsavedNag = 0;
+        function unsavedCertIndexes(studentName) {
+            const out = [];
+            sessionCerts.forEach((c, i) => {
+                if (!c || !c.needsSync) return;
+                if (!c.images || !c.images.length) return;
+                if (studentName && c.student !== studentName) return;
+                out.push(i);
+            });
+            return out;
+        }
+        function hasUnsavedCerts(studentName) { return unsavedCertIndexes(studentName).length > 0; }
+
+        /* Pulangkan true bila selamat teruskan tindakan. */
+        async function guardUnsaved(contextText) {
+            if (_unsavedGuardBusy) return true;
+            const name = activeStudent ? activeStudent.name : null;
+            const idxs = unsavedCertIndexes(name);
+            if (!idxs.length) return true;
+            _unsavedGuardBusy = true;
+            try {
+                const ok = await appConfirm(
+                    "Perubahan Belum Disimpan",
+                    `Ada ${idxs.length} sijil${name ? " untuk " + name : ""} yang belum dikemas kini ke Cloud${contextText ? " sebelum " + contextText : ""}. Nak simpan sekarang?`,
+                    "Simpan Sekarang", false, "Tidak Perlu Simpan"
+                );
+                _lastUnsavedNag = Date.now();
+                if (!ok) return true;
+                for (const i of idxs) { await syncUpdateToCloud(i); }
+                return !hasUnsavedCerts(name);
+            } finally { _unsavedGuardBusy = false; }
+        }
+
+        /* Peringatan berkala kalau guru terlupa tekan Kemaskini Cloud */
+        function startUnsavedReminder() {
+            setInterval(() => {
+                if (_unsavedGuardBusy || _confirmResolver || _promptResolver) return;
+                if (document.hidden) return;
+                if (!hasUnsavedCerts(activeStudent ? activeStudent.name : null)) return;
+                if (Date.now() - _lastUnsavedNag < 90000) return;
+                guardUnsaved("anda tinggalkan halaman ini");
+            }, 20000);
+        }
+        startUnsavedReminder();
+
+        /* Amaran pelayar bila tutup / refresh tab dengan draf belum simpan */
+        window.addEventListener('beforeunload', (e) => {
+            if (!hasUnsavedCerts()) return;
+            e.preventDefault();
+            e.returnValue = "";
+            return "";
+        });
 
         function renderCerts() {
             const listUI = document.getElementById('certGridUI');
