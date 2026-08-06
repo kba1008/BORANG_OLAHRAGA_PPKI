@@ -174,6 +174,7 @@
         .editor-toolbar button { flex: 0 0 auto; width: auto; padding: 8px 14px; font-size: 13px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border); border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
         .editor-toolbar button.active-tool { background: var(--primary); color: #fff; border-color: var(--primary); }
         .editor-toolbar.editor-toolbar-2 button { background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.45); color: #b45309; }
+        .ed-tools-trigger { display: none; }
 
         .editor-canvas-container { flex: 1; overflow: auto; background: #e5e7eb; border-radius: 10px; border: 1px solid #ccc; position: relative; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; min-height: 240px; padding: 10px; }
         .editor-canvas-container.tool-active { touch-action: none; }
@@ -222,16 +223,31 @@
         .dialog-actions button { width: auto; min-width: 110px; border-radius: 10px; }
         @media (max-width: 600px) {
             #editorModalBox { padding: 10px; }
-            .editor-toolbar { gap: 6px; padding-bottom: 8px; margin-bottom: 8px; }
-            .editor-toolbar button { padding: 0; font-size: 15px; width: 42px; height: 40px; flex: 0 0 auto; }
-            .editor-toolbar .btn-lbl { display: none; }
+            /* Semua butang editor dimasukkan ke dalam satu dropdown */
+            .ed-tools-trigger {
+                display: flex; align-items: center; justify-content: space-between; gap: 10px;
+                width: 100%; padding: 11px 14px; margin-bottom: 8px; font-size: 14px; font-weight: 600;
+                background: var(--primary); color: #fff; border: none; border-radius: 12px;
+            }
+            .ed-tools-trigger .ed-tools-caret { transition: transform .2s ease; font-size: 12px; }
+            .ed-tools-trigger.open .ed-tools-caret { transform: rotate(180deg); }
+            .ed-tools { display: none; background: #fff; border: 1px solid var(--border); border-radius: 12px;
+                box-shadow: var(--shadow); padding: 8px; margin-bottom: 8px; max-height: 46vh; overflow-y: auto; }
+            .ed-tools.open { display: block; }
+            .ed-tools .editor-toolbar { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding-bottom: 8px; margin-bottom: 8px; overflow: visible; }
+            .ed-tools .editor-toolbar:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: none; }
+            .ed-tools .editor-toolbar button { width: 100%; height: auto; padding: 10px 12px; font-size: 13px; justify-content: flex-start; gap: 10px; }
+            .ed-tools .editor-toolbar .btn-lbl { display: inline; }
 
             .dialog-actions button { flex: 1; min-width: 0; }
-            .tool-options { max-height: 33vh; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px; }
+            .tool-options { max-height: 30vh; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px; }
             .txt-panel { gap: 8px; }
             .txt-panel textarea { min-height: 46px; font-size: 13px; }
             .zoom-bar .txt-hint { display: none; }
-            .editor-canvas-container { min-height: 190px; padding: 6px; }
+            .zoom-bar { flex-wrap: wrap; gap: 5px; }
+            .editor-canvas-container { min-height: 200px; padding: 6px; }
+            .editor-footer { gap: 8px; }
+            .editor-footer button { flex: 1; padding: 12px 8px; font-size: 14px; }
             .txt-row > label { font-size: 10px; }
             .txt-panel input[type=range] { min-width: 84px; }
         }
@@ -553,6 +569,11 @@
     <div id="powerEditorModal" class="modal-overlay">
         <div class="modal-box" id="editorModalBox">
             <h3 style="margin-bottom: 10px; text-align: left; font-size: 18px;"><i class="fa-solid fa-pen-ruler"></i> Editor Power</h3>
+            <button type="button" id="edToolsTrigger" class="ed-tools-trigger" aria-expanded="false" aria-controls="edTools" onclick="toggleEditorTools()">
+                <span><i class="fa-solid fa-sliders"></i> <span id="edToolsCurrent">Alat Editor</span></span>
+                <i class="fa-solid fa-chevron-down ed-tools-caret"></i>
+            </button>
+            <div id="edTools" class="ed-tools">
             <div class="editor-toolbar">
                 <button id="toolPan" class="active-tool" onclick="setTool('')" title="Gerak / Skrol" aria-label="Gerak / Skrol"><i class="fa-solid fa-up-down-left-right"></i><span class="btn-lbl">Gerak / Skrol</span></button>
                 <button id="toolText" onclick="setTool('text')" title="Teks" aria-label="Teks"><i class="fa-solid fa-font"></i><span class="btn-lbl">Teks</span></button>
@@ -569,6 +590,7 @@
                 <button onclick="editorReupload()" title="Upload Semula (fail)" aria-label="Upload Semula"><i class="fa-solid fa-cloud-arrow-up"></i><span class="btn-lbl">Upload Semula</span></button>
                 <input type="file" id="edRetakeInput" accept="image/*" capture="environment" style="display:none;">
                 <input type="file" id="edUploadInput" accept="image/*" style="display:none;">
+            </div>
             </div>
 
             <div id="textOptions" class="tool-options">
@@ -877,7 +899,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyd_fRW3KgWkJ_y0593QZ0VbN-vpC63kCB53qtLagXdObtJxz5ErTN3KQn1DLSIXofX/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby45McW2RA2wngleYLw05yE4KSseVVuN3gvXRpajgsTxJcyNOnCzSzBCAQZnMn0pl6S/exec";
 
         const PAGE_SIZE = 60;           // pelajar dimuatkan setiap kali skrol
         /* ===== Auto-center semua popup (ikut viewport sebenar, walaupun skrin di-zoom/scroll) ===== */
@@ -4335,6 +4357,37 @@ ${hairPath}
             selectStudent(val, false, obj);
             if (sel) sel.value = activeStudent ? activeStudent.name : val;
         }
+
+        /* ===== Dropdown alat editor (telefon) ===== */
+        function isMobileView() { return window.matchMedia('(max-width: 600px)').matches; }
+        function toggleEditorTools(force) {
+            const panel = document.getElementById('edTools');
+            const trigger = document.getElementById('edToolsTrigger');
+            if (!panel || !trigger) return;
+            const open = typeof force === 'boolean' ? force : !panel.classList.contains('open');
+            panel.classList.toggle('open', open);
+            trigger.classList.toggle('open', open);
+            trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+        function refreshEditorToolLabel() {
+            const lbl = document.getElementById('edToolsCurrent');
+            if (!lbl) return;
+            const act = document.querySelector('.editor-toolbar button.active-tool .btn-lbl');
+            lbl.textContent = act ? ('Alat: ' + act.textContent.trim()) : 'Alat Editor';
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('#edTools .editor-toolbar button').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    setTimeout(function () {
+                        refreshEditorToolLabel();
+                        if (isMobileView()) toggleEditorTools(false);
+                    }, 0);
+                });
+            });
+            window.addEventListener('resize', function () {
+                if (!isMobileView()) toggleEditorTools(false);
+            });
+        });
     </script>
 </body>
 </html>
